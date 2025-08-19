@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
             Route::controller(FormController::class)->group(function () {
                 Route::get('/forms', 'index')->name('forms');
                 Route::post('/forms', 'store')->name('forms.store');
+                Route::put('/forms', 'update')->name('forms.store');
                 Route::get('/forms/{form}/report', 'report')->name('forms.report');
                 Route::get('/forms/{form}/export', 'export')->name('forms.export');
             });

@@ -40,7 +40,8 @@
                                         <th>Title</th>
                                         <th>Responses</th>
                                         <th>Public Link</th>
-                                        <th>Actions</th>
+                                        <th>Accessible</th>
+                                        <th width="250px">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -49,10 +50,26 @@
                                             <td style="width: 40px">{{ ++$key }}</td>
                                             <td>{{ $form->title }}</td>
                                             <td>{{ $form->responses()->count() }}</td>
-                                            <td><a href="{{ url('/forms/'.$form->slug) }}" target="_blank">{{ url('/forms/'.$form->slug) }}</a></td>
                                             <td>
-                                                <a href="{{ route('forms.report', $form) }}" class="btn btn-sm btn-info">Report</a>
-                                                <a href="{{ route('forms.export', $form) }}" class="btn btn-sm btn-success">Export Excel</a>
+                                                <a href="{{ url('/forms/'.$form->slug) }}" target="_blank">{{ url('/forms/'.$form->slug) }}</a>
+                                            </td>
+                                            <td>{{ ($form->is_public) ? 'True' : 'False' }}</td>
+                                            <td>
+                                                <x-button
+                                                    type="button"
+                                                    icon=""
+                                                    class="btn-info rounded-pill btn-sm"
+                                                    title="Edit Form"
+                                                    name="Edit"
+                                                    data-bs-size="modal-lg" {{--sizes: modal-sm, modal-lg, modal-xl, modal-fullscreen--}}
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#exampleModal"
+                                                    data-bs-title="Edit Form"
+                                                    data-bs-url="/execute_form/edit/forms/{{ $form->id }}"
+                                                />
+{{--                                                <a href="{{ route('forms.edit', $form) }}" class="btn btn-sm btn-info">Edit</a>--}}
+                                                <a href="{{ route('forms.report', $form) }}" class="btn btn-sm btn-primary rounded-pill">Report</a>
+                                                <a href="{{ route('forms.export', $form) }}" class="btn btn-sm btn-success rounded-pill">Export Excel</a>
                                             </td>
                                         </tr>
                                     @empty

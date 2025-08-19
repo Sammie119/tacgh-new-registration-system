@@ -41,13 +41,58 @@ class FormController extends Controller
                 'form_id' => $form->id,
                 'label' => $f['label'],
                 'field_type' => $f['field_type'],
-                'options' => $f['options'] ? explode('|', $f['options']) : null,
+                'options' => $f['options'] ? explode('|', trim($f['options'])) : null,
                 'is_required' => !empty($f['is_required']),
                 'order' => $index,
             ]);
         }
 
-        return redirect()->route('forms')->with('success', 'Form Created Successfully!');;
+        return redirect()->route('forms')->with('success', 'Form Created Successfully!');
+    }
+
+    public function update(Request $request)
+    {
+//        dd($request->all());
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'fields' => 'required|array|min:1',
+            'fields.*.label' => 'required|string|max:255',
+            'fields.*.field_type' => 'required|string',
+        ]);
+
+        $form = Form::find($request->id)->update([
+            'user_id' => get_logged_in_user_id(),
+            'title' => $request->title,
+            'description' => $request->description,
+            'is_public' => $request->has('is_public')
+        ]);
+
+        foreach ($request->fields as $index => $f) {
+            $fields_array = ['radio', 'checkbox', 'dropdown'];
+            if(isset($f['field_id'])) {
+                FormField::find($f['field_id'])->update([
+                    'form_id' => $request->id,
+                    'label' => $f['label'],
+                    'field_type' => $f['field_type'],
+                    'options' => in_array($f['field_type'], $fields_array) ? explode('|', trim($f['options'])) : null,
+                    'is_required' => !empty($f['is_required']),
+                    'order' => $index,
+                ]);
+            } else {
+                FormField::create([
+                    'form_id' => $request->id,
+                    'label' => $f['label'],
+                    'field_type' => $f['field_type'],
+                    'options' => $f['options'] ? explode('|', trim($f['options'])) : null,
+                    'is_required' => !empty($f['is_required']),
+                    'order' => $index,
+                ]);
+            }
+
+        }
+
+        return redirect()->route('forms')->with('success', 'Form Update Successfully!');
     }
 
     public function report(Form $form)

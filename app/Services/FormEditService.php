@@ -8,6 +8,8 @@ use App\Models\Admin\Dropdown;
 use App\Models\Admin\DropdownCategory;
 use App\Models\Admin\Event;
 use App\Models\Admin\EventVenue;
+use App\Models\Admin\Form;
+use App\Models\Admin\FormField;
 use App\Models\FinancialEpisode;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
@@ -47,6 +49,10 @@ class FormEditService
             case 'resident':
                 $data['resident'] = Accommodation::find($id);
                 return view('admin.accommodation.resident.create', $data);
+
+            case 'forms':
+                $data['form'] = Form::find($id);
+                return view('admin.forms.create', $data);
 
             case 'financial_entry':
                 $data['financial_entry'] = FinancialEpisode::find($id);
