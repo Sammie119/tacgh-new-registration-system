@@ -126,6 +126,8 @@ Route::middleware('auth')->group(function () {
                 Route::get('/financial_entries', 'financialEntryIndex')->name('financial_entries');
                 Route::post('/financial_entry', 'financialEntry')->name('financial_entry');
                 Route::put('/financial_entry', 'financialEntryUpdate')->name('financial_entry');
+                Route::get('/financial_report', 'financialReport')->name('financial_report');
+                Route::get('/print_financial_report/{report}', 'printFinancialReport')->name('print_financial_report');
 
 //                Route::post('/registrant_payment', 'registrantPaymentStore')->name('registrant_payment_store');
             });

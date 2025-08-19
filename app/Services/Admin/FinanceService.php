@@ -28,7 +28,7 @@ class FinanceService
 
     public function financialEntryIndex()
     {
-        $data['finances'] = FinancialEpisode::where('event_id', Auth()->user()->event_id)->orderByDesc('transaction_date')->get();
+        $data['finances'] = FinancialEpisode::where('event_id', get_logged_in_user_event_id())->orderByDesc('transaction_date')->get();
         return view('admin.finance.financial_entries', $data);
     }
 
@@ -36,7 +36,7 @@ class FinanceService
     {
         $results = FinancialEpisode::firstOrCreate([
                 'transaction_id' => date("YmdHis"),
-                'event_id' => Auth()->user()->event_id,
+                'event_id' => get_logged_in_user_event_id(),
                 'entry_type' => trim($data['entry_type']),
                 'transaction_type' => $data['transaction_type'],
                 'transaction_date' => $data['transaction_date'],
@@ -75,6 +75,20 @@ class FinanceService
         return redirect(route('financial_entries', absolute: false))->with('error', 'Financial Entry Update Unsuccessful!!!');
     }
 
+    public function financialReport(array $data)
+    {
+        $data = $this->getFinancialPrintData($data);
+
+        return view('admin.finance.financial_report', $data);
+    }
+
+    public function printFinancialReport(array $data)
+    {
+        $data = $this->getFinancialPrintData($data);
+
+        return view('admin.finance.print_financial_report', $data);
+    }
+
     static function financialEntryDelete($id)
     {
         $record = FinancialEpisode::find($id);
@@ -83,5 +97,23 @@ class FinanceService
             return 1;
         }
         return 0;
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    protected function getFinancialPrintData(array $data): array
+    {
+        if (!empty($data['report'])) {
+            $data['online_payments'] = OnlinePayment::where('event_id', get_logged_in_user_event_id())->orderByDesc('date_paid')->get();
+            $data['finance_income'] = FinancialEpisode::where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Income'])->orderByDesc('transaction_date')->get();
+            $data['finance_expense'] = FinancialEpisode::where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Expense'])->orderByDesc('transaction_date')->get();
+            $data['header'] = "Financial Report for " . get_event(get_logged_in_user_event_id())->name;
+            $data['event_id'] = get_logged_in_user_event_id();
+        } else {
+            $data['report'] = [];
+        }
+        return $data;
     }
 }

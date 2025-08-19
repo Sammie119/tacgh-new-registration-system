@@ -175,8 +175,8 @@ class AccommodationService
     {
         $data['room'] = AccommodationRoom::find($id);
         $data['venue_id'] = Accommodation::find($data['room']->residence_id)->venue_id;
-        $data['roommates'] = AssignedRoomEpisode::where(['room_id' => $data['room']->id, 'event_id' => Auth()->user()->event_id])->get();
-        $data['participants'] = Registrant::where('event_id', Auth()->user()->event_id)->get();
+        $data['roommates'] = AssignedRoomEpisode::where(['room_id' => $data['room']->id, 'event_id' => get_logged_in_user_event_id()])->get();
+        $data['participants'] = Registrant::where('event_id', get_logged_in_user_event_id())->get();
         return view('admin.accommodation.room.room', $data);
     }
 

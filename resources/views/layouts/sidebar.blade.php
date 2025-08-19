@@ -38,13 +38,13 @@
                 type="multi"
                 icon="bi bi-cash-coin"
                 id="sys-admin-nav"
-                :routes_array="['payments', 'financial_entries', 'venues']"
+                :routes_array="['payments', 'financial_entries', 'financial_report']"
             >
                 <x-menu-item route="payments" title="Online Payment" />
 
                 <x-menu-item route="financial_entries" title="Financial Entries" />
 
-                <x-menu-item route="venues" title="Financial Report" />
+                <x-menu-item route="financial_report" title="Financial Report" />
 
             </x-menu-main>
         @endif
@@ -54,7 +54,7 @@
                 title="Forms"
                 route="forms"
                 type="single"
-                icon="bi bi-file-earmark-bar-graph"
+                icon="bi bi-journal-text"
             />
 
             <x-menu-main

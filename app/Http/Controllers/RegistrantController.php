@@ -27,7 +27,7 @@ class RegistrantController extends Controller
 
     public function index()
     {
-        return $this->registrant->index(Auth()->user()->event_id);
+        return $this->registrant->index(get_logged_in_user_event_id());
     }
 
     /**

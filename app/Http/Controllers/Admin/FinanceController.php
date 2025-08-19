@@ -17,7 +17,7 @@ class FinanceController extends Controller
 
     public function index()
     {
-        return $this->financeService->index(Auth()->user()->event_id);
+        return $this->financeService->index(get_logged_in_user_event_id());
     }
 
     public function financialClearance(Request $request)
@@ -54,6 +54,17 @@ class FinanceController extends Controller
         ]);
 
         return $this->financeService->financialEntryUpdate($request->all());
+    }
+
+    public function financialReport(Request $request)
+    {
+        return $this->financeService->financialReport($request->all());
+    }
+
+    public function printFinancialReport($report)
+    {
+        $request['report'] = $report;
+        return $this->financeService->printFinancialReport($request);
     }
 
     static public function financialEntryDelete($id)

@@ -180,7 +180,7 @@
                             <form action="{{ route('add_roommate') }}" method="post">
                                 @csrf
                                 <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                <input type="hidden" name="event_id" value="{{ Auth()->user()->event_id }}">
+                                <input type="hidden" name="event_id" value="{{ get_logged_in_user_event_id() }}">
                                 <div class="input-group input-group-sm">
                                     <input type="text" placeholder="Registration Number" list="attendee_id" name="registration_no" required class="form-control">
                                     <datalist id="attendee_id">
@@ -202,7 +202,7 @@
                             <form action="{{ route('transfer_roommate') }}" method="post">
                                 @csrf
                                 <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                <input type="hidden" name="event_id" value="{{ Auth()->user()->event_id }}">
+                                <input type="hidden" name="event_id" value="{{ get_logged_in_user_event_id() }}">
                                 <div class="input-group input-group-sm">
                                     <input type="text" placeholder="Registration Number" list="attendee_id" name="registration_no" required class="form-control">
                                     <span class="input-group-btn">
@@ -220,7 +220,7 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Roommates' Information <small>(Capacity : {{ $room->total_occupants }}) Left : {{ $room->total_occupants - get_total_room_occupants($room->id, Auth()->user()->event_id) }}</small></h5>
+                            <h5 class="card-title">Roommates' Information <small>(Capacity : {{ $room->total_occupants }}) Left : {{ $room->total_occupants - get_total_room_occupants($room->id, get_logged_in_user_event_id()) }}</small></h5>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>

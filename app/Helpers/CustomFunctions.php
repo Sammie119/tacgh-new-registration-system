@@ -23,6 +23,13 @@ if (!function_exists("get_logged_in_user_id")) {
     }
 }
 
+if (!function_exists("get_logged_in_user_event_id")) {
+    function get_logged_in_user_event_id(): int
+    {
+        return Auth::user()->event_id;
+    }
+}
+
 if (!function_exists("get_user_name")) {
     function get_user_name($id): string
     {
