@@ -37,7 +37,7 @@
                 title="Finance"
                 type="multi"
                 icon="bi bi-cash-coin"
-                id="sys-admin-nav"
+                id="finance-nav"
                 :routes_array="['payments', 'financial_entries', 'financial_report']"
             >
                 <x-menu-item route="payments" title="Online Payment" />
@@ -62,7 +62,7 @@
                 type="multi"
                 icon="bi bi-gear-fill"
                 id="sys-admin-nav"
-                :routes_array="['users', 'venues', 'events', 'roles', 'permissions', 'categories', 'accommodations', 'room']"
+                :routes_array="['users', 'venues', 'events', 'roles', 'permissions', 'categories', 'accommodations', 'room', 'downloads']"
             >
                 <x-menu-item route="users" title="User Management" />
 
@@ -71,6 +71,8 @@
                 <x-menu-item route="events" title="Events" />
 
                 <x-menu-item route="categories" title="Lookups" />
+
+                <x-menu-item route="downloads" title="Downloads" />
 
                 @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER))
 

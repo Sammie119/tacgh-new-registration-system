@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Controllers\Admin\AccommodationController;
 use App\Http\Controllers\Admin\AssignedRoomEpisodeController;
+use App\Http\Controllers\Admin\DownloadController;
 use App\Http\Controllers\Admin\DropdownController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\EventFeesController;
@@ -50,6 +51,9 @@ class FormDeleteService
 
             case 'financial_entry':
                 return FinanceController::financialEntryDelete($id);
+
+            case 'downloads':
+                return DownloadController::destroy($id);
 
             default:
                 return "No Form Selected";

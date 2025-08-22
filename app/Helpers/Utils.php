@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\EventFees;
+use Illuminate\Support\Facades\File;
 
 class Utils
 {
@@ -45,5 +46,22 @@ class Utils
         if($fee)
             return $fee;
         return 0;
+    }
+
+    public static function fileUpload($request, $folder = 'uploads', $file_url = null)
+    {
+        if($file_url !== null){
+            $file = 'app/'.$file_url;
+            if (File::exists(storage_path($file))) {
+                File::delete(storage_path($file));
+            }
+        }
+
+        $path = null;
+        if ($request->hasFile('file')) {
+            $path = $request->file('file')->store($folder);
+        }
+
+        return $path;
     }
 }

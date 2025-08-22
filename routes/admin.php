@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AccommodationEpisodeController;
 use App\Http\Controllers\Admin\AccommodationRoomController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AssignedRoomEpisodeController;
+use App\Http\Controllers\Admin\DownloadController;
 use App\Http\Controllers\Admin\DropdownController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\EventFeesController;
@@ -57,6 +58,12 @@ Route::middleware('auth')->group(function () {
 
             Route::controller(EventFeesController::class)->group(function () {
                 Route::post('/fees', 'store')->name('fees');
+            });
+
+            Route::controller(DownloadController::class)->group(function () {
+                Route::get('/downloads', 'index')->name('downloads');
+                Route::post('/download', 'store')->name('download');
+                Route::put('/download', 'update')->name('download');
             });
 
             Route::controller(FormController::class)->group(function () {

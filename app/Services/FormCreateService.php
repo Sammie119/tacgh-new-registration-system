@@ -39,6 +39,9 @@ class FormCreateService
                 $data['transaction_types'] = Utils::getLookups(23);
                 return view('admin.finance.create', $data);
 
+            case 'downloads':
+                return view('admin.downloads.create');
+
             default:
                 return "No Form Selected";
         }

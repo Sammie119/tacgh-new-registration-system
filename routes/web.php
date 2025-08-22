@@ -1,6 +1,7 @@
 <?php
 
 use App\Helpers\Utils;
+use App\Http\Controllers\Admin\DownloadController;
 use App\Http\Controllers\Admin\ResponseController;
 use App\Http\Controllers\RegistrantController;
 use App\Models\Admin\Country;
@@ -43,11 +44,13 @@ Route::controller(RegistrantController::class)->group(function () {
 
     Route::get('/registrant/batch/confirmation/{id}', 'batchRegistrationConfirm');
     Route::post('/batch_confirm', 'batchRegistrationConfirmation')->name('batch.confirm');
-    Route::post('batch_payment', 'batchPayment')->name('batch_payment');
+    Route::post('/batch_payment', 'batchPayment')->name('batch_payment');
 
 
-    Route::post('registrant_logout', 'registrantLogout')->name('registrant_logout');
+    Route::post('/registrant_logout', 'registrantLogout')->name('registrant_logout');
 });
+
+Route::get('/download.file/{file_path}', [DownloadController::class, 'downloadFile'])->name('registrant.download.file');
 
 Route::controller(ResponseController::class)->group(function () {
     Route::get('/forms/{slug}', 'showForm')->name('forms.public');

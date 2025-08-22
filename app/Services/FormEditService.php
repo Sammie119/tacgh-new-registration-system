@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\Utils;
 use App\Models\Admin\Accommodation;
+use App\Models\Admin\Download;
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\DropdownCategory;
 use App\Models\Admin\Event;
@@ -58,6 +59,10 @@ class FormEditService
                 $data['financial_entry'] = FinancialEpisode::find($id);
                 $data['transaction_types'] = Utils::getLookups(23);
                 return view('admin.finance.create', $data);
+
+            case 'downloads':
+                $data['download'] = Download::find($id);
+                return view('admin.downloads.create', $data);
 
             default:
                 return "No Form Selected";
