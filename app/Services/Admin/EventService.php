@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Helpers\Utils;
 use App\Models\Admin\AccommodationEpisode;
 use App\Models\Admin\Event;
 
@@ -13,8 +14,11 @@ class EventService
         return view('admin.event.index', $data);
     }
 
-    public function store(array $data)
+    public function store($data)
     {
+//        dd($data['name']);
+        $path = Utils::fileUpload($data, 'public/events');
+
         $results = Event::firstOrCreate([
                 'name' => trim($data['name']),
                 'description' => trim($data['description']),
@@ -26,6 +30,7 @@ class EventService
             [
                 'is_payment_required' => isset($data['is_payment_required']) ? "Yes" : "No",
                 'active_flag' => isset($data['active_flag']) ? 1 : 0,
+                'flyer_path' => $path,
                 'created_by' => get_logged_in_user_id(),
                 'updated_by' =>  get_logged_in_user_id(),
         ]);
@@ -38,9 +43,13 @@ class EventService
         return redirect(route('events', absolute: false))->with('error', 'Events Creation Unsuccessful!!!');
     }
 
-    public function update(array $data)
+    public function update($data)
     {
-        $results = Event::find($data['id'])->update([
+        $event = Event::find($data['id']);
+
+        $path = Utils::fileUpload($data, 'public/events', $event->flyer_path);
+
+        $results = $event->update([
                 'name' => trim($data['name']),
                 'description' => trim($data['description']),
                 'code_prefix' => trim(strtoupper($data['code_prefix'])),
@@ -50,6 +59,7 @@ class EventService
                 'venue_id' => $data['venue_id'],
                 'status' => trim($data['status']),
                 'active_flag' => isset($data['active_flag']) ? 1 : 0,
+                'flyer_path' => $path,
                 'updated_by' =>  get_logged_in_user_id(),
             ]);
 

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('is_payment_required', ['Yes', 'No'])->default('No');
             $table->enum('status', ['Pending', 'In-Progress', 'Completed'])->default('Pending');
             $table->tinyInteger('active_flag')->default(1);
+            $table->string('flyer_path')->nullable();
             $table->bigInteger('created_by');
             $table->bigInteger('updated_by');
             $table->timestamps();

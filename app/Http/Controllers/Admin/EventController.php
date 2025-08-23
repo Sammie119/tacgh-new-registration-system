@@ -35,9 +35,10 @@ class EventController extends Controller
             'start_date' =>'required',
             'end_date' =>'required',
             'venue_id' =>'required|exists:event_venues,id',
+            'file' =>'nullable|mimes:jpeg,png,jpg,gif,svg,webp|max:1048',
         ]);
 
-        return $this->eventService->store($request->all());
+        return $this->eventService->store($request);
     }
 
     /**
@@ -52,9 +53,10 @@ class EventController extends Controller
             'start_date' =>'required',
             'end_date' =>'required',
             'venue_id' =>'required|exists:event_venues,id',
+            'file' =>'nullable|mimes:jpeg,png,jpg,gif,svg,webp|max:1048',
         ]);
 
-        return $this->eventService->update($request->all());
+        return $this->eventService->update($request);
     }
 
     /**

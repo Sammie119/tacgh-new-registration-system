@@ -40,8 +40,14 @@
         <div class="container-fluid h-custom">
             <div class="row d-flex justify-content-center align-items-center h-100">
                 <div class="col-md-9 col-lg-6 col-xl-5">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-                         class="img-fluid" alt="Sample image">
+                    @php
+                        $image = \App\Models\Admin\Event::where('active_flag', 1)->first()->flyer_path;
+                    @endphp
+                    @empty($image)
+                        <img src="{{ asset('assets/img/tac-gh-logo.png') }}" class="rounded img-fluid img-thumbnail" alt="Sample image">
+                    @else
+                        <img src="{{ asset('storage/' . str_replace("public","", $image)) }}" class="rounded img-fluid img-thumbnail" alt="Sample image">
+                    @endempty
                 </div>
                 <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
 {{--                    <form method="POST" action="{{ route('login') }}">--}}

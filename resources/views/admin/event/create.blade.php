@@ -1,4 +1,4 @@
-<form method="POST" action="{{ route('event') }}">
+<form method="POST" action="{{ route('event') }}" enctype="multipart/form-data">
     @csrf
     @isset($event)
         @method('put')
@@ -76,6 +76,22 @@
                     required=""
                     label="Status"
                 />
+            </div>
+        @endisset
+
+        <div class="px-4 mb-3 col-6">
+            <x-input-text
+                type="file"
+                name="file"
+                required=""
+                label="Flyer"
+            />
+        </div>
+        @isset($event)
+            <div class="px-4 mb-3 col-6">
+                <?php  ?>
+{{--                {{dd(asset('public/storage/' . $event->flyer_path))}}--}}
+                <img src="{{ asset('storage/' . str_replace("public","", $event->flyer_path)) }}" alt="Flyer" width="200">
             </div>
         @endisset
 

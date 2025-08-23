@@ -43,7 +43,7 @@ class RegistrantService
         $data['profession'] = Utils::getLookups(10);
         $data['position_held'] = Utils::getLookups(5);
         $data['nations'] = Country::orderBy('name', 'asc')->get();
-        $data['events'] = Event::where('active_flag', 1)->orderBy('name', 'asc')->get();
+        $data['events'] = Event::where('active_flag', 1)->where('status', '!=', 'Completed')->orderBy('name', 'asc')->get();
         return view('registrant.registration_form', $data);
     }
 
