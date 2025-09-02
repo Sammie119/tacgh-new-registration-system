@@ -5,7 +5,7 @@
 @section('content')
     <div class="container mt-5">
         <div style="text-align: center">
-            <img src="{{ asset("assets/img/logo.png") }}" alt="logo">
+            <img src="{{ asset("assets/img/logo2.png") }}" alt="logo">
         </div>
         <table class="table">
 {{--            <caption>{{ $header }}</caption>--}}

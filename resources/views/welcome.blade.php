@@ -32,6 +32,11 @@
     #forgot-password:hover {
         text-decoration: underline;
     }
+
+    .logo img {
+        max-height: 50px;
+        margin-right: 6px;
+    }
 </style>
 
 <body style="background-color: #fbfcfc">
@@ -50,30 +55,31 @@
                     @endempty
                 </div>
                 <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-{{--                    <form method="POST" action="{{ route('login') }}">--}}
-                        @csrf
+                    <div class="d-flex justify-content-center py-4">
+                        <a class="logo d-flex align-items-center w-auto">
+                            <img src="{{ asset("assets/img/logo3.png") }}" alt="">
+                        </a>
+                    </div><!-- End Logo -->
 
-                        <div class="divider d-flex align-items-center my-4">
-                            <p class="text-center fw-bold mx-1 mb-0"><h3>Yet To Register</h3></p>
-                        </div>
+                    <div class="divider d-flex align-items-center my-4">
+                        <p class="text-center fw-bold mx-1 mb-0"><h3>Yet To Register</h3></p>
+                    </div>
 
-                        <div class="text-center text-lg-start mt-4 pt-2">
-                            <a href="{{ route('registrant.registration') }}" class="btn btn-dark btn-block w-100 rounded-pill" style="padding-left: 2.5rem; padding-right: 2.5rem; font-weight: bolder; height: 3rem; font-size: 1.2rem">
-                                {{ __('Click to Proceed') }}
-                            </a>
-                        </div>
+                    <div class="text-center text-lg-start mt-4 pt-2">
+                        <a href="{{ route('registrant.registration') }}" class="btn btn-dark btn-block w-100 rounded-pill" style="padding-left: 2.5rem; padding-right: 2.5rem; font-weight: bolder; height: 3rem; font-size: 1.2rem">
+                            {{ __('Click to Proceed') }}
+                        </a>
+                    </div>
 
-                        <div class="divider d-flex align-items-center my-4">
-                            <p class="text-center fw-bold mx-1 mb-0"><h3>Already Registered</h3></p>
-                        </div>
+                    <div class="divider d-flex align-items-center my-4">
+                        <p class="text-center fw-bold mx-1 mb-0"><h3>Already Registered</h3></p>
+                    </div>
 
-                        <div class="text-center text-lg-start mt-4 pt-2">
-                            <a href="/registrant_login" class="btn btn-primary btn-block w-100 rounded-pill" style="padding-left: 2.5rem; padding-right: 2.5rem; font-weight: bolder; height: 3rem; font-size: 1.2rem">
-                                {{ __('Log in') }}
-                            </a>
-                        </div>
-
-{{--                    </form>--}}
+                    <div class="text-center text-lg-start mt-4 pt-2">
+                        <a href="/registrant_login" class="btn btn-primary btn-block w-100 rounded-pill" style="padding-left: 2.5rem; padding-right: 2.5rem; font-weight: bolder; height: 3rem; font-size: 1.2rem">
+                            {{ __('Log in') }}
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

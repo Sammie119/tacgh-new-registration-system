@@ -55,6 +55,7 @@
                                         </li>
 
                                         <li><a class="dropdown-item" href="{{ route('payments') }}">Online Payments</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('financial_entries') }}">Financial Entries</a></li>
                                     </ul>
                                 </div>
 
@@ -67,8 +68,7 @@
                                         </div>
                                         <div class="ps-3">
                                             <h6>GH₵{{ number_format($payments + $revenue, 2) }}</h6>
-                                            {{--                                            <span class="text-success small pt-1 fw-bold">8%</span> <span class="text-muted small pt-2 ps-1">increase</span>--}}
-
+                                            <span class="text-success small pt-1 fw-bold">Online: {{ number_format($payments, 2) }}</span> <span class="text-success small pt-1 fw-bold">Income: {{ number_format($revenue, 2) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -173,7 +173,8 @@
                                             <h6>Goto</h6>
                                         </li>
 
-                                        <li><a class="dropdown-item" href="{{ route('financial_entries') }}">Financials</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('payments') }}">Online Payments</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('financial_entries') }}">Financial Entries</a></li>
                                     </ul>
                                 </div>
 

@@ -1,9 +1,22 @@
 @extends('layouts.guest')
 
+<style>
+    .logo img {
+        max-height: 46px !important;
+    }
+</style>
+
 @section('content')
     <main class="mt-4">
+
+        <div class="d-flex justify-content-center py-4">
+            <a class="logo d-flex align-items-center w-auto">
+                <img src="{{ asset("assets/img/logo3.png") }}" alt="">
+            </a>
+        </div><!-- End Logo -->
+
         <div class="container" style="max-width: 70%;">
-            <h1>{{ $form->title }}</h1>
+            <h2>{{ $form->title }}</h2>
             <section class="section">
 
                 <p>{{ $form->description }}</p>
