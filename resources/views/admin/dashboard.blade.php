@@ -34,7 +34,7 @@
                                         </div>
                                         <div class="ps-3">
                                             <h6>{{ $confirmed }}</h6>
-                                            <span class="text-success small pt-1 fw-bold">{{ ($confirmed/$reg_stage) * 100 }}%</span> <span class="text-muted small pt-2 ps-1">Confirmed</span>
+                                            <span class="text-success small pt-1 fw-bold">{{ ($reg_stage == 0) ? 0 : (($confirmed/$reg_stage) * 100) }}%</span> <span class="text-muted small pt-2 ps-1">Confirmed</span>
 
                                         </div>
                                     </div>
@@ -101,7 +101,7 @@
                                         </div>
                                         <div class="ps-3">
                                             <h6>{{ $total_beds }}</h6>
-                                            <span class="text-danger small pt-1 fw-bold">{{ ($beds_occupied/$total_beds) * 100 }}%</span> <span class="text-muted small pt-2 ps-1">Occupied</span>
+                                            <span class="text-danger small pt-1 fw-bold">{{ ($total_beds == 0) ? 0 : (($beds_occupied/$total_beds) * 100) }}%</span> <span class="text-muted small pt-2 ps-1">Occupied</span>
 
                                         </div>
                                     </div>
