@@ -6,10 +6,18 @@
         display: none;
         font-size: 0.9em;
     }
+    .logo img {
+        max-height: 50px !important;
+    }
 </style>
 
 @section('content')
-    <main style="margin: 5%">
+    <main class="container">
+        <div class="d-flex justify-content-center py-4">
+            <a class="logo d-flex align-items-center w-auto">
+                <img src="{{ asset("assets/img/logo3.png") }}" alt="">
+            </a>
+        </div><!-- End Logo -->
         <div class="pagetitle mb-4">
             <h1>Registration Form</h1>
         </div><!-- End Page Title -->

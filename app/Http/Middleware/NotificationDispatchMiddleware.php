@@ -21,7 +21,8 @@ class NotificationDispatchMiddleware
         $job = DB::table('jobs')->count();
 
         if($job >= 1){
-            Artisan::call('schedule:run');
+//            Artisan::call('schedule:run');
+            Artisan::call('queue:work --stop-when-empty');
         }
 
         return $next($request);
