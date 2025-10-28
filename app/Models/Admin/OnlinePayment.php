@@ -14,6 +14,6 @@ class OnlinePayment extends Model
 
     public function registrant()
     {
-        return $this->belongsTo(Registrant::class, 'reg_id');
+        return $this->belongsTo(Registrant::class, 'reg_id', 'stage_id');
     }
 }

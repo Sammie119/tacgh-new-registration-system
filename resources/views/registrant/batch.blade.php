@@ -62,7 +62,7 @@
                                        name="reg[{{ $key }}][amount_paid]"
                                     >
                                 </td>
-                                <td>{{ get_room_number($confirmed_registrant->room_no) }}</td>
+                                <td>{{ get_room_number($confirmed_registrant->room_no ?? 0) }}</td>
                                 @if($amount_paid <= 0)
                                     <td style="width: 90px">
                                         <x-button
