@@ -236,14 +236,14 @@
                                     @forelse($roommates as $key => $roommate)
                                         <tr class="roommate_{{ $room->id }}">
                                             @php
-                                                $registrant = \App\Models\Registrant::where('stage_id', $roommate->registrant_id)->first();
-//                                                dd($registrant_confirm->registration_no);
+                                                $registrant = \App\Models\Registrant::where('id', $roommate->registrant_id)->first();
+//                                                dd($registrant, $roommate, $roommate);
                                             @endphp
                                             <th scope="row">{{ ++$key }}</th>
-                                            <td>{{ $registrant->registration_no }}</td>
-                                            <td>{{ event_registrant_name($registrant->stage_id) }}</td>
-                                            <td>{{ $registrant->stage->phone_number }}</td>
-                                            <td>{{ $registrant->check_in }}</td>
+                                            <td>{{ $registrant->registration_no ?? null }}</td>
+                                            <td>{{ event_registrant_name($registrant->stage_id ?? 0) }}</td>
+                                            <td>{{ $registrant->stage->phone_number ?? null }}</td>
+                                            <td>{{ $registrant->check_in ?? null }}</td>
                                             <td>
                                                 <x-button
                                                     type='button'
