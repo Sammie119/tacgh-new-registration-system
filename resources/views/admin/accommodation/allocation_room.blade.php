@@ -1,3 +1,7 @@
+@php
+    use App\Enums\RolesEnum;
+@endphp
+
 @extends('layouts.app')
 
 @section('title', 'TAC-GH | Allocate Room')
@@ -81,30 +85,34 @@
                                                 title="Add Block"
                                                 style="padding: 6px 10px 6px 10px"
                                             />
-                                            <x-button
-                                                type='button'
-                                                class="btn-icon btn-primary btn-sm"
-                                                icon="bi bi-pencil-square"
-                                                name=""
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#exampleModal"
-                                                data-bs-title="Edit Resident"
-                                                data-bs-url="/execute_form/edit/resident/{{ $accommodation->id }}"
-                                                data-bs-size=""
-                                                title="Edit"
-                                            />
-                                            <x-button
-                                                type='button'
-                                                class="btn-icon btn-danger btn-sm"
-                                                icon="bi bi-trash-fill"
-                                                name=""
-                                                title="Delete"
-                                                onclick="deleteFunction(
-                                                        {{ $accommodation->id }},
-                                                        'accommodation',
-                                                        '/execute_form/delete/accommodation/{{ $accommodation->id }}'
-                                                    )"
-                                            />
+                                            @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER) || use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))
+                                                <x-button
+                                                    type='button'
+                                                    class="btn-icon btn-primary btn-sm"
+                                                    icon="bi bi-pencil-square"
+                                                    name=""
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#exampleModal"
+                                                    data-bs-title="Edit Resident"
+                                                    data-bs-url="/execute_form/edit/resident/{{ $accommodation->id }}"
+                                                    data-bs-size=""
+                                                    title="Edit"
+                                                />
+                                            @endif
+                                            @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER) || use_roles_sidebar(RolesEnum::SYSTEMADMIN))
+                                                <x-button
+                                                    type='button'
+                                                    class="btn-icon btn-danger btn-sm"
+                                                    icon="bi bi-trash-fill"
+                                                    name=""
+                                                    title="Delete"
+                                                    onclick="deleteFunction(
+                                                            {{ $accommodation->id }},
+                                                            'accommodation',
+                                                            '/execute_form/delete/accommodation/{{ $accommodation->id }}'
+                                                        )"
+                                                />
+                                            @endif
                                         </td>
                                     </tr>
                                     @php

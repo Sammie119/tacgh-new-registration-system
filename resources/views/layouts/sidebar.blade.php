@@ -16,7 +16,7 @@
 
         <li class="nav-heading">Menu</li>
 
-        @if(use_roles_sidebar(RolesEnum::ROOMALLOCATOR) || use_roles_sidebar(RolesEnum::SYSTEMADMIN))
+        @if(use_roles_sidebar(RolesEnum::ROOMALLOCATOR) || use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))
             <x-menu-main
                 title="All Registrants"
                 route="all_registrant"
@@ -32,7 +32,7 @@
             />
         @endif
 
-        @if(use_roles_sidebar(RolesEnum::FINANCE) || use_roles_sidebar(RolesEnum::SYSTEMADMIN))
+        @if(use_roles_sidebar(RolesEnum::FINANCE) || use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))
             <x-menu-main
                 title="Finance"
                 type="multi"
@@ -49,7 +49,7 @@
             </x-menu-main>
         @endif
 
-        @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER) || use_roles_sidebar(RolesEnum::SYSTEMADMIN))
+        @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER) || use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))
             <x-menu-main
                 title="Forms"
                 route="forms"
@@ -64,13 +64,15 @@
                 id="sys-admin-nav"
                 :routes_array="['users', 'venues', 'events', 'roles', 'permissions', 'categories', 'accommodations', 'room', 'downloads']"
             >
-                <x-menu-item route="users" title="User Management" />
+                @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER))
+                    <x-menu-item route="users" title="User Management" />
 
-                <x-menu-item route="venues" title="Venue Setup" />
+                    <x-menu-item route="venues" title="Venue Setup" />
 
-                <x-menu-item route="events" title="Events" />
+                    <x-menu-item route="events" title="Events" />
 
-                <x-menu-item route="categories" title="Lookups" />
+                    <x-menu-item route="categories" title="Lookups" />
+                @endif
 
                 <x-menu-item route="downloads" title="Downloads" />
 
