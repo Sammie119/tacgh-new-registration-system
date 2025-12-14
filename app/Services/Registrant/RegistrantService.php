@@ -51,7 +51,7 @@ class RegistrantService
     {
         $token = Utils::generateToken(6);
 
-        $results = RegistrantStage::firstOrCreate([
+        $results = RegistrantStage::updateOrCreate([
                 'date_of_birth' => $data['date_of_birth'],
                 'gender' => $data['gender'],
                 'phone_number' => $data['phone_number'],
