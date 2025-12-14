@@ -23,7 +23,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard', 'index')->middleware(['verified'])->name('dashboard');
         });
 
-        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value]], function () {
+        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::SUPERADMIN->value]], function () {
             Route::controller(DropdownController::class)->group(function () {
                 Route::get('/categories', 'indexCategory')->name('categories');
                 Route::post('/category', 'storeCategory')->name('category');
@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
             });
         });
 
-        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::ROOMALLOCATOR->value]], function () {
+        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::ROOMALLOCATOR->value.'|'.RolesEnum::SUPERADMIN->value]], function () {
             Route::controller(RegistrantController::class)->group(function () {
                 Route::get('/all_registrant', 'index')->name('all_registrant');
             });
@@ -127,7 +127,7 @@ Route::middleware('auth')->group(function () {
             })->name('check_out');
         });
 
-        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::FINANCE->value]], function () {
+        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::FINANCE->value.'|'.RolesEnum::SUPERADMIN->value]], function () {
             Route::controller(FinanceController::class)->group(function () {
                 Route::get('/payments', 'index')->name('payments');
                 Route::post('/financial_clearance', 'financialClearance')->name('financial_clearance');
