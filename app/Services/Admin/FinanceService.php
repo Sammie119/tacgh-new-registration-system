@@ -125,6 +125,7 @@ class FinanceService
     public function onlinePaymentCorrectionStore(array $data)
     {
         $confirmed_registrant = DB::table('vw_registration')->where(['registration_no' => $data['registration_no'], 'event_id' => get_logged_in_user_event_id()])->first();
+        $batch_no = RegistrantStage::find($confirmed_registrant->stage_id)->batch_no;
 
         $results = OnlinePayment::create([
             'reg_id' => $confirmed_registrant->stage_id,
@@ -136,7 +137,7 @@ class FinanceService
             'comment' => 'Verification successful',
             'approved' => 1,
             'approved_at' => $data['date_paid'],
-            'batch_no' => empty($data['batch_no']) ? 0 : $data['batch_no'],
+            'batch_no' => $batch_no,
             'event_total_fee' => $confirmed_registrant->total_fee,
             'payment_token' => $data['transaction_no'],
             'payment_status' => 1,

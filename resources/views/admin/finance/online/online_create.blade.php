@@ -41,22 +41,16 @@
                 value=""
             />
         </div>
+
         <div class="px-4 mb-3 col-6">
-            <x-input-text
-                type="text"
+            <x-input-select
+                :options="['Bank Transfer', 'Card', 'Mobile Money']"
+                :selected="0"
                 name="payment_mode"
+                :type="1"
+                :values="['bank_transfer', 'card', 'mobile_money']"
                 required="true"
                 label="Payment Mode"
-                value=""
-            />
-        </div>
-        <div class="px-4 mb-3 col-6">
-            <x-input-text
-                type="text"
-                name="batch_no"
-                required="true"
-                label="Batch No"
-                value=""
             />
         </div>
     </div>
