@@ -109,6 +109,8 @@ class FinanceService
             $data['online_payments'] = OnlinePayment::where('event_id', get_logged_in_user_event_id())->orderByDesc('date_paid')->get();
             $data['finance_income'] = FinancialEpisode::where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Income'])->orderByDesc('transaction_date')->get();
             $data['finance_expense'] = FinancialEpisode::where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Expense'])->orderByDesc('transaction_date')->get();
+            $data['finance_income_group'] = FinancialEpisode::selectRaw("transaction_type, SUM(amount) AS amount")->where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Income'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
+            $data['finance_expense_group'] = FinancialEpisode::selectRaw("transaction_type, SUM(amount) AS amount")->where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Expense'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
             $data['header'] = "Financial Report for " . get_event(get_logged_in_user_event_id())->name;
             $data['event_id'] = get_logged_in_user_event_id();
         } else {

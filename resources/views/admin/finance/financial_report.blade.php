@@ -74,14 +74,16 @@
                                                             <th></th>
                                                         </tr>
                                                         <tr>
-                                                            <th style="padding-left: 20px;">REGISTRATION FEE</th>
+                                                            <th style="padding-left: 20px;">Registration Fees</th>
                                                             <th style="text-align: right">{{ number_format($online_payments->sum('amount_paid'), 2) }}</th>
                                                             <th></th>
                                                         </tr>
                                                         <tr>
-                                                            <th style="padding-left: 20px;">INCOME</th>
-                                                            <th style="text-align: right">{{ number_format($finance_income->sum('amount'), 2) }}</th>
-                                                            <th></th>
+                                                            @foreach($finance_income_group as $income)
+                                                                <th style="padding-left: 20px;">{{ get_dropdown_name($income->transaction_type) }}</th>
+                                                                <th style="text-align: right">{{ number_format($income->amount, 2) }}</th>
+                                                                <th></th>
+                                                            @endforeach
                                                         </tr>
                                                         <tr>
                                                             <?php $income = $finance_income->sum('amount') + $online_payments->sum('amount_paid'); ?>
@@ -93,6 +95,13 @@
                                                             <th>EXPENSES</th>
                                                             <th></th>
                                                             <th></th>
+                                                        </tr>
+                                                        <tr>
+                                                            @foreach($finance_expense_group as $expense)
+                                                                <th style="padding-left: 20px;">{{ get_dropdown_name($expense->transaction_type) }}</th>
+                                                                <th style="text-align: right">{{ number_format($expense->amount, 2) }}</th>
+                                                                <th></th>
+                                                            @endforeach
                                                         </tr>
                                                         <tr>
                                                             <th style="padding-left: 20px;">TOTAL EXPENSES</th>
