@@ -1,3 +1,7 @@
+@php
+    use App\Enums\RolesEnum;
+@endphp
+
 @extends('layouts.app')
 
 @section('title', 'TAC-GH | Finances')
@@ -15,18 +19,20 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="card-title">Finances</h5>
-{{--                                <x-button--}}
-{{--                                    type="button"--}}
-{{--                                    icon="bi bi-plus-lg"--}}
-{{--                                    class="btn-primary rounded-pill"--}}
-{{--                                    title="Add New Record"--}}
-{{--                                    name="New Event"--}}
-{{--                                    data-bs-size="modal-lg" --}}{{--sizes: modal-sm, modal-lg, modal-xl, modal-fullscreen--}}
-{{--                                    data-bs-toggle="modal"--}}
-{{--                                    data-bs-target="#exampleModal"--}}
-{{--                                    data-bs-title="Add New Event"--}}
-{{--                                    data-bs-url="/execute_form/create/event"--}}
-{{--                                />--}}
+                                @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER))
+                                    <x-button
+                                        type="button"
+                                        icon="bi bi-plus-lg"
+                                        class="btn-primary rounded-pill"
+                                        title="Add Online Payment"
+                                        name="Online Payment"
+                                        data-bs-size="modal-lg" {{--sizes: modal-sm, modal-lg, modal-xl, modal-fullscreen--}}
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#exampleModal"
+                                        data-bs-title="Add Online Payment"
+                                        data-bs-url="/execute_form/create/online_payment_correction"
+                                    />
+                                @endif
                             </div>
 
                             <x-notify-error :messages="$errors->all()" />

@@ -71,4 +71,17 @@ class FinanceController extends Controller
     {
         return FinanceService::financialEntryDelete($id);
     }
+
+    public function onlinePaymentCorrectionStore(Request $request)
+    {
+        $request->validate([
+            'registration_no' => 'required',
+            'payment_mode' => 'required',
+            'transaction_no' => 'required',
+            'amount_paid' => 'required',
+            'date_paid' => 'required|date',
+        ]);
+
+        return $this->financeService->onlinePaymentCorrectionStore($request->all());
+    }
 }

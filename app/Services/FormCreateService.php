@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Helpers\Utils;
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\EventVenue;
+use Illuminate\Support\Facades\DB;
 
 class FormCreateService
 {
@@ -41,6 +42,10 @@ class FormCreateService
 
             case 'downloads':
                 return view('admin.downloads.create');
+
+            case 'online_payment_correction':
+                $data['registrants'] = DB::table('vw_registration')->where('event_id', get_logged_in_user_event_id())->get();
+                return view('admin.finance.online.online_create', $data);
 
             default:
                 return "No Form Selected";

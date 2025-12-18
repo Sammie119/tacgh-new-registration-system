@@ -4,6 +4,9 @@ namespace App\Services\Admin;
 
 use App\Models\Admin\OnlinePayment;
 use App\Models\FinancialEpisode;
+use App\Models\Registrant;
+use App\Models\RegistrantStage;
+use Illuminate\Support\Facades\DB;
 
 class FinanceService
 {
@@ -117,5 +120,34 @@ class FinanceService
             $data['report'] = [];
         }
         return $data;
+    }
+
+    public function onlinePaymentCorrectionStore(array $data)
+    {
+        $confirmed_registrant = DB::table('vw_registration')->where(['registration_no' => $data['registration_no'], 'event_id' => get_logged_in_user_event_id()])->first();
+
+        $results = OnlinePayment::create([
+            'reg_id' => $confirmed_registrant->stage_id,
+            'payment_mode' => $data['payment_mode'],
+            'transaction_no' => $data['transaction_no'],
+            'amount_to_pay' => $confirmed_registrant->total_fee,
+            'amount_paid' => $data['amount_paid'],
+            'date_paid' => $data['date_paid'],
+            'comment' => 'Verification successful',
+            'approved' => 1,
+            'approved_at' => $data['date_paid'],
+            'batch_no' => empty($data['batch_no']) ? 0 : $data['batch_no'],
+            'event_total_fee' => $confirmed_registrant->total_fee,
+            'payment_token' => $data['transaction_no'],
+            'payment_status' => 1,
+            'event_id' => get_logged_in_user_event_id(),
+        ]);
+
+
+        if($results){
+            return redirect(route('payments', absolute: false))->with('success', 'Online Payment Entry Created Successfully!!!');
+        }
+
+        return redirect(route('payments', absolute: false))->with('error', 'Online Payment Entry Creation Unsuccessful!!!');
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\RolesEnum;
+use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -40,6 +41,10 @@ Route::middleware('auth')->group(function () {
                 Route::put('/role', 'update')->name('role');
 //        Route::post('delete_role', 'destroy');
                 Route::put('/assign_permissions', 'assignPermission')->name('assign_permissions');
+            });
+
+            Route::controller(FinanceController::class)->group(function () {
+                Route::post('/store_online_payment_correction', 'onlinePaymentCorrectionStore')->name('store_online_payment_correction');
             });
         });
 
