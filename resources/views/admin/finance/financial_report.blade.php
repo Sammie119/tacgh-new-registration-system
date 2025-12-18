@@ -74,7 +74,7 @@
                                                             <th></th>
                                                         </tr>
                                                         <tr>
-                                                            <th style="padding-left: 20px;">ONLINE PAYMENT</th>
+                                                            <th style="padding-left: 20px;">REGISTRATION FEE</th>
                                                             <th style="text-align: right">{{ number_format($online_payments->sum('amount_paid'), 2) }}</th>
                                                             <th></th>
                                                         </tr>
@@ -133,11 +133,13 @@
                                                             <th></th>
                                                         </tr>
                                                         @foreach($online_payments as $online)
-                                                            <tr>
-                                                                <td style="padding-left: 20px;">Online Payment - {{ event_registrant_name($online->reg_id) }}</td>
-                                                                <td style="text-align: right">{{ number_format($online->amount_paid, 2) }}</td>
-                                                                <td></td>
-                                                            </tr>
+                                                            @if($online->amount_paid > 0)
+                                                                <tr>
+                                                                    <td style="padding-left: 20px;">Registration - {{ event_registrant_name($online->reg_id) }}</td>
+                                                                    <td style="text-align: right">{{ number_format($online->amount_paid, 2) }}</td>
+                                                                    <td></td>
+                                                                </tr>
+                                                            @endif
                                                         @endforeach
                                                         @foreach($finance_income as $f_income)
                                                             <tr>

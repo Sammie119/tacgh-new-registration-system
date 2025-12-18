@@ -53,47 +53,49 @@
                                                 'event_id' => $finance->event_id
                                             ])->sum('amount_paid');
                                     @endphp
-                                    <tr class="event_{{ $finance->id }}">
-                                        <td style="width: 40px">{{ ++$key }}</td>
-                                        <td>{{ event_registrant_name($finance->reg_id) }}</td>
-                                        <td>{{ $finance->registrant->registration_no }}</td>
-                                        <td>{{ $finance->amount_to_pay }}</td>
-                                        <td>{{ $finance->amount_paid }}</td>
-                                        <td>{{ ($finance->payment_status) ? 'Successful' : 'Failed' }}</td>
-                                        <td>{{ $finance->date_paid }}</td>
-                                        <td style="width: 50px">
-                                            @if($amount_paid >= $finance->amount_to_pay)
-                                                <x-button
-                                                    type='button'
-                                                    class="btn-info btn-sm"
-                                                    icon="fas fa-angle-double-down"
-                                                    name="Approve"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#exampleModal"
-                                                    data-bs-title="Clearance"
-                                                    data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
-                                                    data-bs-size=""
-                                                    title="Approve"
-                                                    style="padding: 6px 10px 6px 10px"
-                                                    disabled
-                                                />
-                                            @else
-                                                <x-button
-                                                    type='button'
-                                                    class="btn-info btn-sm"
-                                                    icon="fas fa-angle-double-down"
-                                                    name="Approve"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#exampleModal"
-                                                    data-bs-title="Clearance"
-                                                    data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
-                                                    data-bs-size=""
-                                                    title="Approve"
-                                                    style="padding: 6px 10px 6px 10px"
-                                                />
-                                            @endif
-                                        </td>
-                                    </tr>
+                                    @if($finance->amount_to_pay > 0)
+                                        <tr class="event_{{ $finance->id }}">
+                                            <td style="width: 40px">{{ ++$key }}</td>
+                                            <td>{{ event_registrant_name($finance->reg_id) }}</td>
+                                            <td>{{ $finance->registrant->registration_no }}</td>
+                                            <td>{{ $finance->amount_to_pay }}</td>
+                                            <td>{{ $finance->amount_paid }}</td>
+                                            <td>{{ ($finance->payment_status) ? 'Successful' : 'Failed' }}</td>
+                                            <td>{{ $finance->date_paid }}</td>
+                                            <td style="width: 50px">
+                                                @if($amount_paid >= $finance->amount_to_pay)
+                                                    <x-button
+                                                        type='button'
+                                                        class="btn-info btn-sm"
+                                                        icon="fas fa-angle-double-down"
+                                                        name="Approve"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#exampleModal"
+                                                        data-bs-title="Clearance"
+                                                        data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
+                                                        data-bs-size=""
+                                                        title="Approve"
+                                                        style="padding: 6px 10px 6px 10px"
+                                                        disabled
+                                                    />
+                                                @else
+                                                    <x-button
+                                                        type='button'
+                                                        class="btn-info btn-sm"
+                                                        icon="fas fa-angle-double-down"
+                                                        name="Approve"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#exampleModal"
+                                                        data-bs-title="Clearance"
+                                                        data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
+                                                        data-bs-size=""
+                                                        title="Approve"
+                                                        style="padding: 6px 10px 6px 10px"
+                                                    />
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endif
                                 @empty
                                     <tr>
                                         <td colspan="50">No Data Found</td>
