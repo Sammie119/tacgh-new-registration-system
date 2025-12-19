@@ -130,6 +130,26 @@ class RegistrantService
 
     }
 
+    public function individualRegistrationUpdate(array $data)
+    {
+        $result = Registrant::where('stage_id', $data['reg_id'])->update([
+            'accommodation_type' => $data['accommodation_fee'],
+            'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
+            'registration_type' => $data['registration_fee'],
+            'registration_fee' => Utils::eventRegistrationFee($data['registration_fee']),
+            'total_fee' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
+        ]);
+
+        if($result) {
+            OnlinePayment::where('reg_id', $data['reg_id'])->update([
+                'amount_to_pay' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
+                'event_total_fee' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
+            ]);
+        }
+
+        return back()->with("success", "Registration Detail Updated Successful!!!");
+    }
+
     public function exportRegistrationStage()
     {
         return Excel::download(new RegistrationStageExport(), 'registration_template.xlsx');

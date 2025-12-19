@@ -12,6 +12,7 @@ use App\Models\RegistrantStage;
 use App\Services\Admin\PaymentService;
 use App\Services\Registrant\RegistrantService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class RegistrantController extends Controller
@@ -58,6 +59,12 @@ class RegistrantController extends Controller
         $this->formValidation($request);
 
         return $this->registrant->individualRegistrationConfirm($request->all());
+//        dd($request->all());
+    }
+
+    public function individualRegistrationUpdate(Request $request)
+    {
+        return $this->registrant->individualRegistrationUpdate($request->all());
 //        dd($request->all());
     }
 

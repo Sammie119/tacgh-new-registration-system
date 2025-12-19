@@ -15,9 +15,9 @@
             <x-notify-error :messages="Session::get('success')" :type="1"/>
             <x-notify-error :messages="Session::get('error')" :type="2"/>
             @php
-                $fees = App\Models\Registrant::where('stage_id', $registrant->id)->first();
+                $confirmed = App\Models\Registrant::where('stage_id', $registrant->id)->first();
             @endphp
-            @if(!$fees)
+            @if(!$confirmed)
                 <h3>Individual Registration Process</h3>
                 <section class="section">
                     <div class="row">
@@ -368,285 +368,309 @@
                 </section>
             @else
                 <h3>Individual Registration Confirmed</h3>
-                <section class="section">
-                    <div class="row">
-                        <div class="col-lg-6">
+                <form action="{{ route('registrant.update') }}" method="post">
+                    @csrf
+                    <input type="hidden" value="{{ $registrant->id }}" name="reg_id" >
+                    <section class="section">
+                        <div class="row">
+                            <div class="col-lg-6">
 
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Profile</h5>
-                                    <table class="table">
-                                        <thead>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Profile</h5>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">Attribute</th>
+                                                    <th scope="col">Information</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">1</th>
+                                                    <td>Name</td>
+                                                    <td>{{ event_registrant_name ($registrant->id) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">2</th>
+                                                    <td>Gender</td>
+                                                    <td>{{ get_dropdown_name($registrant->gender) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">3</th>
+                                                    <td>Date of Birth</td>
+                                                    <td>{{ $registrant->date_of_birth }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">4</th>
+                                                    <td>Marital Status</td>
+                                                    <td>{{ get_dropdown_name($registrant->marital_status) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">5</th>
+                                                    <td>Nationality</td>
+                                                    <td>{{ get_country($registrant->nationality_id) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">6</th>
+                                                    <td>Phone Number</td>
+                                                    <td>{{ $registrant->phone_number }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">7</th>
+                                                    <td>Whatsapp Number</td>
+                                                    <td>{{ $registrant->whatsapp_number }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">8</th>
+                                                    <td>Email</td>
+                                                    <td>{{ $registrant->email }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">9</th>
+                                                    <td>Address</td>
+                                                    <td>{{ $registrant->address }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">10</th>
+                                                    <td>Position Held</td>
+                                                    <td>{{ get_dropdown_name($registrant->position_held) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">11</th>
+                                                    <td>Profession</td>
+                                                    <td>{{ get_dropdown_name($registrant->profession) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">12</th>
+                                                    <td>Residence Country</td>
+                                                    <td>{{ get_country($registrant->residence_country_id) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">13</th>
+                                                    <td>languages_spoken</td>
+                                                    <td>{{ $registrant->languages_spoken }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">14</th>
+                                                    <td>Need Accommodation</td>
+                                                    <td>{{ $registrant->need_accommodation ? "Yes" : "No" }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">15</th>
+                                                    <td>Emergency Contacts Name</td>
+                                                    <td>{{ $registrant->emergency_contacts_name }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">16</th>
+                                                    <td>Emergency Contacts Relationship</td>
+                                                    <td>{{ $registrant->emergency_contacts_relationship }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">17</th>
+                                                    <td>Emergency Contact Phone Number</td>
+                                                    <td>{{ $registrant->emergency_contacts_phone_number }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">18</th>
+                                                    <td>Attendance Type</td>
+                                                    <td>{{ $registrant->attendance_type }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">19</th>
+                                                    <td>Event</td>
+                                                    <td>{{ get_event($registrant->event_id)->name }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">20</th>
+                                                    <td>Disability</td>
+                                                    <td>{{ $registrant->disability ? "Yes" : "No" }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">21</th>
+                                                    <td>Special Needs</td>
+                                                    <td>{{ $registrant->special_needs }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">22</th>
+                                                    <td>Confirmed</td>
+                                                    <td>{{ $registrant->confirmed }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">23</th>
+                                                    <td>token</td>
+                                                    <td>{{ $registrant->token }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">24</th>
+                                                    <td>batch_no</td>
+                                                    <td>{{ $registrant->batch_no }}</td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="col-lg-6">
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Accommodation & Fees</h5>
+
+                                        <table class="table">
+                                            <thead>
                                             <tr>
                                                 <th scope="col">#</th>
                                                 <th scope="col">Attribute</th>
                                                 <th scope="col">Information</th>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <th scope="row">1</th>
-                                                <td>Name</td>
-                                                <td>{{ event_registrant_name ($registrant->id) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">2</th>
-                                                <td>Gender</td>
-                                                <td>{{ get_dropdown_name($registrant->gender) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">3</th>
-                                                <td>Date of Birth</td>
-                                                <td>{{ $registrant->date_of_birth }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">4</th>
-                                                <td>Marital Status</td>
-                                                <td>{{ get_dropdown_name($registrant->marital_status) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">5</th>
-                                                <td>Nationality</td>
-                                                <td>{{ get_country($registrant->nationality_id) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">6</th>
-                                                <td>Phone Number</td>
-                                                <td>{{ $registrant->phone_number }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">7</th>
-                                                <td>Whatsapp Number</td>
-                                                <td>{{ $registrant->whatsapp_number }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">8</th>
-                                                <td>Email</td>
-                                                <td>{{ $registrant->email }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">9</th>
-                                                <td>Address</td>
-                                                <td>{{ $registrant->address }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">10</th>
-                                                <td>Position Held</td>
-                                                <td>{{ get_dropdown_name($registrant->position_held) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">11</th>
-                                                <td>Profession</td>
-                                                <td>{{ get_dropdown_name($registrant->profession) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">12</th>
-                                                <td>Residence Country</td>
-                                                <td>{{ get_country($registrant->residence_country_id) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">13</th>
-                                                <td>languages_spoken</td>
-                                                <td>{{ $registrant->languages_spoken }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">14</th>
-                                                <td>Need Accommodation</td>
-                                                <td>{{ $registrant->need_accommodation ? "Yes" : "No" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">15</th>
-                                                <td>Emergency Contacts Name</td>
-                                                <td>{{ $registrant->emergency_contacts_name }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">16</th>
-                                                <td>Emergency Contacts Relationship</td>
-                                                <td>{{ $registrant->emergency_contacts_relationship }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">17</th>
-                                                <td>Emergency Contact Phone Number</td>
-                                                <td>{{ $registrant->emergency_contacts_phone_number }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">18</th>
-                                                <td>Attendance Type</td>
-                                                <td>{{ $registrant->attendance_type }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">19</th>
-                                                <td>Event</td>
-                                                <td>{{ get_event($registrant->event_id)->name }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">20</th>
-                                                <td>Disability</td>
-                                                <td>{{ $registrant->disability ? "Yes" : "No" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">21</th>
-                                                <td>Special Needs</td>
-                                                <td>{{ $registrant->special_needs }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">22</th>
-                                                <td>Confirmed</td>
-                                                <td>{{ $registrant->confirmed }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">23</th>
-                                                <td>token</td>
-                                                <td>{{ $registrant->token }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">24</th>
-                                                <td>batch_no</td>
-                                                <td>{{ $registrant->batch_no }}</td>
-                                            </tr>
-
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="col-lg-6">
-
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Accommodation & Fees</h5>
-
-                                    <table class="table">
-                                        <thead>
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">Attribute</th>
-                                            <th scope="col">Information</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <th scope="row">1</th>
-                                                <td>Name</td>
-                                                <td>{{ event_registrant_name ($registrant->id) }}</td>
-                                            </tr>
-
-                                            <tr>
-                                                <th scope="row">2</th>
-                                                <td>registration_no</td>
-                                                <td>{{ $confirmed_registrant->registration_no }}</td>
-                                            </tr>
-
-                                            <tr>
-                                                <th scope="row">5</th>
-                                                <td>Accommodation Type</td>
-                                                <td>{{ get_registration_type($confirmed_registrant->accommodation_type) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">7</th>
-                                                <td>Registration Type</td>
-                                                <td>{{ get_registration_type($confirmed_registrant->registration_type) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">6</th>
-                                                <td>Accommodation Fee</td>
-                                                <td>{{ $confirmed_registrant->accommodation_fee }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">8</th>
-                                                <td>Registration Fee</td>
-                                                <td>{{ $confirmed_registrant->registration_fee }}</td>
-                                            </tr>
-
-                                            <tr>
-                                                <th scope="row">9</th>
-                                                <td>Total Fee</td>
-                                                <td>{{ $confirmed_registrant->total_fee }}</td>
-                                            </tr>
-
-                                            <tr>
-                                                <th scope="row">10</th>
-                                                <td>Room Number</td>
-                                                <td>{{ get_room_number($confirmed_registrant->room_no) }}</td>
-                                            </tr>
-
-                                            <tr>
-                                                <th scope="row">11</th>
-                                                <td>Check-In</td>
-                                                <td>{{ $confirmed_registrant->check_in }}</td>
-                                            </tr>
-
-                                            <tr>
-                                                <th scope="row">12</th>
-                                                <td>Check-Out</td>
-                                                <td>{{ $confirmed_registrant->check_out }}</td>
-                                            </tr>
-
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Payment Information</h5>
-
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">#</th>
-                                                <th scope="col">Mode</th>
-                                                <th scope="col">Amount</th>
-                                                <th scope="col">Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $total = 0;
-                                            @endphp
-                                            @forelse($payments as $key => $payment)
+                                            </thead>
+                                            <tbody>
                                                 <tr>
-                                                    <th scope="row">{{ ++$key }}</th>
-                                                    <td>{{ $payment->payment_mode }}</td>
-                                                    <td>{{ number_format($payment->amount_paid, 2) }}</td>
-                                                    <td>{{ $payment->date_paid }}</td>
+                                                    <th scope="row">1</th>
+                                                    <td>Name</td>
+                                                    <td>{{ event_registrant_name ($registrant->id) }}</td>
                                                 </tr>
+
+                                                <tr>
+                                                    <th scope="row">2</th>
+                                                    <td>registration_no</td>
+                                                    <td>{{ $confirmed_registrant->registration_no }}</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">5</th>
+                                                    <td>Accommodation Type</td>
+                                                    <td>
+                                                        <select name="accommodation_fee" class="form-control">
+                                                            @foreach ($accommodation as $item)
+                                                                <option @if($confirmed_registrant->accommodation_type == $item->id) selected @endif value="{{ $item->id }}">{{ $item->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">7</th>
+                                                    <td>Registration Type</td>
+                                                    <td>
+                                                        <select name="registration_fee" class="form-control">
+                                                            @foreach ($registration as $item)
+                                                                <option @if($confirmed_registrant->registration_type == $item->id) selected @endif value="{{ $item->id }}">{{ $item->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">6</th>
+                                                    <td>Accommodation Fee</td>
+                                                    <td>{{ $confirmed_registrant->accommodation_fee }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">8</th>
+                                                    <td>Registration Fee</td>
+                                                    <td>{{ $confirmed_registrant->registration_fee }}</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">9</th>
+                                                    <td>Total Fee</td>
+                                                    <td>{{ $confirmed_registrant->total_fee }}</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">10</th>
+                                                    <td>Room Number</td>
+                                                    <td>{{ get_room_number($confirmed_registrant->room_no) }}</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">11</th>
+                                                    <td>Check-In</td>
+                                                    <td>{{ $confirmed_registrant->check_in }}</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">12</th>
+                                                    <td>Check-Out</td>
+                                                    <td>{{ $confirmed_registrant->check_out }}</td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                        <div style="text-align: right">
+                                            <x-button
+                                                type='submit'
+                                                class="btn-success rounded-pill"
+                                                icon="bi bi-save2"
+                                                name="Submit"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Payment Information</h5>
+
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">Mode</th>
+                                                    <th scope="col">Amount</th>
+                                                    <th scope="col">Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 @php
-                                                    $total += $payment->amount_paid;
+                                                    $total = 0;
                                                 @endphp
-                                            @empty
-                                                <tr>
-                                                    <td colspan="6">No Data Found</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th colspan="2">Total</th>
-                                                <th>{{ number_format($total, 2) }}</th>
-                                                <th></th>
-                                            </tr>
-                                            @if($confirmed_registrant->total_fee > $total)
-                                                <form action="{{ route('make_payment') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="stage_id" value="{{ $registrant->id }}">
+                                                @forelse($payments as $key => $payment)
                                                     <tr>
-                                                        <th colspan="2">Pay Remainder</th>
-                                                        <th><input type="number" name="total_fee" value="{{ number_format($confirmed_registrant->total_fee - $total, 2) }}" class="form-control"/></th>
-                                                        <th><button class="btn btn-primary">Pay</button></th>
+                                                        <th scope="row">{{ ++$key }}</th>
+                                                        <td>{{ $payment->payment_mode }}</td>
+                                                        <td>{{ number_format($payment->amount_paid, 2) }}</td>
+                                                        <td>{{ $payment->date_paid }}</td>
                                                     </tr>
-                                                </form>
-                                            @endif
-                                        </tfoot>
-                                    </table>
+                                                    @php
+                                                        $total += $payment->amount_paid;
+                                                    @endphp
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="6">No Data Found</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="2">Total</th>
+                                                    <th>{{ number_format($total, 2) }}</th>
+                                                    <th></th>
+                                                </tr>
+                                                @if($confirmed_registrant->total_fee > $total)
+                                                    <form action="{{ route('make_payment') }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="stage_id" value="{{ $registrant->id }}">
+                                                        <tr>
+                                                            <th colspan="2">Pay Remainder</th>
+                                                            <th><input type="number" name="total_fee" value="{{ number_format($confirmed_registrant->total_fee - $total, 2) }}" class="form-control"/></th>
+                                                            <th><button class="btn btn-primary">Pay</button></th>
+                                                        </tr>
+                                                    </form>
+                                                @endif
+                                            </tfoot>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                </form>
             @endif
         </div>
     </main>

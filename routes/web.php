@@ -33,6 +33,7 @@ Route::controller(RegistrantController::class)->group(function () {
     Route::get('/registration', 'register')->name('registrant.registration');
     Route::post('/registration', 'store')->name('registrant.store');
     Route::post('/registration_confirm', 'individualRegistrationConfirm')->name('registrant.confirm');
+    Route::post('/registration_update', 'individualRegistrationUpdate')->name('registrant.update');
     Route::post('/registration_batch', 'batchRegistrationStage')->name('registrant.batch');
     Route::get('/registrant_download', 'exportRegistrationStage')->name('registrant_download');
 
