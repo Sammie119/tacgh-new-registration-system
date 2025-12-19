@@ -19,7 +19,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="card-title">Finances</h5>
-                                @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER))
+                                @if(use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::FINANCE) || use_roles_sidebar(RolesEnum::SUPERADMIN))
                                     <x-button
                                         type="button"
                                         icon="bi bi-plus-lg"

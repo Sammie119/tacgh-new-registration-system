@@ -84,4 +84,9 @@ class FinanceController extends Controller
 
         return $this->financeService->onlinePaymentCorrectionStore($request->all());
     }
+
+    public function checkPaymentConfirmation(Request $request)
+    {
+        return $this->financeService->checkPaymentConfirmation($request->all());
+    }
 }

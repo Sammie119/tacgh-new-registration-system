@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
 
             Route::controller(FinanceController::class)->group(function () {
                 Route::post('/store_online_payment_correction', 'onlinePaymentCorrectionStore')->name('store_online_payment_correction');
+                Route::post('/check_payment_confirmation', 'checkPaymentConfirmation')->name('check_payment_confirmation');
             });
         });
 

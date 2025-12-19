@@ -6,6 +6,8 @@ use App\Models\Admin\OnlinePayment;
 use App\Models\FinancialEpisode;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 
 class FinanceService
@@ -150,5 +152,54 @@ class FinanceService
         }
 
         return redirect(route('payments', absolute: false))->with('error', 'Online Payment Entry Creation Unsuccessful!!!');
+    }
+
+    public function checkPaymentConfirmation($reference)
+    {
+        $this->client = new Client([
+            'base_uri' => "https://api.paystack.co/transaction/verify/".$reference['reference'],
+            'headers' => [
+                "Authorization" => "Bearer ".config("services.paystack.secret_key"),
+                'Content-Type' => 'application/json',
+            ],
+        ]);
+
+        return json_decode($this->client->request('GET')->getBody(), true);
+
+//        if($response['status'] && $response['data']['status'] === 'success'){
+//            return $response['data'];
+//        }
+//        else {
+//            return "Payment Failed";
+//        }
+
+
+//        return json_decode($response->getBody(), true);
+//        $curl = curl_init();
+//
+//        curl_setopt_array($curl, array(
+//            CURLOPT_URL => "https://api.paystack.co/transaction/verify/".$reference['reference'],
+//            CURLOPT_RETURNTRANSFER => true,
+//            CURLOPT_ENCODING => "",
+//            CURLOPT_MAXREDIRS => 10,
+//            CURLOPT_TIMEOUT => 30,
+//            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+//            CURLOPT_CUSTOMREQUEST => "GET",
+//            CURLOPT_HTTPHEADER => array(
+//                "Authorization" => "Bearer ".config("services.paystack.secret_key"),
+//                "Cache-Control: no-cache",
+//            ),
+//        ));
+//
+//        $response = curl_exec($curl);
+//        $err = curl_error($curl);
+//
+//        curl_close($curl);
+//
+//        if ($err) {
+//            echo "cURL Error #:" . $err;
+//        } else {
+//            return $response;
+//        }
     }
 }

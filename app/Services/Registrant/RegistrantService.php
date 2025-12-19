@@ -132,6 +132,12 @@ class RegistrantService
 
     public function individualRegistrationUpdate(array $data)
     {
+        $paid = OnlinePayment::where('reg_id', $data['reg_id'])->sum('amount_paid');
+
+        if($paid > (Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']))){
+            return back()->with("error", "Select Registration Fee less than or equal to paid amount.");
+        }
+
         $result = Registrant::where('stage_id', $data['reg_id'])->update([
             'accommodation_type' => $data['accommodation_fee'],
             'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
