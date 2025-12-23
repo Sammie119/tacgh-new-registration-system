@@ -114,7 +114,7 @@ class RegistrationStageImport implements ToModel,WithHeadingRow, WithValidation
             'emergency_contacts_relationship' => 'required',
             'emergency_contacts_phone_number' => 'required|regex:/^\+[1-9][0-9]{10,}$/',
             'attendance_type' => 'required|in:In-Person,Online',
-            'event_id' => 'required|exists:events,id',
+//            'event_id' => 'required|exists:events,id',
             'disability' => 'required|boolean',
             'special_needs' => 'required',
         ];

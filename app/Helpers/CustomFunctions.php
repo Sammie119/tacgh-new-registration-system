@@ -158,7 +158,8 @@ if(!function_exists("event_registrant_name")){
 
         $reg = RegistrantStage::find($id);
         if($reg){
-            return get_dropdown_name($reg->title). ' '. $reg->first_name. ' '. $reg->other_names. ' '. $reg->surname;
+            $name = get_dropdown_name($reg->title). ' '. $reg->first_name. ' '. $reg->other_names. ' '. $reg->surname;
+            return strtoupper($name);
         }
         return null;
 
@@ -198,6 +199,18 @@ if(!function_exists("get_room_number")){
             return "$roomName in $resName, $blockName";
         }
 
+        return null;
+
+    }
+}
+
+if(!function_exists("event_registrant_age")){
+    function event_registrant_age($id) {
+
+        $reg = DB::table('vw_registration')->where('stage_id', $id)->first();
+        if ($reg) {
+            return $reg->age;
+        }
         return null;
 
     }

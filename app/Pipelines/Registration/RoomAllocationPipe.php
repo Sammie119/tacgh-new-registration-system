@@ -23,6 +23,10 @@ class RoomAllocationPipe
         $registrant = $data['registrant'];
         $gender = ($registrant['gender'] == 3) ? 'M' : 'F';
 
+        if(event_registrant_age($registrant['id']) < 6){
+            return false;
+        }
+
         $event = Event::select('id', 'venue_id')->where('id', $registrant['event_id'])->first()->toArray();
 
         // Get Accommodation type of Room
@@ -58,7 +62,7 @@ class RoomAllocationPipe
             ->whereIn('block_id',$blocks)
             ->where('assign', 1);
 
-        if(strpos($acc_type, $subString))
+        if(str_contains($acc_type, $subString))
             $unfull = $unfull->where('type','Regular');
         else
             $unfull = $unfull->where('type', 'Special')->where('special_acc',$special_acc);
@@ -95,10 +99,11 @@ class RoomAllocationPipe
                         $roomName = get_room_number($unfull[$i]->id);
                         $msg = "$reg_name , you have been assigned to room $roomName";
 
-                        WhatsappNotificationJob::dispatch($registrant->whatsapp_number, $msg);
+//                        dd($unfull, $acc_type, str_contains($acc_type, $subString), $roomName);
+                        WhatsappNotificationJob::dispatch($registrant['whatsapp_number'], $msg);
 
-                        if($registrant->residence_country_id == 64)
-                            SmsNotificationJob::dispatch($registrant->phone_number, $msg);
+                        if($registrant['residence_country_id'] == 64)
+                            SmsNotificationJob::dispatch($registrant['phone_number'], $msg);
                         //                $this->sendSms($results->phone_number, $msg);
 
                         //            $this->sendWhatsApp($results->whatsapp_number, $msg);
