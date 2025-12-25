@@ -26,6 +26,7 @@ class FinanceService
             'event_id' => $payment->event_id,
         ])->update([
             'approved' => 2,
+            'clearance_comment' => $data['comment'],
         ]);
 
         return back()->with('success', 'Financial Clearance Successful!');

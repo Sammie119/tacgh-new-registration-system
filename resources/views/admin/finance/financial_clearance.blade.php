@@ -5,6 +5,9 @@
         <h5>Clearance for {{ event_registrant_name($payment->reg_id) }}</h5>
         <p>Paid <strong>{{ $payment_made }}</strong> out of <strong>{{ $payment->amount_to_pay }}</strong></p>
     </div>
+    <div>
+        <input type="text" name="comment" class="form-control" placeholder="Enter Comment">
+    </div>
 
     {{-- Buttons --}}
     <div class="modal-footer">
