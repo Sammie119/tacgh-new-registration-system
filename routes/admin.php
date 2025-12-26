@@ -137,6 +137,8 @@ Route::middleware('auth')->group(function () {
                 Route::get('/financial_report', 'financialReport')->name('financial_report');
                 Route::get('/print_financial_report/{report}', 'printFinancialReport')->name('print_financial_report');
 
+                Route::post('/store_online_payment_correction', 'onlinePaymentCorrectionStore')->name('store_online_payment_correction');
+                Route::post('/check_payment_confirmation', 'checkPaymentConfirmation')->name('check_payment_confirmation');
 //                Route::post('/registrant_payment', 'registrantPaymentStore')->name('registrant_payment_store');
             });
         });

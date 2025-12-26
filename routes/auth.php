@@ -42,11 +42,6 @@ Route::middleware('auth')->group(function () {
 //        Route::post('delete_role', 'destroy');
                 Route::put('/assign_permissions', 'assignPermission')->name('assign_permissions');
             });
-
-            Route::controller(FinanceController::class)->group(function () {
-                Route::post('/store_online_payment_correction', 'onlinePaymentCorrectionStore')->name('store_online_payment_correction');
-                Route::post('/check_payment_confirmation', 'checkPaymentConfirmation')->name('check_payment_confirmation');
-            });
         });
 
         Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
