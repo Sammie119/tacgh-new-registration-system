@@ -12,8 +12,9 @@ class RegistrantPipe
     {
         $amount_to_pay = $data['amount_to_pay'];
         $currentYear = date('Y');
-        $count = DB::table('registrants')->whereRaw("YEAR(created_at) = $currentYear")
-            ->where('event_id', $data['event_id'])->count();
+        $count = $data['id'];
+//            DB::table('registrants')->whereRaw("YEAR(created_at) = $currentYear")
+//            ->where('event_id', $data['event_id'])->count() + 1;
         $ref_date = date("y");
         $prefix = get_event($data['event_id'])->code_prefix;
 
@@ -23,7 +24,7 @@ class RegistrantPipe
                 'event_id' => $data['event_id'],
             ],
             [
-                'registration_no' => event_registration_code(++$count, 4, "$prefix-$ref_date-"),
+                'registration_no' => event_registration_code($count, 4, "$prefix-$ref_date-"),
                 'accommodation_type' => $data['accommodation_fee'],
                 'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
                 'registration_type' => $data['registration_fee'],
