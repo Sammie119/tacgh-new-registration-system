@@ -150,9 +150,9 @@ class RegistrantController extends Controller
         return redirect(route('registrant_login', absolute: false))->with('success', "Logout Successful!!!.");
     }
 
-    public function destroy(Registrant $registrant)
+    static public function destroy($id)
     {
-        //
+        return RegistrantService::destroy($id);
     }
 
     /**

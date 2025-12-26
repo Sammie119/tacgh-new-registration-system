@@ -272,11 +272,12 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Accommodation & Events Fees</h5>
+{{--                        {{ dd($confirmed_registrant, $accommodation, $confirmed_registrant->accommodation_type) }}--}}
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <x-input-select
                                     :options="$accommodation"
-                                    :selected="0"
+                                    :selected="isset($confirmed_registrant) ? $confirmed_registrant->accommodation_type : 0"
                                     name="accommodation_fee"
                                     :type="0"
                                     required="true"
@@ -286,7 +287,7 @@
                             <div class="col-md-6">
                                 <x-input-select
                                     :options="$registration"
-                                    :selected="0"
+                                    :selected="isset($confirmed_registrant) ? $confirmed_registrant->registration_type : 0"
                                     name="registration_fee"
                                     :type="0"
                                     required="true"

@@ -58,3 +58,7 @@ Route::controller(ResponseController::class)->group(function () {
     Route::post('/forms/{slug}', 'storeResponse')->name('forms.submit');
 });
 
+Route::get('/remove_registrant_from_batch/{id}', function ($id){
+    return RegistrantController::destroy($id);
+});
+

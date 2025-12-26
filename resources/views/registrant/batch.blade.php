@@ -39,7 +39,7 @@
                                 $total_amount_paid += $amount_paid ?? 0;
                             @endphp
 
-                            <tr class="venue_{{ $registrant->id }}">
+                            <tr class="registrant_{{ $registrant->id }}">
                                 <td style="width: 50px">{{ ++$key }}</td>
                                 <td>{{ event_registrant_name($registrant->id)  }}</td>
                                 <td>{{ $confirmed_registrant->registration_no ?? 'NULL' }}</td>
@@ -82,10 +82,11 @@
                                             name=""
                                             title="Delete"
                                             onclick="deleteFunction(
-                                            {{ $registrant->id }},
-                                            'venue',
-                                            '/execute_form/delete/venue/{{ $registrant->id }}'
-                                        )"
+                                                {{ $registrant->id }},
+                                                'registrant',
+                                                '/remove_registrant_from_batch/{{ $registrant->id }}',
+                                                'refresh'
+                                            )"
                                         />
                                     </td>
                                 @else
@@ -149,6 +150,8 @@
         </div>
     </div>
 
+    <!-- Sweet Alert -->
+    <script src="{{ asset('assets/vendor/sweetalert/sweetalert.min.js') }}"></script>
     <script>
         const exampleModal = document.getElementById('confirmation')
         if (exampleModal) {
@@ -162,6 +165,88 @@
                     $(".modal-body").html(result);
                 })
             })
+        }
+
+        function deleteFunction(id, name, url, type = 'delete'){
+            const cap_name = name.charAt(0).toUpperCase() + name.slice(1)
+            swal({
+                title: "Delete Confirmation?",
+                text: `${cap_name} deletion is irreversible!!`,
+                type: "warning",
+                buttons: {
+                    confirm: {
+                        text: "Yes, delete it!",
+                        className: "btn btn-success",
+                    },
+                    cancel: {
+                        visible: true,
+                        className: "btn btn-danger",
+                    },
+                },
+            }).then((Delete) => {
+                if (Delete) {
+                    $.ajax({
+                        url,
+                        method: 'get',
+                        dataType: 'json',
+                        // headers: {
+                        //     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        // },
+                        data: {
+                            id
+                        },
+                        success: function(data) {
+                            if(data === 1) {
+                                swal({
+                                    title: "Deleted!",
+                                    text: `${cap_name} Record deleted Successfully.`,
+                                    type: "success",
+                                    buttons: {
+                                        confirm: {
+                                            className: "btn btn-success",
+                                        },
+                                    },
+                                }).then(Delete => {
+                                    if(Delete){
+                                        if(type === 'refresh'){
+                                            history.go(0);
+                                        }
+                                    }
+                                });
+                            } else {
+                                swal("Deletion Error!", `${cap_name} Deletion was Unsuccessful. Please try Again`, {
+                                    icon: "error",
+                                    buttons: {
+                                        confirm: {
+                                            className: "btn btn-danger",
+                                        },
+                                    },
+                                });
+                            }
+                        }
+                    });
+
+                    swal({
+                        title: "Deleted!",
+                        text: `${cap_name} Record deleted Successfully.`,
+                        type: "success",
+                        buttons: {
+                            confirm: {
+                                className: "btn btn-success",
+                            },
+                        },
+                    }).then(Delete => {
+                        if(Delete){
+                            if(type === 'refresh'){
+                                history.go(0);
+                            }
+                        }
+                    });
+
+                } else {
+                    swal.close();
+                }
+            });
         }
     </script>
 

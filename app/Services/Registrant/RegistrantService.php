@@ -348,6 +348,7 @@ class RegistrantService
             'event_id' =>  $data['registrant']->event_id,
             'active_flag' => 1
         ])->get();
+        $data['confirmed_registrant'] = Registrant::where('stage_id', $id)->first();
 
         return view('registrant.batch_confirmation', $data);
     }
@@ -398,6 +399,17 @@ class RegistrantService
 
         return back()->with("success", "Registration Confirmation Successful!!!");
 
+    }
+
+    static public function destroy($id)
+    {
+        $record = RegistrantStage::find($id);
+        if($record){
+            Registrant::where('stage_id', $id)->delete();
+            $record->delete();
+            return 1;
+        }
+        return 0;
     }
 
 

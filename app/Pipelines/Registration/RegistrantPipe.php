@@ -17,7 +17,7 @@ class RegistrantPipe
         $ref_date = date("y");
         $prefix = get_event($data['event_id'])->code_prefix;
 
-        $data = Registrant::firstOrCreate(
+        $data = Registrant::updateOrCreate(
             [
                 'stage_id' => $data['id'],
                 'event_id' => $data['event_id'],
