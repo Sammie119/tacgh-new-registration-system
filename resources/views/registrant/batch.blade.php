@@ -115,7 +115,7 @@
                                     <input type="hidden" name="batch_id" value="{{ $get_data->id }}">
                                     <input type="hidden" name="batch" value="batch">
                                     <input type="number" class="form-control"
-                                           value="{{ floatval($total_amount_paid) }}"
+                                           placeholder="{{ floatval($total_amount_paid) }}"
                                            step="0.01"
                                            min="0"
                                            required
