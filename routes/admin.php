@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
                 Route::post('/accommodation', 'store')->name('accommodation');
                 Route::put('/accommodation_single', 'update')->name('accommodation_single');
 
-                Route::get('allocate_room','allocateRoomsSingle')->name('allocate_room');
+                Route::get('allocate_room', 'allocateRoomsSingle')->name('allocate_room');
             });
 
             Route::controller(AccommodationBlockController::class)->group(function () {
@@ -100,28 +100,32 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/check_in/{registrant_id}', function ($registrant_id) {
                 $check = \App\Models\Registrant::where('stage_id', $registrant_id)->first();
-                if(is_null($check->check_in)){
+                if (is_null($check->check_in)) {
                     $check->update([
                         'check_in' => now()->format('Y-m-d H:i:s'),
                         'check_in_by' => get_logged_in_user_id(),
                     ]);
+
                     return redirect()->back()->with('success', 'Registrant checked in successfully');
                 } else {
                     $check->update([
                         'check_in' => null,
                         'check_in_by' => get_logged_in_user_id(),
                     ]);
+
                     return redirect()->back()->with('success', 'Registrant checked in cleared successfully');
                 }
             })->name('check_in');
 
             Route::get('/check_out/{registrant_id}', function ($registrant_id) {
                 $check = \App\Models\Registrant::where('stage_id', $registrant_id)->first();
-                if(is_null($check->check_out)){
+                if (is_null($check->check_out)) {
                     $check->update(['check_out' => now()->format('Y-m-d H:i:s')]);
+
                     return redirect()->back()->with('success', 'Registrant checked out successfully');
                 } else {
                     $check->update(['check_out' => null]);
+
                     return redirect()->back()->with('success', 'Registrant checked out cleared successfully');
                 }
             })->name('check_out');
@@ -139,7 +143,6 @@ Route::middleware('auth')->group(function () {
 
                 Route::post('/store_online_payment_correction', 'onlinePaymentCorrectionStore')->name('store_online_payment_correction');
                 Route::post('/check_payment_confirmation', 'checkPaymentConfirmation')->name('check_payment_confirmation');
-//                Route::post('/registrant_payment', 'registrantPaymentStore')->name('registrant_payment_store');
             });
         });
 
