@@ -12,6 +12,10 @@ class AssignRoomEpisodeService
     public function addRoomMate(array $data)
     {
         $registrant = Registrant::where('registration_no', $data['registration_no'])->first();
+        if (! $registrant) {
+            return back()->with('error', "Registration No. $data[registration_no] was not found!!!");
+        }
+
         $count = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id])->count();
         if (event_registrant_age($registrant->stage_id) < 6) {
             return back()->with('error', "Registration No. $data[registration_no] is less than 6 years old!!!.");
@@ -62,6 +66,10 @@ class AssignRoomEpisodeService
         }
 
         $registrant = Registrant::where('registration_no', $data['registration_no'])->first();
+        if (! $registrant) {
+            return back()->with('error', "Registration No. $data[registration_no] was not found!!!");
+        }
+
         $assigned_to = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id])->first();
 
         if (! $assigned_to) {
