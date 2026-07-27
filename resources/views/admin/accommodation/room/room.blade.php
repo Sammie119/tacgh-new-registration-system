@@ -239,10 +239,10 @@
                                                 $registrant = \App\Models\Registrant::where('id', $roommate->registrant_id)->first();
                                             @endphp
                                             <th scope="row">{{ ++$key }}</th>
-                                            <td>{{ $registrant->registration_no ?? null }}</td>
-                                            <td>{{ event_registrant_name($registrant->stage_id ?? 0) }}</td>
-                                            <td>{{ $registrant->stage->phone_number ?? null }}</td>
-                                            <td>{{ $registrant->check_in ?? null }}</td>
+                                            <td>{{ $registrant?->registration_no }}</td>
+                                            <td>{{ event_registrant_name($registrant?->stage_id ?? 0) }}</td>
+                                            <td>{{ $registrant?->stage?->phone_number }}</td>
+                                            <td>{{ $registrant?->check_in }}</td>
                                             <td>
                                                 <x-button
                                                     type='button'

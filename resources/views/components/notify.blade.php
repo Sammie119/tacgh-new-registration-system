@@ -4,7 +4,7 @@
         $.notify({
             icon: 'icon-bell',
             title: 'Successful',
-            message: "{!! Session::get('success') !!}",
+            message: {{ \Illuminate\Support\Js::from(Session::get('success')) }},
         },{
             type: 'success',
             placement: {
@@ -22,7 +22,7 @@
         $.notify({
             icon: 'icon-bell',
             title: 'Error',
-            message: "{!! Session::get('error') !!}",
+            message: {{ \Illuminate\Support\Js::from(Session::get('error')) }},
         },{
             type: 'danger',
             placement: {
@@ -52,7 +52,7 @@
         $.notify({
             icon: 'icon-bell',
             title: 'Warning',
-            message: "{!! Session::get('warning') !!}",
+            message: {{ \Illuminate\Support\Js::from(Session::get('warning')) }},
         },{
             type: 'warning',
             placement: {
@@ -82,7 +82,7 @@
         $.notify({
             icon: 'icon-bell',
             title: 'Information',
-            message: "{!! Session::get('info') !!}",
+            message: {{ \Illuminate\Support\Js::from(Session::get('info')) }},
         },{
             type: 'info',
             placement: {
@@ -110,7 +110,7 @@
 
 @if (Session::has('warning_sweet'))
     <script>
-        swal("Good job!", "{!! Session::get('warning_sweet') !!}", {
+        swal("Good job!", {{ \Illuminate\Support\Js::from(Session::get('warning_sweet')) }}, {
             icon: "warning",
             buttons: {
                 confirm: {
@@ -123,7 +123,7 @@
 
 @if (!empty($errors->all()))
     <script>
-        swal("Input Error!", "{!! Session::get('error_sweet') !!}", {
+        swal("Input Error!", {{ \Illuminate\Support\Js::from(Session::get('error_sweet')) }}, {
             icon: "error",
             buttons: {
                 confirm: {
@@ -136,7 +136,7 @@
 
 @if (Session::has('success_sweet'))
     <script>
-        swal("Good job!", "{!! Session::get('success_sweet') !!}", {
+        swal("Good job!", {{ \Illuminate\Support\Js::from(Session::get('success_sweet')) }}, {
             icon: "success",
             buttons: {
                 confirm: {
@@ -149,7 +149,7 @@
 
 @if (Session::has('info_sweet'))
     <script>
-        swal("Good job!", "{!! Session::get('info_sweet') !!}", {
+        swal("Good job!", {{ \Illuminate\Support\Js::from(Session::get('info_sweet')) }}, {
             icon: "info",
             buttons: {
                 confirm: {
@@ -162,7 +162,7 @@
 
 @if (Session::has('error_sweet'))
     <script>
-        swal("Error!", "{!! Session::get('error_sweet') !!}", {
+        swal("Error!", {{ \Illuminate\Support\Js::from(Session::get('error_sweet')) }}, {
             icon: "error",
             buttons: {
                 confirm: {

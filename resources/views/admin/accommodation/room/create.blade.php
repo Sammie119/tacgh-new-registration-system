@@ -42,7 +42,7 @@
 {{--        AccommodationBlock: status--}}
 {{--        AccommodationRoom: assign--}}
         @php
-            $resident_status = \App\Models\Admin\Accommodation::find($block->residence_id)->status;
+            $resident_status = \App\Models\Admin\Accommodation::find($block->residence_id)?->status;
             $block_status = $block->status;
         @endphp
 
