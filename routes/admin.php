@@ -3,7 +3,6 @@
 use App\Enums\RolesEnum;
 use App\Http\Controllers\Admin\AccommodationBlockController;
 use App\Http\Controllers\Admin\AccommodationController;
-use App\Http\Controllers\Admin\AccommodationEpisodeController;
 use App\Http\Controllers\Admin\AccommodationRoomController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AssignedRoomEpisodeController;
@@ -43,12 +42,6 @@ Route::middleware('auth')->group(function () {
                 Route::get('/venues', 'index')->name('venues');
                 Route::post('/venue', 'store')->name('venue');
                 Route::put('/venue', 'update')->name('venue');
-            });
-
-            Route::controller(AccommodationEpisodeController::class)->group(function () {
-                Route::get('/accommodation_episodes', 'index')->name('accommodation_episodes');
-                Route::post('/accommodation_episode', 'store')->name('accommodation_episode');
-                Route::put('/accommodation_episode', 'update')->name('accommodation_episode');
             });
 
             Route::controller(EventFeesController::class)->group(function () {

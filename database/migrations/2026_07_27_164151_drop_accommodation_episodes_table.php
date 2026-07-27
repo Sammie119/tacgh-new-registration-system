@@ -7,9 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * AccommodationEpisodeController/Model were dead code: index() called a
+     * nonexistent service method, store/update/etc. were empty stubs, no
+     * view or other code referenced the model, and the table was empty.
+     * Removing it along with the application code.
      */
     public function up(): void
+    {
+        Schema::dropIfExists('accommodation_episodes');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
         Schema::create('accommodation_episodes', function (Blueprint $table) {
             $table->id();
@@ -24,13 +35,5 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('accommodation_episodes');
     }
 };
