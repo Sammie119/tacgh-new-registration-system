@@ -7,6 +7,7 @@ use App\Models\Admin\Accommodation;
 use App\Models\Admin\AccommodationBlock;
 use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\Event;
+use App\Models\Admin\EventFees;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
 use App\Models\User;
@@ -74,6 +75,15 @@ class AssignRoomEpisodeTest extends TestCase
         ]);
         $room = $this->createRoom();
 
+        $accommodationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Standard',
+            'fee_amount' => 50, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $registrationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'registration_fee', 'description' => 'Standard',
+            'fee_amount' => 0, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+
         $stage = RegistrantStage::create([
             'title' => 1, 'first_name' => 'Ama', 'surname' => 'Mensah', 'gender' => 1,
             'date_of_birth' => '1990-01-01', 'marital_status' => 1, 'nationality_id' => 1,
@@ -83,8 +93,13 @@ class AssignRoomEpisodeTest extends TestCase
             'emergency_contacts_name' => 'Contact', 'attendance_type' => 'In-Person',
             'event_id' => $event->id, 'disability' => 0, 'confirmed' => 'Yes', 'token' => 'TOK1',
         ]);
+        // accommodation_type/registration_type must reference real event_fees rows:
+        // vw_registration inner-joins event_fees on both, so a registrant without
+        // a match (e.g. registration_type's default of 0) is silently excluded
+        // from the view and event_registrant_age() would return null.
         Registrant::create([
             'registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id,
+            'accommodation_type' => $accommodationFee->id, 'registration_type' => $registrationFee->id,
         ]);
 
         $response = $this->actingAs($user)->post(route('add_roommate'), [
@@ -93,10 +108,13 @@ class AssignRoomEpisodeTest extends TestCase
             'registration_no' => 'REG-1',
         ]);
 
-        // The route's role middleware ('System Admin|Room Allocator|Super Admin')
-        // now accepts Room Allocator, so the request reaches application code
-        // instead of being blocked with a 403. (Any further error here would come
-        // from the separately-tracked missing vw_registration view, not this route.)
+        // Proves the Room Allocator role clears the role middleware (fixed
+        // separately in routes/admin.php) rather than being blocked with a
+        // 403. Not asserting full success here: a separate, pre-existing bug
+        // (assigned_room_episodes.checkin_date is NOT NULL but never set by
+        // this method) currently breaks this request regardless of role or
+        // the vw_registration view — see VwRegistrationViewTest for isolated
+        // coverage of the view itself.
         $this->assertNotSame(403, $response->getStatusCode());
     }
 
