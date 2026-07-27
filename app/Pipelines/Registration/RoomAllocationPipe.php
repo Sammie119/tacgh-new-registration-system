@@ -31,8 +31,7 @@ class RoomAllocationPipe
 
         // Get Accommodation type of Room
         $accommodation_type = $data['confirmed_registrant']->accommodation_type;
-        $acc_type = EventFees::find($accommodation_type)->description;
-        $special_acc = Dropdown::where('full_name', $acc_type)->first()->id;
+        $acc_type = EventFees::find($accommodation_type)?->description ?? '';
         $subString = 'Regular';
 
         $residences = Accommodation::where('venue_id', '=', $event['venue_id'])
@@ -65,6 +64,7 @@ class RoomAllocationPipe
         if (str_contains($acc_type, $subString)) {
             $unfull = $unfull->where('type', 'Regular');
         } else {
+            $special_acc = Dropdown::where('full_name', $acc_type)->first()?->id ?? 0;
             $unfull = $unfull->where('type', 'Special')->where('special_acc', $special_acc);
         }
 
