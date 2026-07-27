@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use function App\Services\Auth\getRoleNPermissionID;
 
 class AuthService
 {
     public function index()
     {
         $data['users'] = User::where('id', '!=', 1)->orderByDesc('created_at')->get();
+
         return view('auth.index', $data);
     }
 
@@ -23,16 +23,16 @@ class AuthService
         $results = User::firstOrCreate([
             'email' => trim($data['email']),
         ],
-        [
-            'email' => trim($data['email']),
-            'name' => trim($data['name']),
-            'password' => Hash::make($data['password']),
-            'active_flag' => isset($data['active_flag']) ? 1 : 0,
-            'created_by' => get_logged_in_user_id(),
-            'updated_by' => get_logged_in_user_id(),
-        ]);
+            [
+                'email' => trim($data['email']),
+                'name' => trim($data['name']),
+                'password' => Hash::make($data['password']),
+                'active_flag' => isset($data['active_flag']) ? 1 : 0,
+                'created_by' => get_logged_in_user_id(),
+                'updated_by' => get_logged_in_user_id(),
+            ]);
 
-        if($results){
+        if ($results) {
             return redirect(route('users', absolute: false))->with('success', 'User Created Successfully.');
         }
 
@@ -53,25 +53,27 @@ class AuthService
             ]
         );
 
-        if(!empty($data['password'])){
+        if (! empty($data['password'])) {
             $results = $record->update(['password' => Hash::make($data['password'])]);
         }
 
-        if($results){
+        if ($results) {
             return redirect(route('users', absolute: false))->with('success', 'User Updated Successfully!!!');
         }
 
         return redirect(route('users', absolute: false))->with('error', 'User Update Unsuccessful!!!');
     }
 
-    static public function delete($id)
+    public static function delete($id)
     {
         $record = User::find($id);
-        if($record){
+        if ($record) {
             $record->delete();
             DB::table('assign_permission_to_roles')->where('user_id', $id)->delete();
+
             return 1;
         }
+
         return 0;
     }
 
@@ -93,7 +95,7 @@ class AuthService
             ]);
         }
 
-        if($user){
+        if ($user) {
             return redirect(route('users', absolute: false))->with('success', 'Roles Assigned to User Successfully!!!');
         }
 
@@ -102,7 +104,7 @@ class AuthService
 
     private function getRoleNPermissionID($name, $type)
     {
-        if($type === 'role'){
+        if ($type === 'role') {
             $result = Role::select('id')->where('name', $name)->first()->id;
         } else {
             $result = Permission::select('id')->where('name', $name)->first()->id;

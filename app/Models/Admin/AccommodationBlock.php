@@ -11,5 +11,4 @@ class AccommodationBlock extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
-
 }

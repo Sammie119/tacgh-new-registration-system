@@ -6,12 +6,12 @@ use App\Services\FormCreateService;
 use App\Services\FormDeleteService;
 use App\Services\FormEditService;
 use App\Services\FormViewService;
-use Illuminate\Http\Request;
 
 class FormController extends Controller
 {
-    public function executeForm($service, $type, $id = null){
-        switch ($service){
+    public function executeForm($service, $type, $id = null)
+    {
+        switch ($service) {
             case 'create':
                 return FormCreateService::create($type);
 
@@ -25,7 +25,7 @@ class FormController extends Controller
                 return FormDeleteService::delete($type, $id);
 
             default:
-                return "No Form Selected";
+                return 'No Form Selected';
 
         }
     }

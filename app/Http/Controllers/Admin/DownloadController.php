@@ -25,7 +25,7 @@ class DownloadController extends Controller
         $request->validate([
             'file_name' => 'required|string|max:255',
             'file' => 'required|mimes:pdf|max:1024',
-        ],[
+        ], [
             'file.mimes' => 'The file must be a PDF file.',
             'file.max' => 'The file size must not exceed 1MB.',
         ]);
@@ -38,7 +38,7 @@ class DownloadController extends Controller
         $request->validate([
             'file_name' => 'required|string|max:255',
             'file' => 'nullable|mimes:pdf|max:1024',
-        ],[
+        ], [
             'file.mimes' => 'The file must be a PDF file.',
             'file.max' => 'The file size must not exceed 1MB.',
         ]);
@@ -51,7 +51,7 @@ class DownloadController extends Controller
         return $this->downloadService->downloadFile($id);
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return DownloadService::destroy($id);
     }

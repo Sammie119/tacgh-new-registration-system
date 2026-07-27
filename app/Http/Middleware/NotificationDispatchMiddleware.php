@@ -12,7 +12,6 @@ class NotificationDispatchMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
@@ -20,8 +19,8 @@ class NotificationDispatchMiddleware
     {
         $job = DB::table('jobs')->count();
 
-        if($job >= 1){
-//            Artisan::call('schedule:run');
+        if ($job >= 1) {
+            //            Artisan::call('schedule:run');
             Artisan::call('queue:work --stop-when-empty');
         }
 

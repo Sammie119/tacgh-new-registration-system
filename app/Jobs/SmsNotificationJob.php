@@ -15,7 +15,9 @@ class SmsNotificationJob implements ShouldQueue
     use SMSNotify;
 
     private string $to;
+
     private string $msg;
+
     public function __construct($to, $msg)
     {
         $this->to = $to;

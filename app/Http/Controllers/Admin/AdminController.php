@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Admin\AdminService;
 use Illuminate\Http\Request;
 
-class  AdminController extends Controller
+class AdminController extends Controller
 {
     private AdminService $admin;
 
@@ -14,6 +14,7 @@ class  AdminController extends Controller
     {
         $this->admin = $admin;
     }
+
     /**
      * Display a listing of the resource.
      */

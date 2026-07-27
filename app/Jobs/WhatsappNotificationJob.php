@@ -18,7 +18,9 @@ class WhatsappNotificationJob implements ShouldQueue
      * Create a new job instance.
      */
     private string $to;
+
     private string $msg;
+
     public function __construct($to, $msg)
     {
         $this->to = $to;

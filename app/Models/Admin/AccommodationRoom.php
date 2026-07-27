@@ -21,5 +21,4 @@ class AccommodationRoom extends Model
     {
         return $this->belongsTo(Accommodation::class, 'residence_id');
     }
-
 }

@@ -64,10 +64,11 @@ class FinanceController extends Controller
     public function printFinancialReport($report)
     {
         $request['report'] = $report;
+
         return $this->financeService->printFinancialReport($request);
     }
 
-    static public function financialEntryDelete($id)
+    public static function financialEntryDelete($id)
     {
         return FinanceService::financialEntryDelete($id);
     }

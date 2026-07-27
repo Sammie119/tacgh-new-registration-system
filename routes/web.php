@@ -1,13 +1,8 @@
 <?php
 
-use App\Helpers\Utils;
 use App\Http\Controllers\Admin\DownloadController;
 use App\Http\Controllers\Admin\ResponseController;
 use App\Http\Controllers\RegistrantController;
-use App\Models\Admin\Country;
-use App\Models\Admin\Event;
-use App\Models\Admin\EventFees;
-use App\Models\RegistrantStage;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,7 +42,6 @@ Route::controller(RegistrantController::class)->group(function () {
     Route::post('/batch_confirm', 'batchRegistrationConfirmation')->name('batch.confirm');
     Route::post('/batch_payment', 'batchPayment')->name('batch_payment');
 
-
     Route::post('/registrant_logout', 'registrantLogout')->name('registrant_logout');
 });
 
@@ -58,7 +52,6 @@ Route::controller(ResponseController::class)->group(function () {
     Route::post('/forms/{slug}', 'storeResponse')->name('forms.submit');
 });
 
-Route::get('/remove_registrant_from_batch/{id}', function ($id){
+Route::get('/remove_registrant_from_batch/{id}', function ($id) {
     return RegistrantController::destroy($id);
 });
-

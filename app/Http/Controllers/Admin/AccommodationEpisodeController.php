@@ -15,6 +15,7 @@ class AccommodationEpisodeController extends Controller
     {
         $this->eventService = $eventService;
     }
+
     /**
      * Display a listing of the resource.
      */

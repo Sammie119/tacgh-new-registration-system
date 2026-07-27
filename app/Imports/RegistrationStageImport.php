@@ -10,44 +10,48 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class RegistrationStageImport implements ToModel,WithHeadingRow, WithValidation
+class RegistrationStageImport implements ToModel, WithHeadingRow, WithValidation
 {
     private $event_id;
+
     private $batch_no;
+
     public function __construct($event_id, $batch_no)
     {
         $this->event_id = $event_id;
         $this->batch_no = $batch_no;
     }
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
 
+    /**
+     * @param  array  $row
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     private function dateConvertor($date): string
     {
-        if(is_int($date)){
-            return date("Y-m-d", $date);
+        if (is_int($date)) {
+            return date('Y-m-d', $date);
         }
+
         return date('Y-m-d', strtotime($date));
     }
 
     private function getLookup($name): int
     {
         $id = Dropdown::whereRaw("full_name LIKE '%$name%'")->first();
-        if($id != null){
+        if ($id != null) {
             return $id->id;
         }
+
         return 0;
     }
 
     private function getCountry($name): int
     {
         $id = Country::whereRaw("name LIKE '%$name%'")->first();
-        if($id != null){
+        if ($id != null) {
             return $id->id;
         }
+
         return 0;
     }
 
@@ -114,7 +118,7 @@ class RegistrationStageImport implements ToModel,WithHeadingRow, WithValidation
             'emergency_contacts_relationship' => 'required',
             'emergency_contacts_phone_number' => 'required|regex:/^\+[1-9][0-9]{10,}$/',
             'attendance_type' => 'required|in:In-Person,Online',
-//            'event_id' => 'required|exists:events,id',
+            //            'event_id' => 'required|exists:events,id',
             'disability' => 'required|boolean',
             'special_needs' => 'required',
         ];

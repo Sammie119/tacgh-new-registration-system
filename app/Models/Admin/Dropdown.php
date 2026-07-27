@@ -10,7 +10,7 @@ class Dropdown extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = "lookups";
+    protected $table = 'lookups';
 
     protected $guarded = [];
 }

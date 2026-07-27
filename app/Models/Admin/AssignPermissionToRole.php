@@ -9,6 +9,7 @@ class AssignPermissionToRole extends Model
 {
     use HasFactory;
 
-    protected $table = "assign_permission_to_roles";
+    protected $table = 'assign_permission_to_roles';
+
     protected $guarded = [];
 }

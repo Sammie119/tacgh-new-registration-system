@@ -48,7 +48,7 @@ class PermissionController extends Controller
         return $this->permission->update($request->all());
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return PermissionService::destroy($id);
     }

@@ -16,7 +16,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 
 class FormDeleteService
 {
-    static public function delete($type, $id)
+    public static function delete($type, $id)
     {
         switch ($type) {
             case 'user':
@@ -56,7 +56,7 @@ class FormDeleteService
                 return DownloadController::destroy($id);
 
             default:
-                return "No Form Selected";
+                return 'No Form Selected';
         }
     }
 }

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('approved')->nullable();
             $table->date('approved_at')->nullable();
             $table->bigInteger('batch_no')->nullable();
-            $table->decimal('event_total_fee', 10 , 2)->nullable();
+            $table->decimal('event_total_fee', 10, 2)->nullable();
             $table->string('payment_token')->nullable();
             $table->tinyInteger('payment_status')->default(0);
             $table->string('event_id');

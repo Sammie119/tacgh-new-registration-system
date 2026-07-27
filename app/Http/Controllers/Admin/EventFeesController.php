@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\EventFees;
 use App\Services\Admin\EventFeesService;
 use Illuminate\Http\Request;
 
@@ -15,6 +14,7 @@ class EventFeesController extends Controller
     {
         $this->eventFeesService = $eventFeesService;
     }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -33,7 +33,7 @@ class EventFeesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return EventFeesService::destroy($id);
     }

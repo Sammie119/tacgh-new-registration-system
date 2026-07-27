@@ -13,6 +13,7 @@ class ResponseController extends Controller
     public function showForm($slug)
     {
         $form = Form::where('slug', $slug)->where('is_public', true)->with('fields')->firstOrFail();
+
         return view('registrant.show_form', compact('form'));
     }
 
@@ -64,6 +65,6 @@ class ResponseController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success','Your response has been recorded. Thank you!');
+        return redirect()->back()->with('success', 'Your response has been recorded. Thank you!');
     }
 }

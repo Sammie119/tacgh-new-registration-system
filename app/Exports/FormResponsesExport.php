@@ -2,8 +2,8 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
 use App\Models\Admin\Form;
+use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class FormResponsesExport implements FromArray, WithHeadings
@@ -12,7 +12,7 @@ class FormResponsesExport implements FromArray, WithHeadings
 
     public function __construct(Form $form)
     {
-        $this->form = $form->load('fields','responses.values');
+        $this->form = $form->load('fields', 'responses.values');
     }
 
     public function array(): array

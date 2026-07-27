@@ -15,6 +15,7 @@ class EventVenueController extends Controller
     {
         $this->venueService = $venueService;
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -54,7 +55,7 @@ class EventVenueController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return VenueService::destroy($id);
     }

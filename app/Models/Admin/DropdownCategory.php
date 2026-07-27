@@ -10,7 +10,7 @@ class DropdownCategory extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = "lookup_codes";
+    protected $table = 'lookup_codes';
 
     protected $guarded = [];
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\AssignedRoomEpisode;
 use App\Services\Admin\AssignRoomEpisodeService;
 use Illuminate\Http\Request;
 
@@ -38,7 +37,7 @@ class AssignedRoomEpisodeController extends Controller
         return $this->assignRoomEpisodeService->transferRoomMate($request->all());
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return AssignRoomEpisodeService::destroy($id);
     }

@@ -11,8 +11,9 @@ use Illuminate\Support\Str;
 class Form extends Model
 {
     use HasFactory, SoftDeletes;
+
     protected $guarded = [];
-//    protected $fillable = ['user_id','title','description','slug','is_public'];
+    //    protected $fillable = ['user_id','title','description','slug','is_public'];
 
     protected static function booted()
     {
@@ -23,14 +24,18 @@ class Form extends Model
         });
     }
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function fields() {
+    public function fields()
+    {
         return $this->hasMany(FormField::class)->orderBy('order');
     }
-    public function responses() {
+
+    public function responses()
+    {
         return $this->hasMany(FormResponse::class);
     }
 }

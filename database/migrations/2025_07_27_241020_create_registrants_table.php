@@ -52,8 +52,8 @@ return new class extends Migration
             $table->integer('accommodation_type')->nullable();
             $table->decimal('accommodation_fee', 10, 2)->default(0.00);
             $table->integer('registration_type')->default(0);
-            $table->decimal('registration_fee', 10,2)->default(0.00);
-            $table->decimal('total_fee', 10,2)->default(0.00);
+            $table->decimal('registration_fee', 10, 2)->default(0.00);
+            $table->decimal('total_fee', 10, 2)->default(0.00);
             $table->bigInteger('room_no')->nullable();
             $table->timestamp('check_in')->nullable();
             $table->timestamp('check_out')->nullable();
@@ -71,7 +71,7 @@ return new class extends Migration
             $table->string('whatsapp_number', 50)->nullable();
             $table->enum('confirmed', ['Yes', 'No'])->default('No');
             $table->string('token', 20)->nullable();
-            $table->decimal('total_registration_fees', 10,2)->default(0.00);
+            $table->decimal('total_registration_fees', 10, 2)->default(0.00);
             $table->timestamps();
             $table->softDeletes();
         });

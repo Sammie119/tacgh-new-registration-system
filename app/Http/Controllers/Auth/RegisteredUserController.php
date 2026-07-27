@@ -4,15 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
 use App\Services\Admin\AuthService;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
@@ -22,9 +17,10 @@ class RegisteredUserController extends Controller
     {
         $this->authService = $authService;
     }
+
     public function index()
     {
-       return $this->authService->index();
+        return $this->authService->index();
     }
 
     /**
@@ -54,7 +50,7 @@ class RegisteredUserController extends Controller
         return $this->authService->update($request->all());
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return AuthService::delete($id);
     }
@@ -69,5 +65,4 @@ class RegisteredUserController extends Controller
 
         return $this->authService->assignRolesToUser($request->all());
     }
-
 }

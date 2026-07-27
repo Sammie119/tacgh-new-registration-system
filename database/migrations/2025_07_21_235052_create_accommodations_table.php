@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('total_rooms')->nullable();
             $table->integer('total_blocks')->nullable();
             $table->enum('status', ['Active', 'Blocked'])->default('Active');
-            $table->string('gender',1)->nullable();
+            $table->string('gender', 1)->nullable();
             $table->tinyInteger('active_flag')->default(1);
             $table->bigInteger('created_by');
             $table->bigInteger('updated_by');

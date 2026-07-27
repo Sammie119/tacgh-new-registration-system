@@ -51,7 +51,7 @@ class RoleController extends Controller
     public function assignPermission(Request $request)
     {
         $request->validate([
-            'permissions' => 'required'
+            'permissions' => 'required',
         ]);
 
         return $this->role->assignPermission($request->all());
@@ -60,7 +60,7 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return RoleService::destroy($id);
     }

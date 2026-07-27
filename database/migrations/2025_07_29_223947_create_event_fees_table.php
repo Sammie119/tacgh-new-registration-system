@@ -16,7 +16,7 @@ return new class extends Migration
             $table->bigInteger('event_id')->nullable();
             $table->enum('fee_type', ['accommodation', 'registration_fee'])->default('registration_fee');
             $table->string('description');
-            $table->decimal('fee_amount', 10,2)->default(0.00);
+            $table->decimal('fee_amount', 10, 2)->default(0.00);
             $table->tinyInteger('active_flag')->default(1);
             $table->bigInteger('created_by');
             $table->bigInteger('updated_by');

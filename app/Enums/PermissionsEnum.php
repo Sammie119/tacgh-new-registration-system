@@ -7,5 +7,3 @@ enum PermissionsEnum: string
     case READ = 'Read';
     case WRITE = 'Write';
 }
-
-

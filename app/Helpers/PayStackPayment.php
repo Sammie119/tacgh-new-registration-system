@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\App;
 class PayStackPayment
 {
     protected $client;
+
     protected $secretKey;
 
     public function __construct()
@@ -18,16 +19,16 @@ class PayStackPayment
                 'Authorization' => 'Bearer '.config('services.paystack.secret_key'),
                 'Content-Type' => 'application/json',
             ],
-            'verify' => !App::isLocal(), // ← Add this line to disable SSL verification
+            'verify' => ! App::isLocal(), // ← Add this line to disable SSL verification
         ]);
         $this->secretKey = config('services.paystack.secret_key');
     }
 
     public function initializeTransaction(array $data)
     {
-        if($data['amount'] > 0){
+        if ($data['amount'] > 0) {
             $response = $this->client->post('/transaction/initialize', [
-                'json' => $data
+                'json' => $data,
             ]);
 
             return json_decode($response->getBody(), true);

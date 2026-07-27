@@ -15,6 +15,7 @@ class EventController extends Controller
     {
         $this->eventService = $eventService;
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -29,13 +30,13 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'=>'required',
-            'description' =>'required',
-            'code_prefix' =>'required|max:5|min:3',
-            'start_date' =>'required',
-            'end_date' =>'required',
-            'venue_id' =>'required|exists:event_venues,id',
-            'file' =>'nullable|mimes:jpeg,png,jpg,gif,svg,webp|max:1048',
+            'name' => 'required',
+            'description' => 'required',
+            'code_prefix' => 'required|max:5|min:3',
+            'start_date' => 'required',
+            'end_date' => 'required',
+            'venue_id' => 'required|exists:event_venues,id',
+            'file' => 'nullable|mimes:jpeg,png,jpg,gif,svg,webp|max:1048',
         ]);
 
         return $this->eventService->store($request);
@@ -47,13 +48,13 @@ class EventController extends Controller
     public function update(Request $request, Event $event)
     {
         $request->validate([
-            'name'=>'required',
-            'description' =>'required',
-            'code_prefix' =>'required|max:5|min:3',
-            'start_date' =>'required',
-            'end_date' =>'required',
-            'venue_id' =>'required|exists:event_venues,id',
-            'file' =>'nullable|mimes:jpeg,png,jpg,gif,svg,webp|max:1048',
+            'name' => 'required',
+            'description' => 'required',
+            'code_prefix' => 'required|max:5|min:3',
+            'start_date' => 'required',
+            'end_date' => 'required',
+            'venue_id' => 'required|exists:event_venues,id',
+            'file' => 'nullable|mimes:jpeg,png,jpg,gif,svg,webp|max:1048',
         ]);
 
         return $this->eventService->update($request);
@@ -62,7 +63,7 @@ class EventController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return EventService::destroy($id);
     }

@@ -33,7 +33,7 @@ class ConfirmationPipe
             'attendance_type' => $data['attendance_type'],
             'disability' => $data['disability'],
             'special_needs' => $data['special_needs'],
-            'confirmed' => 'Yes'
+            'confirmed' => 'Yes',
         ]);
 
         return $next($data);

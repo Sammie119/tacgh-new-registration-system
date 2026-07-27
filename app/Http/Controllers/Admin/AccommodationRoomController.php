@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\AccommodationRoom;
 use App\Services\Admin\AccommodationService;
 use Illuminate\Http\Request;
 
@@ -15,6 +14,7 @@ class AccommodationRoomController extends Controller
     {
         $this->accommodationService = $accommodationService;
     }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -27,7 +27,7 @@ class AccommodationRoomController extends Controller
             'rooms' => 'required',
         ]);
 
-       return $this->accommodationService->generateRoomsStore($request->all());
+        return $this->accommodationService->generateRoomsStore($request->all());
     }
 
     /**
@@ -44,6 +44,7 @@ class AccommodationRoomController extends Controller
     public function update(Request $request, $id)
     {
         $request['id'] = $id;
+
         return $this->accommodationService->accommodationRoomUpdate($request->all());
     }
 }

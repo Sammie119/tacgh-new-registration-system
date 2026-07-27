@@ -3,17 +3,17 @@
 namespace App\Services;
 
 use App\Helpers\Utils;
-use App\Models\Admin\Dropdown;
 use App\Models\Admin\EventVenue;
 use Illuminate\Support\Facades\DB;
 
 class FormCreateService
 {
-    static public function create($type)
+    public static function create($type)
     {
         switch ($type) {
             case 'user':
                 $data['person_type'] = [];
+
                 return view('auth.create', $data);
 
             case 'permission':
@@ -27,10 +27,12 @@ class FormCreateService
 
             case 'venue':
                 $data['regions'] = Utils::getLookups(4);
+
                 return view('admin.accommodation.create', $data);
 
             case 'event':
                 $data['venues'] = EventVenue::orderBy('name')->get();
+
                 return view('admin.event.create', $data);
 
             case 'forms':
@@ -38,6 +40,7 @@ class FormCreateService
 
             case 'financial_entry':
                 $data['transaction_types'] = Utils::getLookups(23);
+
                 return view('admin.finance.create', $data);
 
             case 'downloads':
@@ -45,10 +48,11 @@ class FormCreateService
 
             case 'online_payment_correction':
                 $data['registrants'] = DB::table('vw_registration')->where('event_id', get_logged_in_user_event_id())->get();
+
                 return view('admin.finance.online.online_create', $data);
 
             default:
-                return "No Form Selected";
+                return 'No Form Selected';
         }
     }
 }

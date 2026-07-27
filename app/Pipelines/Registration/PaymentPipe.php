@@ -7,6 +7,7 @@ use App\Services\Admin\PaymentService;
 class PaymentPipe
 {
     private PaymentService $paymentService;
+
     public function __construct(PaymentService $paymentService)
     {
         $this->paymentService = $paymentService;
