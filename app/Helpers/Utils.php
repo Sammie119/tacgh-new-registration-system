@@ -45,7 +45,7 @@ class Utils
 
     public static function eventRegistrationFee($id)
     {
-        $fee = EventFees::find($id)->fee_amount;
+        $fee = EventFees::find($id)?->fee_amount;
         if ($fee) {
             return $fee;
         }

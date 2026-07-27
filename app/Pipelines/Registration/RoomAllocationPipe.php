@@ -12,7 +12,6 @@ use App\Models\Admin\AssignedRoomEpisode;
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\Event;
 use App\Models\Admin\EventFees;
-use App\Models\Registrant;
 
 class RoomAllocationPipe
 {
@@ -83,7 +82,7 @@ class RoomAllocationPipe
                     }
 
                     // Give room number to Registrant
-                    $reg_confirm = Registrant::find($data['confirmed_registrant']->id)->update(['room_no' => $unfull[$i]->id]);
+                    $reg_confirm = $data['confirmed_registrant']->update(['room_no' => $unfull[$i]->id]);
 
                     if ($reg_confirm) {
                         AssignedRoomEpisode::firstOrCreate([

@@ -41,7 +41,12 @@ class AccommodationService
                         'updated_by' => get_logged_in_user_id(),
                     ]);
             } else {
-                $results = Accommodation::find($value['id'])->update([
+                $residence = Accommodation::find($value['id']);
+                if (! $residence) {
+                    continue;
+                }
+
+                $results = $residence->update([
                     'venue_id' => $data['accommodation_id'],
                     'name' => trim($value['name']),
                     'total_blocks' => trim($value['total_blocks']),
@@ -62,7 +67,12 @@ class AccommodationService
 
     public function accommodationUpdate(array $data)
     {
-        $results = Accommodation::find($data['id'])->update([
+        $residence = Accommodation::find($data['id']);
+        if (! $residence) {
+            return back()->with('error', 'Residence was not found!!!');
+        }
+
+        $results = $residence->update([
             'name' => trim($data['name']),
             'total_blocks' => trim($data['total_blocks']),
             'gender' => trim($data['gender']),
@@ -113,7 +123,12 @@ class AccommodationService
                         'updated_by' => get_logged_in_user_id(),
                     ]);
             } else {
-                $results = AccommodationBlock::find($value['id'])->update([
+                $block = AccommodationBlock::find($value['id']);
+                if (! $block) {
+                    continue;
+                }
+
+                $results = $block->update([
                     'residence_id' => $data['resident_id'],
                     'name' => trim($value['name']),
                     'total_rooms' => trim($value['total_rooms']),
@@ -175,7 +190,9 @@ class AccommodationService
     public function accommodationRoomShow($id)
     {
         $data['room'] = AccommodationRoom::find($id);
-        $data['venue_id'] = Accommodation::find($data['room']->residence_id)->venue_id;
+        abort_if(! $data['room'], 404, 'Room not found.');
+
+        $data['venue_id'] = Accommodation::find($data['room']->residence_id)?->venue_id;
         $data['roommates'] = AssignedRoomEpisode::where(['room_id' => $data['room']->id, 'event_id' => get_logged_in_user_event_id()])->get();
         $data['participants'] = Registrant::where('event_id', get_logged_in_user_event_id())->get();
 
@@ -184,7 +201,12 @@ class AccommodationService
 
     public function accommodationRoomUpdate(array $data)
     {
-        AccommodationRoom::find($data['id'])->update([
+        $room = AccommodationRoom::find($data['id']);
+        if (! $room) {
+            return back()->with('error', 'Room was not found!!!');
+        }
+
+        $room->update([
             'name' => $data['name'],
             'prefix' => $data['prefix'],
             'suffix' => $data['suffix'],

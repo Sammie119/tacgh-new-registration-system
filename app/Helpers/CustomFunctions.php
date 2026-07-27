@@ -71,10 +71,14 @@ if (! function_exists('get_assigned_role_to_permission')) {
 
         $get_role = Role::where('name', $role_name->value)->first();
 
+        if (! $get_role) {
+            return false;
+        }
+
         if ($role) {
             $get_assigned = AssignPermissionToRole::where(['user_id' => get_logged_in_user_id(), 'role_id' => $get_role->id])->first();
 
-            $get_permission = Permission::find($get_assigned->permission_id)->name === 'Write';
+            $get_permission = $get_assigned && Permission::find($get_assigned->permission_id)?->name === 'Write';
         } else {
             $get_permission = $get_role->hasPermissionTo('Write');
         }

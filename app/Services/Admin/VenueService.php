@@ -35,7 +35,12 @@ class VenueService
 
     public function update(array $data)
     {
-        $results = EventVenue::find($data['id'])->update([
+        $venue = EventVenue::find($data['id']);
+        if (! $venue) {
+            return redirect(route('venues', absolute: false))->with('error', 'Venue was not found!!!');
+        }
+
+        $results = $venue->update([
             'name' => trim($data['name']),
             'region_id' => trim($data['region_id']),
             'location' => trim($data['location']),

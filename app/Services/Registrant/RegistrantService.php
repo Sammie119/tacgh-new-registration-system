@@ -395,7 +395,12 @@ class RegistrantService
         session(['batch_payment' => $data]);
         $data['total_fee'] = $data['total_amount_paid'];
 
-        BatchLog::find($data['batch_id'])->update([
+        $batchLog = BatchLog::find($data['batch_id']);
+        if (! $batchLog) {
+            return back()->with('error', 'Batch was not found!!!');
+        }
+
+        $batchLog->update([
             'confirmed' => 'Yes',
             'total_registration_fees' => $data['total_fee_to_pay'],
         ]);
@@ -408,9 +413,7 @@ class RegistrantService
             return redirect($response['data']['authorization_url']);
         }
 
-        $amount = BatchLog::find($data['batch_id']);
-
-        if ($amount->total_registration_fees == 0) {
+        if ($batchLog->total_registration_fees == 0) {
             foreach ($data['reg'] as $registrant) {
                 $data2['registrant'] = RegistrantStage::where('id', $registrant['registrant_id'])->first();
                 $data2['confirmed_registrant'] = Registrant::where('stage_id', $registrant['registrant_id'])->first();

@@ -61,7 +61,12 @@ class FormController extends Controller
             'fields.*.field_type' => 'required|string',
         ]);
 
-        $form = Form::find($request->id)->update([
+        $form = Form::find($request->id);
+        if (! $form) {
+            return redirect()->route('forms')->with('error', 'Form not found!!!');
+        }
+
+        $form->update([
             'user_id' => get_logged_in_user_id(),
             'title' => $request->title,
             'description' => $request->description,
@@ -71,7 +76,12 @@ class FormController extends Controller
         foreach ($request->fields as $index => $f) {
             $fields_array = ['radio', 'checkbox', 'dropdown'];
             if (isset($f['field_id'])) {
-                FormField::find($f['field_id'])->update([
+                $field = FormField::find($f['field_id']);
+                if (! $field) {
+                    continue;
+                }
+
+                $field->update([
                     'form_id' => $request->id,
                     'label' => $f['label'],
                     'field_type' => $f['field_type'],

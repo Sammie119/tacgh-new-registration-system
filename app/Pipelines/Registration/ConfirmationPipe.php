@@ -8,7 +8,10 @@ class ConfirmationPipe
 {
     public function handle(array $data, \Closure $next)
     {
-        RegistrantStage::find($data['id'])->update([
+        $stage = RegistrantStage::find($data['id']);
+        abort_if(! $stage, 404, 'Registrant not found.');
+
+        $stage->update([
             'date_of_birth' => $data['date_of_birth'],
             'gender' => $data['gender'],
             'phone_number' => $data['phone_number'],

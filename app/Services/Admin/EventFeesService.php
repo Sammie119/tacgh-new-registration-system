@@ -23,7 +23,12 @@ class EventFeesService
                         'updated_by' => get_logged_in_user_id(),
                     ]);
             } else {
-                $results = EventFees::find($value['id'])->update([
+                $fee = EventFees::find($value['id']);
+                if (! $fee) {
+                    continue;
+                }
+
+                $results = $fee->update([
                     'event_id' => $data['event_id'],
                     'fee_type' => trim($data['fee_type']),
                     'description' => trim($value['description']),

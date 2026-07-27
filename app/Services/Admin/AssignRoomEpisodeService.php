@@ -32,10 +32,14 @@ class AssignRoomEpisodeService
             return back()->with('error', "Registration No. $data[registration_no] already assigned to another room!!!");
         }
 
-        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
-        $total_occupants = AccommodationRoom::find($data['room_id'])->total_occupants;
+        $room = AccommodationRoom::find($data['room_id']);
+        if (! $room) {
+            return back()->with('error', 'Room was not found!!!');
+        }
 
-        if ($total_assigns == $total_occupants) {
+        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
+
+        if ($total_assigns == $room->total_occupants) {
             return back()->with('error', 'Room '.get_room_number($data['room_id']).' is full!!!');
         }
 
@@ -59,10 +63,14 @@ class AssignRoomEpisodeService
 
     public function transferRoomMate(array $data)
     {
-        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
-        $total_occupants = AccommodationRoom::find($data['room_id'])->total_occupants;
+        $room = AccommodationRoom::find($data['room_id']);
+        if (! $room) {
+            return back()->with('error', 'Room was not found!!!');
+        }
 
-        if ($total_assigns == $total_occupants) {
+        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
+
+        if ($total_assigns == $room->total_occupants) {
             return back()->with('error', 'Room '.get_room_number($data['room_id']).' is full!!!');
         }
 
@@ -77,7 +85,7 @@ class AssignRoomEpisodeService
             return back()->with('error', "Registration No. $data[registration_no] has not been assigned to room yet!!!");
         }
 
-        $assigned = AssignedRoomEpisode::find($assigned_to->id)->update([
+        $assigned = $assigned_to->update([
             'room_id' => $data['room_id'],
             'updated_by' => get_logged_in_user_id(),
         ]);

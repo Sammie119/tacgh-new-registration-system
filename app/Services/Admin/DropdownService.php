@@ -36,6 +36,10 @@ class DropdownService
     public function updateCategory(array $data)
     {
         $record = DropdownCategory::find($data['id']);
+        if (! $record) {
+            return redirect(route('categories', absolute: false))->with('error', 'Lookup Code was not found!!!');
+        }
+
         $results = $record->update(
             [
                 'lookup_short_code' => trim($data['lookup_short_code']),
@@ -84,7 +88,12 @@ class DropdownService
                         'updated_by' => get_logged_in_user_id(),
                     ]);
             } else {
-                $results = Dropdown::find($value['id'])->update([
+                $dropdown = Dropdown::find($value['id']);
+                if (! $dropdown) {
+                    continue;
+                }
+
+                $results = $dropdown->update([
                     'lookup_code_id' => $data['id'],
                     'full_name' => trim($value['full_name']),
                     'active_flag' => isset($value['active_flag']) ? 1 : 0,

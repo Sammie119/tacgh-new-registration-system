@@ -64,7 +64,12 @@ class FinanceService
 
     public function financialEntryUpdate(array $data)
     {
-        $results = FinancialEpisode::find($data['id'])->update([
+        $entry = FinancialEpisode::find($data['id']);
+        if (! $entry) {
+            return redirect(route('financial_entries', absolute: false))->with('error', 'Financial Entry not found!!!');
+        }
+
+        $results = $entry->update([
             'entry_type' => trim($data['entry_type']),
             'transaction_type' => $data['transaction_type'],
             'transaction_date' => $data['transaction_date'],
@@ -126,7 +131,11 @@ class FinanceService
     public function onlinePaymentCorrectionStore(array $data)
     {
         $confirmed_registrant = DB::table('vw_registration')->where(['registration_no' => $data['registration_no'], 'event_id' => get_logged_in_user_event_id()])->first();
-        $batch_no = RegistrantStage::find($confirmed_registrant->stage_id)->batch_no;
+        if (! $confirmed_registrant) {
+            return redirect(route('payments', absolute: false))->with('error', 'Registration No. was not found!!!');
+        }
+
+        $batch_no = RegistrantStage::find($confirmed_registrant->stage_id)?->batch_no;
 
         $results = OnlinePayment::create([
             'reg_id' => $confirmed_registrant->stage_id,
