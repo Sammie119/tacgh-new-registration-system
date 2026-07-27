@@ -11,32 +11,45 @@ class RegistrantPipe
     public function handle(array $data, \Closure $next)
     {
         $amount_to_pay = $data['amount_to_pay'];
-        $currentYear = date('Y');
-        $count = $data['id'];
-        //            DB::table('registrants')->whereRaw("YEAR(created_at) = $currentYear")
-        //            ->where('event_id', $data['event_id'])->count() + 1;
         $ref_date = date('y');
         $prefix = get_event($data['event_id'])->code_prefix;
 
-        $data = Registrant::updateOrCreate(
-            [
+        $fees = [
+            'accommodation_type' => $data['accommodation_fee'],
+            'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
+            'registration_type' => $data['registration_fee'],
+            'registration_fee' => Utils::eventRegistrationFee($data['registration_fee']),
+            'total_fee' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
+        ];
+
+        $registrant = DB::transaction(function () use ($data, $prefix, $ref_date, $fees) {
+            // Lock the matching row (if any) for the duration of the
+            // transaction so concurrent confirmations for the same event
+            // can't both read the same "next number" below.
+            $existing = Registrant::where([
                 'stage_id' => $data['id'],
                 'event_id' => $data['event_id'],
-            ],
-            [
-                'registration_no' => event_registration_code($count, 4, "$prefix-$ref_date-"),
-                'accommodation_type' => $data['accommodation_fee'],
-                'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
-                'registration_type' => $data['registration_fee'],
-                'registration_fee' => Utils::eventRegistrationFee($data['registration_fee']),
-                'total_fee' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
-                //            'room_no' => $data['room_no'],
-                //            'check_in' => $data['check_in'],
-                //            'check_out' => $data['check_out'],
-            ]);
+            ])->lockForUpdate()->first();
 
-        $data->total_fee = (floatval($amount_to_pay));
+            if ($existing) {
+                // Registration number is assigned once and stays stable
+                // across re-confirmation; only the fee/amount fields refresh.
+                $existing->update($fees);
 
-        return $next($data->toArray());
+                return $existing;
+            }
+
+            $nextNumber = Registrant::where('event_id', $data['event_id'])->lockForUpdate()->count() + 1;
+
+            return Registrant::create(array_merge([
+                'stage_id' => $data['id'],
+                'event_id' => $data['event_id'],
+                'registration_no' => event_registration_code($nextNumber, 4, "$prefix-$ref_date-"),
+            ], $fees));
+        });
+
+        $registrant->total_fee = floatval($amount_to_pay);
+
+        return $next($registrant->toArray());
     }
 }
