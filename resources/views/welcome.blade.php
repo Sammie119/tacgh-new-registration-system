@@ -46,7 +46,7 @@
             <div class="row d-flex justify-content-center align-items-center h-100">
                 <div class="col-md-9 col-lg-6 col-xl-5">
                     @php
-                        $image = \App\Models\Admin\Event::where('active_flag', 1)->first()->flyer_path;
+                        $image = \App\Models\Admin\Event::where('active_flag', 1)->first()?->flyer_path;
                     @endphp
                     @empty($image)
                         <img src="{{ asset('assets/img/tac-gh-logo.png') }}" class="rounded img-fluid img-thumbnail" alt="Sample image">
