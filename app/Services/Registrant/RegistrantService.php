@@ -76,6 +76,10 @@ class RegistrantService
     {
         $token = Utils::generateToken(6);
 
+        $data['phone_number'] = Utils::normalizeGhanaPhone($data['phone_number']);
+        $data['whatsapp_number'] = Utils::normalizeGhanaPhone($data['whatsapp_number']);
+        $data['emergency_contacts_phone_number'] = Utils::normalizeGhanaPhone($data['emergency_contacts_phone_number']);
+
         $results = RegistrantStage::updateOrCreate([
             'date_of_birth' => $data['date_of_birth'],
             'gender' => $data['gender'],
@@ -203,8 +207,8 @@ class RegistrantService
                     'batch_no' => $batch_no,
                     'event_id' => $request['event_id'],
                     'email' => $request['email'],
-                    'phone_number' => $request['phone_number'],
-                    'whatsapp_number' => $request['whatsapp_number'],
+                    'phone_number' => Utils::normalizeGhanaPhone($request['phone_number']),
+                    'whatsapp_number' => Utils::normalizeGhanaPhone($request['whatsapp_number']),
                     'token' => $token,
                 ]);
             });

@@ -53,4 +53,48 @@ class CsvPhoneNumberImportTest extends TestCase
 
         @unlink($path);
     }
+
+    public function test_local_ghanaian_phone_numbers_in_a_batch_upload_are_normalized(): void
+    {
+        Bus::fake();
+
+        $event = Event::create([
+            'name' => 'Test Conference', 'description' => 'desc', 'code_prefix' => 'TC',
+            'start_date' => now()->toDateString(), 'end_date' => now()->addDay()->toDateString(),
+            'is_payment_required' => 'No', 'status' => 'In-Progress', 'active_flag' => 1,
+            'created_by' => 1, 'updated_by' => 1,
+        ]);
+
+        $headers = 'title,first_name,surname,other_names,gender,date_of_birth,marital_status,nationality_id,phone_number,whatsapp_number,email,address,position_held,profession,residence_country_id,languages_spoken,need_accommodation,emergency_contacts_name,emergency_contacts_relationship,emergency_contacts_phone_number,attendance_type,disability,special_needs';
+        $row = 'Mr,John,Doe,,Male,1990-01-01,Single,Ghana,0500000001,0500000005,john@example.com,Address 1,Member,Engineer,Ghana,English,1,Jane Doe,Sister,0500000002,In-Person,0,None';
+        $csv = $headers."\n".$row."\n";
+
+        $path = tempnam(sys_get_temp_dir(), 'batch').'.csv';
+        file_put_contents($path, $csv);
+        $file = new UploadedFile($path, 'batch.csv', 'text/csv', null, true);
+
+        $request = new Request;
+        $request->merge([
+            'event_id' => $event->id, 'email' => 'coordinator@example.com',
+            'phone_number' => '0541234567', 'whatsapp_number' => '0541234567',
+        ]);
+        $request->files->set('file', $file);
+
+        $response = (new RegistrantService)->batchImportRegistration($request);
+
+        $this->assertTrue(session()->has('success'));
+        $this->assertDatabaseHas('registrants_stage', [
+            'phone_number' => '+233500000001',
+            'whatsapp_number' => '+233500000005',
+            'emergency_contacts_phone_number' => '+233500000002',
+        ]);
+        // The batch coordinator's own contact number, not just the
+        // spreadsheet rows, must also be normalized.
+        $this->assertDatabaseHas('batch_logs', [
+            'phone_number' => '+233541234567',
+            'whatsapp_number' => '+233541234567',
+        ]);
+
+        @unlink($path);
+    }
 }

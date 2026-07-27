@@ -128,11 +128,34 @@ class RegistrationTest extends TestCase
 
         $response = $this->post(route('registrant.store'), $this->validPayload([
             'event' => $this->createEvent(),
-            'phone_number' => '0541234567',
+            'phone_number' => '12345',
         ]));
 
         $response->assertSessionHasErrors('phone_number');
         $this->assertDatabaseCount('registrants_stage', 0);
+    }
+
+    public function test_registration_accepts_local_ghanaian_phone_format_and_normalizes_it(): void
+    {
+        Bus::fake();
+
+        $event = $this->createEvent();
+
+        $response = $this->post(route('registrant.store'), $this->validPayload([
+            'event' => $event,
+            'phone_number' => '0541234567',
+            'whatsapp_number' => '0541234567',
+            'emergency_contacts_phone_number' => '0541234568',
+        ]));
+
+        $response->assertRedirect(route('registrant_login'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('registrants_stage', [
+            'phone_number' => '+233541234567',
+            'whatsapp_number' => '+233541234567',
+            'emergency_contacts_phone_number' => '+233541234568',
+        ]);
     }
 
     public function test_registering_twice_with_the_same_identity_updates_the_existing_stage_record_instead_of_duplicating(): void

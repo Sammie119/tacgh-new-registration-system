@@ -2,6 +2,7 @@
 
 namespace App\Pipelines\Registration;
 
+use App\Helpers\Utils;
 use App\Models\RegistrantStage;
 
 class ConfirmationPipe
@@ -10,6 +11,10 @@ class ConfirmationPipe
     {
         $stage = RegistrantStage::find($data['id']);
         abort_if(! $stage, 404, 'Registrant not found.');
+
+        $data['phone_number'] = Utils::normalizeGhanaPhone($data['phone_number']);
+        $data['whatsapp_number'] = Utils::normalizeGhanaPhone($data['whatsapp_number']);
+        $data['emergency_contacts_phone_number'] = Utils::normalizeGhanaPhone($data['emergency_contacts_phone_number']);
 
         $stage->update([
             'date_of_birth' => $data['date_of_birth'],

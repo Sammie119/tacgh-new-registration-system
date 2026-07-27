@@ -8,6 +8,36 @@ use Illuminate\Support\Facades\File;
 
 class Utils
 {
+    /**
+     * Matches either the local Ghanaian mobile format (0XXXXXXXXX, 10
+     * digits) or the already-normalized international format
+     * (+233XXXXXXXXX) — the latter so that already-stored numbers still
+     * validate when a form re-submits them unchanged (e.g. during
+     * registration confirmation).
+     */
+    public const GHANA_PHONE_REGEX = '/^(0[0-9]{9}|\+233[0-9]{9})$/';
+
+    /**
+     * Convert a validated Ghanaian local-format number (0XXXXXXXXX) to the
+     * international format (+233XXXXXXXXX) that SMS/WhatsApp sending and
+     * payment gateways expect. Already-international numbers and empty
+     * values pass through unchanged.
+     */
+    public static function normalizeGhanaPhone(?string $number): ?string
+    {
+        if ($number === null || $number === '') {
+            return $number;
+        }
+
+        $number = trim($number);
+
+        if (preg_match('/^0[0-9]{9}$/', $number)) {
+            return '+233'.substr($number, 1);
+        }
+
+        return $number;
+    }
+
     public static function getLookups($id)
     {
         return Dropdown::select('id', 'full_name as name')->where([

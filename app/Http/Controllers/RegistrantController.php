@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\PayStackPayment;
+use App\Helpers\Utils;
 use App\Models\BatchLog;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
@@ -70,13 +71,13 @@ class RegistrantController extends Controller
         $request->validate([
             'event_id' => 'required|exists:events,id',
             'email' => 'required|email',
-            'phone_number' => 'required|regex:/^\+[1-9][0-9]{10,}$/',
-            'whatsapp_number' => 'nullable|regex:/^\+[1-9][0-9]{10,}$/',
+            'phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
+            'whatsapp_number' => ['nullable', 'regex:'.Utils::GHANA_PHONE_REGEX],
             'file' => 'required|mimes:csv,xlx,xls,xlsx|max:1048',
         ],
             [
-                'phone_number.regex' => 'Phone number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-                'whatsapp_number.regex' => 'WhatsApp number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+                'phone_number.regex' => 'Phone number must be a valid Ghanaian number (e.g., 0248000000).',
+                'whatsapp_number.regex' => 'WhatsApp number must be a valid Ghanaian number (e.g., 0248000000).',
             ]);
 
         return $this->registrant->batchImportRegistration($request);
@@ -214,8 +215,8 @@ class RegistrantController extends Controller
             'date_of_birth' => 'required|date',
             'marital_status' => 'required',
             'nationality_id' => 'required',
-            'phone_number' => 'required|regex:/^\+[1-9][0-9]{10,}$/',
-            'whatsapp_number' => 'nullable|regex:/^\+[1-9][0-9]{10,}$/',
+            'phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
+            'whatsapp_number' => ['nullable', 'regex:'.Utils::GHANA_PHONE_REGEX],
             'email' => 'required|email',
             'address' => 'required',
             'position_held' => 'required',
@@ -225,7 +226,7 @@ class RegistrantController extends Controller
             'need_accommodation' => 'required|boolean',
             'emergency_contacts_name' => 'required',
             'emergency_contacts_relationship' => 'required',
-            'emergency_contacts_phone_number' => 'required|regex:/^\+[1-9][0-9]{10,}$/',
+            'emergency_contacts_phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
             'attendance_type' => 'required|in:In-Person,Online',
             'event_id' => 'required|exists:events,id',
             'disability' => 'required|boolean',
@@ -235,9 +236,9 @@ class RegistrantController extends Controller
             'amount_to_pay' => ($type === 'update') ? 'required|numeric' : 'nullable',
         ],
             [
-                'phone_number.regex' => 'Phone number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-                'whatsapp_number.regex' => 'WhatsApp number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-                'emergency_contacts_phone_number.regex' => 'Emergency Contact number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+                'phone_number.regex' => 'Phone number must be a valid Ghanaian number (e.g., 0248000000).',
+                'whatsapp_number.regex' => 'WhatsApp number must be a valid Ghanaian number (e.g., 0248000000).',
+                'emergency_contacts_phone_number.regex' => 'Emergency Contact number must be a valid Ghanaian number (e.g., 0248000000).',
             ]);
     }
 }
