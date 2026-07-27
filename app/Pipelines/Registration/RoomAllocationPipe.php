@@ -26,7 +26,11 @@ class RoomAllocationPipe
             return false;
         }
 
-        $event = Event::select('id', 'venue_id')->where('id', $registrant['event_id'])->first()->toArray();
+        $event = Event::select('id', 'venue_id')->where('id', $registrant['event_id'])->first();
+        if (! $event) {
+            return false;
+        }
+        $event = $event->toArray();
 
         // Get Accommodation type of Room
         $accommodation_type = $data['confirmed_registrant']->accommodation_type;

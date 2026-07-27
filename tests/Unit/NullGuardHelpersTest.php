@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Enums\RolesEnum;
 use App\Helpers\Utils;
+use App\Models\Admin\AccommodationRoom;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -37,5 +38,16 @@ class NullGuardHelpersTest extends TestCase
 
         // Role exists and user has it, but no AssignPermissionToRole row exists.
         $this->assertFalse(get_assigned_role_to_permission(RolesEnum::FINANCE));
+    }
+
+    public function test_get_room_number_returns_null_when_the_residence_or_block_is_missing(): void
+    {
+        $room = AccommodationRoom::create([
+            'room_no' => 101, 'floor_no' => 1, 'floor_name' => 'Ground',
+            'block_id' => 999999, 'residence_id' => 999999, 'total_occupants' => 2,
+            'prefix' => 'R', 'suffix' => '', 'created_by' => 1, 'updated_by' => 1,
+        ]);
+
+        $this->assertNull(get_room_number($room->id));
     }
 }

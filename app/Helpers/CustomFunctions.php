@@ -208,8 +208,11 @@ if (! function_exists('get_room_number')) {
         $room = AccommodationRoom::find($room_id);
         if ($room) {
             $residence = Accommodation::find($room->residence_id);
-
             $block = AccommodationBlock::find($room->block_id);
+
+            if (! $residence || ! $block) {
+                return null;
+            }
 
             $roomName = $room->prefix.''.$room->room_no.''.$room->suffix;
             $resName = $residence->name;

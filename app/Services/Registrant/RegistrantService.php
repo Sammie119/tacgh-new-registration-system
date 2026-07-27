@@ -417,6 +417,11 @@ class RegistrantService
             foreach ($data['reg'] as $registrant) {
                 $data2['registrant'] = RegistrantStage::where('id', $registrant['registrant_id'])->first();
                 $data2['confirmed_registrant'] = Registrant::where('stage_id', $registrant['registrant_id'])->first();
+
+                if (! $data2['registrant'] || ! $data2['confirmed_registrant']) {
+                    continue;
+                }
+
                 (new RoomAllocationPipe)->autoRoomAllocation($data2);
             }
         }

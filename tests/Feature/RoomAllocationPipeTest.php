@@ -163,4 +163,26 @@ class RoomAllocationPipeTest extends TestCase
         ]);
         $this->assertSame($room->id, $registrant->fresh()->room_no);
     }
+
+    public function test_returns_false_gracefully_when_the_event_no_longer_exists(): void
+    {
+        Bus::fake();
+
+        $event = $this->createEvent();
+        $accommodationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Regular Room',
+            'fee_amount' => 50, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $registrant = $this->createRegistrant($event, $accommodationFee);
+        $registrantData = $registrant->stage->toArray();
+        $registrantData['event_id'] = 999999;
+
+        $result = (new RoomAllocationPipe)->autoRoomAllocation([
+            'registrant' => $registrantData,
+            'confirmed_registrant' => $registrant,
+        ]);
+
+        $this->assertFalse($result);
+        $this->assertDatabaseCount('assigned_room_episodes', 0);
+    }
 }
