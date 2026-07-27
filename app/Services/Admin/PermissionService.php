@@ -29,6 +29,10 @@ class PermissionService
     public function update(array $data)
     {
         $record = Permission::find($data['id']);
+        if (! $record) {
+            return redirect(route('permissions', absolute: false))->with('error', 'Permission not found!!!');
+        }
+
         $results = $record->update(
             [
                 'name' => trim($data['name']),

@@ -54,7 +54,7 @@
                                         <td>{{ $event->code_prefix }}</td>
                                         <td>{{ $event->start_date }}</td>
                                         <td>{{ $event->end_date }}</td>
-                                        <td>{{ \App\Models\Admin\EventVenue::find($event->venue_id)->name }}</td>
+                                        <td>{{ \App\Models\Admin\EventVenue::find($event->venue_id)?->name }}</td>
                                         <td>{{ $event->is_payment_required }}</td>
                                         <td>{{ $event->status }}</td>
                                         <td style="width: 150px">

@@ -20,7 +20,7 @@ class AdminService
         $data['reg_stage'] = RegistrantStage::where(['event_id' => get_logged_in_user_event_id()])->count();
         $data['confirmed'] = RegistrantStage::where(['event_id' => get_logged_in_user_event_id(), 'confirmed' => 'Yes'])->count();
         $data['payments'] = OnlinePayment::where(['event_id' => get_logged_in_user_event_id()])->sum('amount_paid');
-        $residence_id = Accommodation::where('venue_id', $event->venue_id)->pluck('id')->toArray();
+        $residence_id = $event ? Accommodation::where('venue_id', $event->venue_id)->pluck('id')->toArray() : [];
         $data['total_beds'] = AccommodationRoom::whereIn('residence_id', $residence_id)->sum('total_occupants');
         $data['beds_occupied'] = AssignedRoomEpisode::where(['event_id' => get_logged_in_user_event_id()])->count();
         $data['total_males'] = RegistrantStage::where([

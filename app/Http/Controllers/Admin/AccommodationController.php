@@ -53,7 +53,8 @@ class AccommodationController extends Controller
 
     public function allocateRoomsSingle()
     {
-        $venue = Event::find(get_logged_in_user_event_id())->venue_id;
+        $venue = Event::find(get_logged_in_user_event_id())?->venue_id;
+        abort_if(! $venue, 404, 'Event not found.');
 
         return $this->accommodationService->allocateRoomsSingle($venue);
     }

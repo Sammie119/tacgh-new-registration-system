@@ -44,6 +44,9 @@ class EventService
     public function update($data)
     {
         $event = Event::find($data['id']);
+        if (! $event) {
+            return redirect(route('events', absolute: false))->with('error', 'Event not found!!!');
+        }
 
         $path = Utils::fileUpload($data, 'public/events', $event->flyer_path);
 

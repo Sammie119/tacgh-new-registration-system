@@ -29,6 +29,10 @@ class RoleService
     public function update(array $data)
     {
         $record = Role::find($data['id']);
+        if (! $record) {
+            return redirect(route('roles', absolute: false))->with('error', 'Role not found!!!');
+        }
+
         $results = $record->update(
             [
                 'name' => trim($data['name']),
@@ -45,6 +49,10 @@ class RoleService
     public function assignPermission(array $data)
     {
         $role = Role::find($data['id']);
+        if (! $role) {
+            return redirect(route('roles', absolute: false))->with('error', 'Role not found!!!');
+        }
+
         $role->syncPermissions($data['permissions']);
 
         return redirect(route('roles', absolute: false))->with('success', 'Permissions Assigned Added Successfully!!!');

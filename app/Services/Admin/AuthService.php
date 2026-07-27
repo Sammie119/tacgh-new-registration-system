@@ -43,6 +43,9 @@ class AuthService
     public function update(array $data)
     {
         $record = User::find($data['id']);
+        if (! $record) {
+            return redirect(route('users', absolute: false))->with('error', 'User not found!!!');
+        }
 
         $results = $record->update(
             [
@@ -80,36 +83,45 @@ class AuthService
     public function assignRolesToUser(array $data)
     {
         $user = User::find($data['id']);
+        if (! $user) {
+            return redirect(route('users', absolute: false))->with('error', 'User not found!!!');
+        }
+
         $user->syncRoles($data['roles']);
         $user->syncPermissions($data['permissions']);
 
         DB::table('assign_permission_to_roles')->where('user_id', $data['id'])->delete();
 
         foreach ($data['roles'] as $key => $value) {
+            $roleId = $this->getRoleNPermissionID($value, 'role');
+            $permissionId = $this->getRoleNPermissionID($data['permissions'][$key] ?? null, 'permission');
+
+            if (! $roleId || ! $permissionId) {
+                continue;
+            }
+
             AssignPermissionToRole::create([
                 'user_id' => $data['id'],
-                'role_id' => $this->getRoleNPermissionID($value, 'role'),
-                'permission_id' => $this->getRoleNPermissionID($data['permissions'][$key], 'permission'),
+                'role_id' => $roleId,
+                'permission_id' => $permissionId,
                 'created_by' => get_logged_in_user_id(),
                 'updated_by' => get_logged_in_user_id(),
             ]);
         }
 
-        if ($user) {
-            return redirect(route('users', absolute: false))->with('success', 'Roles Assigned to User Successfully!!!');
-        }
-
-        return redirect(route('users', absolute: false))->with('error', 'Roles Assigned to User Unsuccessful!!!');
+        return redirect(route('users', absolute: false))->with('success', 'Roles Assigned to User Successfully!!!');
     }
 
     private function getRoleNPermissionID($name, $type)
     {
-        if ($type === 'role') {
-            $result = Role::select('id')->where('name', $name)->first()->id;
-        } else {
-            $result = Permission::select('id')->where('name', $name)->first()->id;
+        if ($name === null) {
+            return null;
         }
 
-        return $result;
+        if ($type === 'role') {
+            return Role::where('name', $name)->value('id');
+        }
+
+        return Permission::where('name', $name)->value('id');
     }
 }
