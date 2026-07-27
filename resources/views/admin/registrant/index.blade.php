@@ -36,19 +36,20 @@
                                 <tbody>
                                 @forelse($registrants as $key => $registrant)
                                     @php
-                                        $confirmed_registrant = \App\Models\Registrant::where('stage_id', $registrant->id)->first();
+                                        $confirmed_registrant = $registrant->stage;
+                                        $registrant_name = strtoupper(trim(($dropdown_names[$registrant->title] ?? '').' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
                                     @endphp
 
                                     <tr class="venue_{{ $registrant->id }}">
                                         <td style="width: 50px">{{ ++$key }}</td>
-                                        <td>{{ event_registrant_name($registrant->id)  }}</td>
+                                        <td>{{ $registrant_name }}</td>
                                         <td>{{ $confirmed_registrant->registration_no ?? 'NULL' }}</td>
-                                        <td>{{ get_dropdown_name($registrant->gender) }}</td>
+                                        <td>{{ $dropdown_names[$registrant->gender] ?? null }}</td>
                                         <td>{{ $registrant->phone_number }}</td>
-                                        <td>{{ get_room_number($confirmed_registrant->room_no) }}</td>
-                                        <td>{{ $confirmed_registrant->check_in }}</td>
-                                        <td>{{ $confirmed_registrant->check_out }}</td>
-                                        <td>{{ get_user_name($confirmed_registrant->check_in_by) }}</td>
+                                        <td>{{ $room_names[$confirmed_registrant->room_no ?? null] ?? null }}</td>
+                                        <td>{{ $confirmed_registrant->check_in ?? null }}</td>
+                                        <td>{{ $confirmed_registrant->check_out ?? null }}</td>
+                                        <td>{{ $check_in_by_names[$confirmed_registrant->check_in_by ?? null] ?? null }}</td>
                                         <td>
                                             <x-button
                                                 type='button'

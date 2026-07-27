@@ -9,13 +9,16 @@ use App\Http\Traits\SMSNotify;
 use App\Imports\RegistrationStageImport;
 use App\Jobs\SmsNotificationJob;
 use App\Jobs\WhatsappNotificationJob;
+use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\Country;
+use App\Models\Admin\Dropdown;
 use App\Models\Admin\Event;
 use App\Models\Admin\EventFees;
 use App\Models\Admin\OnlinePayment;
 use App\Models\BatchLog;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
+use App\Models\User;
 use App\Pipelines\Registration\ConfirmationPipe;
 use App\Pipelines\Registration\PaymentPipe;
 use App\Pipelines\Registration\RegistrantPipe;
@@ -30,7 +33,26 @@ class RegistrantService
 
     public function index($event_id)
     {
-        $data['registrants'] = RegistrantStage::where(['event_id' => $event_id, 'confirmed' => 'Yes'])->orderBy('id', 'desc')->get();
+        $data['registrants'] = RegistrantStage::with('stage')
+            ->where(['event_id' => $event_id, 'confirmed' => 'Yes'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $lookupIds = $data['registrants']->pluck('title')
+            ->merge($data['registrants']->pluck('gender'))
+            ->filter()
+            ->unique();
+        $data['dropdown_names'] = Dropdown::whereIn('id', $lookupIds)->pluck('full_name', 'id');
+
+        $checkInByIds = $data['registrants']->pluck('stage.check_in_by')->filter()->unique();
+        $data['check_in_by_names'] = User::whereIn('id', $checkInByIds)->pluck('name', 'id');
+
+        $roomIds = $data['registrants']->pluck('stage.room_no')->filter()->unique();
+        $data['room_names'] = AccommodationRoom::whereIn('accommodation_rooms.id', $roomIds)
+            ->join('accommodations', 'accommodations.id', '=', 'accommodation_rooms.residence_id')
+            ->join('accommodation_blocks', 'accommodation_blocks.id', '=', 'accommodation_rooms.block_id')
+            ->selectRaw("accommodation_rooms.id, CONCAT(accommodation_rooms.prefix, accommodation_rooms.room_no, accommodation_rooms.suffix, ' in ', accommodations.name, ', ', accommodation_blocks.name) as room_name")
+            ->pluck('room_name', 'accommodation_rooms.id');
 
         return view('admin.registrant.index', $data);
     }
