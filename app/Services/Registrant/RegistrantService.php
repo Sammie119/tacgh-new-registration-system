@@ -24,8 +24,10 @@ use App\Pipelines\Registration\PaymentPipe;
 use App\Pipelines\Registration\RegistrantPipe;
 use App\Pipelines\Registration\RoomAllocationPipe;
 use App\Services\Admin\PaymentService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Pipeline;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class RegistrantService
 {
@@ -107,6 +109,10 @@ class RegistrantService
             $reg_name = event_registrant_name($results->id);
             $event = get_event($results->event_id);
 
+            if (! $event) {
+                return back()->with('error', 'Event was not found!!!');
+            }
+
             $event->is_payment_required == 'Yes' ?
                 $msg = 'Congrats '.$results->first_name.' for your interest in '.$event->name.'. Registration is incomplete until full payment of the Event registration fee is made.'."\n".'Login token : '.$token :
                 $msg = 'Congrats '.$results->first_name.' for your interest in '.$event->name.'. Use the details below to complete your Registration process.'."\n".'Login token : '.$token;
@@ -185,23 +191,34 @@ class RegistrantService
 
     public function batchImportRegistration($request)
     {
-
         $event_id = $request['event_id'];
         $batch_no = date('YmdHis');
-        Excel::import(new RegistrationStageImport($event_id, $batch_no), $request->file('file'));
-
         $token = Utils::generateToken();
 
-        $results = BatchLog::create([
-            'batch_no' => $batch_no,
-            'event_id' => $request['event_id'],
-            'email' => $request['email'],
-            'phone_number' => $request['phone_number'],
-            'whatsapp_number' => $request['whatsapp_number'],
-            'token' => $token,
-        ]);
+        try {
+            $results = DB::transaction(function () use ($request, $event_id, $batch_no, $token) {
+                Excel::import(new RegistrationStageImport($event_id, $batch_no), $request->file('file'));
+
+                return BatchLog::create([
+                    'batch_no' => $batch_no,
+                    'event_id' => $request['event_id'],
+                    'email' => $request['email'],
+                    'phone_number' => $request['phone_number'],
+                    'whatsapp_number' => $request['whatsapp_number'],
+                    'token' => $token,
+                ]);
+            });
+        } catch (ValidationException $e) {
+            $messages = collect($e->failures())->flatMap(fn ($failure) => $failure->toArray())->implode(' ');
+
+            return back()->with('error', 'Batch upload failed - nothing was registered. '.$messages);
+        }
 
         $event = Event::find($results->event_id);
+
+        if (! $event) {
+            return back()->with('error', 'Event was not found!!!');
+        }
 
         $event->is_payment_required == 'Yes' ?
             $msg = 'Congrats for your interest in '.$event->name.'. Registration is incomplete until full payment of the Event registration fee is made.'."\n".'Login token : '.$token :
