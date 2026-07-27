@@ -7,7 +7,6 @@
         font-size: 0.9em;
     }
 </style>
-{{--{{ dd(App::isLocal()) }}--}}
 @section('content')
     <main class="" style="margin-top: 80px">
         <div class="container">

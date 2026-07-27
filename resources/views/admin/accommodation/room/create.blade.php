@@ -44,7 +44,6 @@
         @php
             $resident_status = \App\Models\Admin\Accommodation::find($block->residence_id)->status;
             $block_status = $block->status;
-//            {{ dd($resident_status, $block_status); }}
         @endphp
 
         @for($i = 1; $i <= $block->total_floors; $i++)

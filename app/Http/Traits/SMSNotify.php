@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: mantey
@@ -7,67 +8,60 @@
  */
 
 namespace App\Http\Traits;
-use App\Services\NotificationService;
-use GuzzleHttp\Client;
 
 trait SMSNotify
 {
-    public function sendMessage($to, $message, $type='sms'): void
+    public function sendMessage($to, $message, $type = 'sms'): void
     {
-//        dd($to, $message, $type);
-        if($type == 'sms'){
-            $this->sendSms($to,$message);
-        }else if($type == 'whatsapp'){
-//            $this->sendWhatsAppNotification($to,$message);
+        if ($type == 'sms') {
+            $this->sendSms($to, $message);
+        } elseif ($type == 'whatsapp') {
+            //            $this->sendWhatsAppNotification($to,$message);
             $this->sendWhatsApp($to, $message);
-        }
-        else{
-//              dd('message won\'t be delivered sendsms_value'.$this->sendsms);
+        } else {
             return;
         }
 
-//        dd($to, $message, $type);
     }
 
     public function sendSms($to, $message)
     {
-//        dd('SMS');
         try {
-            $apiKey = config('reg_notification.sms_mnotify.api_key');//env('SMS_API_KEY');
+            $apiKey = config('reg_notification.sms_mnotify.api_key'); // env('SMS_API_KEY');
             $endPoint = config('reg_notification.sms_mnotify.api_endpoint');
             $sender_id = config('reg_notification.sms_mnotify.sender_id');
 
             $contact = ["$to"];
 
-            $url = $endPoint . '?key=' . $apiKey;
+            $url = $endPoint.'?key='.$apiKey;
             $data = [
                 'recipient' => $contact,
                 'sender' => $sender_id,
                 'message' => $message,
                 'is_schedule' => 'false',
-                'schedule_date' => ''
+                'schedule_date' => '',
             ];
 
             $ch = curl_init();
-            $headers = array();
-            $headers[] = "Content-Type: application/json";
+            $headers = [];
+            $headers[] = 'Content-Type: application/json';
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             $result = curl_exec($ch);
-            $result = json_decode($result, TRUE);
+            $result = json_decode($result, true);
             curl_close($ch);
 
-            if ($result["code"] == "2000") {
+            if ($result['code'] == '2000') {
                 return $result;
             } else {
                 return $result;
             }
 
         } catch (\Exception $e) {
-            return json_encode(['code' => -99, 'message' => "Sorry some error occurred " . $e->getMessage()]);
+            return json_encode(['code' => -99, 'message' => 'Sorry some error occurred '.$e->getMessage()]);
         }
     }
 
@@ -82,19 +76,19 @@ trait SMSNotify
         curl_setopt_array($curl, [
             CURLOPT_URL => $endpoint,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
+            CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => json_encode([
                 'chatId' => $to.'@c.us',
-                'message' => $message
+                'message' => $message,
             ]),
             CURLOPT_HTTPHEADER => [
-                "accept: application/json",
+                'accept: application/json',
                 "authorization: Bearer $apiKey",
-                "content-type: application/json"
+                'content-type: application/json',
             ],
         ]);
 
@@ -104,7 +98,7 @@ trait SMSNotify
         curl_close($curl);
 
         if ($err) {
-            return "cURL Error #:" . $err;
+            return 'cURL Error #:'.$err;
         } else {
             return $response;
         }

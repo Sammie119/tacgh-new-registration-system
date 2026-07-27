@@ -15,6 +15,7 @@ class FormController extends Controller
     public function index()
     {
         $data['forms'] = Form::where('user_id', get_logged_in_user_id())->orderByDesc('id')->get();
+
         return view('admin.forms.index', $data);
     }
 
@@ -42,7 +43,7 @@ class FormController extends Controller
                 'label' => $f['label'],
                 'field_type' => $f['field_type'],
                 'options' => $f['options'] ? explode('|', trim($f['options'])) : null,
-                'is_required' => !empty($f['is_required']),
+                'is_required' => ! empty($f['is_required']),
                 'order' => $index,
             ]);
         }
@@ -52,7 +53,6 @@ class FormController extends Controller
 
     public function update(Request $request)
     {
-//        dd($request->all());
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -65,18 +65,18 @@ class FormController extends Controller
             'user_id' => get_logged_in_user_id(),
             'title' => $request->title,
             'description' => $request->description,
-            'is_public' => $request->has('is_public')
+            'is_public' => $request->has('is_public'),
         ]);
 
         foreach ($request->fields as $index => $f) {
             $fields_array = ['radio', 'checkbox', 'dropdown'];
-            if(isset($f['field_id'])) {
+            if (isset($f['field_id'])) {
                 FormField::find($f['field_id'])->update([
                     'form_id' => $request->id,
                     'label' => $f['label'],
                     'field_type' => $f['field_type'],
                     'options' => in_array($f['field_type'], $fields_array) ? explode('|', trim($f['options'])) : null,
-                    'is_required' => !empty($f['is_required']),
+                    'is_required' => ! empty($f['is_required']),
                     'order' => $index,
                 ]);
             } else {
@@ -85,7 +85,7 @@ class FormController extends Controller
                     'label' => $f['label'],
                     'field_type' => $f['field_type'],
                     'options' => $f['options'] ? explode('|', trim($f['options'])) : null,
-                    'is_required' => !empty($f['is_required']),
+                    'is_required' => ! empty($f['is_required']),
                     'order' => $index,
                 ]);
             }
@@ -97,7 +97,8 @@ class FormController extends Controller
 
     public function report(Form $form)
     {
-        $form->load('fields','responses.values');
+        $form->load('fields', 'responses.values');
+
         return view('admin.forms.report', compact('form'));
     }
 

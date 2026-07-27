@@ -23,7 +23,7 @@ class RoomAllocationPipe
         $registrant = $data['registrant'];
         $gender = ($registrant['gender'] == 3) ? 'M' : 'F';
 
-        if(event_registrant_age($registrant['id']) < 6){
+        if (event_registrant_age($registrant['id']) < 6) {
             return false;
         }
 
@@ -33,49 +33,50 @@ class RoomAllocationPipe
         $accommodation_type = $data['confirmed_registrant']->accommodation_type;
         $acc_type = EventFees::find($accommodation_type)->description;
         $special_acc = Dropdown::where('full_name', $acc_type)->first()->id;
-        $subString = "Regular";
+        $subString = 'Regular';
 
-        $residences = Accommodation::where('venue_id','=', $event['venue_id'])
+        $residences = Accommodation::where('venue_id', '=', $event['venue_id'])
             ->where(function ($query) use ($gender) {
-                $query->where('gender',$gender)
-                    ->orWhere('gender','A');
+                $query->where('gender', $gender)
+                    ->orWhere('gender', 'A');
             })
             ->where('active_flag', 1)
-            ->orderBy('id','asc')
+            ->orderBy('id', 'asc')
             ->pluck('id')->toArray();
 
         $blocks = AccommodationBlock::whereIn('residence_id', $residences)
             ->where(function ($query) use ($gender) {
-                $query->where('gender',$gender)
-                    ->orWhere('gender','A');
+                $query->where('gender', $gender)
+                    ->orWhere('gender', 'A');
             })
             ->where('status', 'Active')
             ->pluck('id')->toArray();
 
         // Get all unfull rooms based on gender and residence
         $unfull = AccommodationRoom::where(function ($query) use ($gender) {
-            $query->where('gender',"$gender")
-                ->orWhere('gender','A');
+            $query->where('gender', "$gender")
+                ->orWhere('gender', 'A');
         })
-            ->whereRaw("total_occupants > (SELECT count(id) FROM  assigned_room_episodes WHERE room_id = accommodation_rooms.id AND event_id =".$event['id']." AND deleted_at IS NULL)")
-            ->whereIn('residence_id',$residences)
-            ->whereIn('block_id',$blocks)
+            ->whereRaw('total_occupants > (SELECT count(id) FROM  assigned_room_episodes WHERE room_id = accommodation_rooms.id AND event_id ='.$event['id'].' AND deleted_at IS NULL)')
+            ->whereIn('residence_id', $residences)
+            ->whereIn('block_id', $blocks)
             ->where('assign', 1);
 
-        if(str_contains($acc_type, $subString))
-            $unfull = $unfull->where('type','Regular');
-        else
-            $unfull = $unfull->where('type', 'Special')->where('special_acc',$special_acc);
+        if (str_contains($acc_type, $subString)) {
+            $unfull = $unfull->where('type', 'Regular');
+        } else {
+            $unfull = $unfull->where('type', 'Special')->where('special_acc', $special_acc);
+        }
 
-        $unfull = $unfull->orderBy('id','ASC')
+        $unfull = $unfull->orderBy('id', 'ASC')
             ->get();
 
         // Checks if the return value (unfull rooms) is not empty otherwise execute
-        if (sizeof($unfull) != 0) {
+        if (count($unfull) != 0) {
 
             // $applicant->room_id = $unfull->first();
-            for ($i=0; $i < sizeof($unfull); $i++) {
-                if (get_total_room_occupants ($unfull[$i]->id, $event['id']) < $unfull[$i]->total_occupants) {
+            for ($i = 0; $i < count($unfull); $i++) {
+                if (get_total_room_occupants($unfull[$i]->id, $event['id']) < $unfull[$i]->total_occupants) {
 
                     if ($data['confirmed_registrant']->room_no == $unfull[$i]->id) {
                         break;
@@ -89,7 +90,7 @@ class RoomAllocationPipe
                             'room_id' => $unfull[$i]->id,
                             'event_id' => $event['id'],
                             'registrant_id' => $registrant['id'],
-                        ],[
+                        ], [
                             'active_flag' => 1,
                             'created_by' => $registrant['id'],
                             'updated_by' => $registrant['id'],
@@ -99,11 +100,11 @@ class RoomAllocationPipe
                         $roomName = get_room_number($unfull[$i]->id);
                         $msg = "$reg_name , you have been assigned to room $roomName";
 
-//                        dd($unfull, $acc_type, str_contains($acc_type, $subString), $roomName);
                         WhatsappNotificationJob::dispatch($registrant['whatsapp_number'], $msg);
 
-                        if($registrant['residence_country_id'] == 64)
+                        if ($registrant['residence_country_id'] == 64) {
                             SmsNotificationJob::dispatch($registrant['phone_number'], $msg);
+                        }
                         //                $this->sendSms($results->phone_number, $msg);
 
                         //            $this->sendWhatsApp($results->whatsapp_number, $msg);
@@ -114,7 +115,6 @@ class RoomAllocationPipe
             }
         }
 
-//        dd($residences, $blocks, get_total_room_occupants(1, $event['venue_id']), $unfull);
         return true;
     }
 }

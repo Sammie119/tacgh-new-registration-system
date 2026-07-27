@@ -12,22 +12,22 @@ class DownloadService
     public function index()
     {
         $data['downloads'] = Download::where('event_id', get_logged_in_user_event_id())->orderByDesc('id')->get();
+
         return view('admin.downloads.index', $data);
     }
 
     public function store($request)
     {
-//        dd($request->all());
         $path = Utils::fileUpload($request, 'uploads');
 
-        if(!$path){
+        if (! $path) {
             return redirect(route('downloads', absolute: false))->with('error', 'File Upload Unsuccessful!!!');
         }
 
         $upload = Download::firstOrCreate([
-                'event_id' => get_logged_in_user_event_id(),
-                'file_name' => $request->file_name,
-            ],
+            'event_id' => get_logged_in_user_event_id(),
+            'file_name' => $request->file_name,
+        ],
             [
                 'file_path' => $path,
                 'download_count' => 0,
@@ -36,7 +36,7 @@ class DownloadService
                 'updated_by' => get_logged_in_user_id(),
             ]);
 
-        if($upload){
+        if ($upload) {
             return redirect(route('downloads', absolute: false))->with('success', 'Download Created Successfully!!!');
         }
 
@@ -45,7 +45,6 @@ class DownloadService
 
     public function update($request)
     {
-//        dd($request->all());
         $download = Download::find($request->id);
         $path = Utils::fileUpload($request, 'uploads', $download->file_path);
 
@@ -55,11 +54,11 @@ class DownloadService
             'updated_by' => get_logged_in_user_id(),
         ]);
 
-        if($path){
+        if ($path) {
             $upload = $download->update(['file_path' => $path]);
         }
 
-        if($upload){
+        if ($upload) {
             return redirect(route('downloads', absolute: false))->with('success', 'Download Updated Successfully!!!');
         }
 
@@ -70,26 +69,28 @@ class DownloadService
     {
         $file = Download::find($id);
         $filename = 'app/'.$file->file_path;
-//        dd($filename);
-        if (!File::exists(storage_path($filename))) {
+        if (! File::exists(storage_path($filename))) {
             return redirect(route('registrant_page', absolute: false))->with('error', 'File Not Found!!!');
         }
         $file->increment('download_count');
+
         return Storage::disk('local')->download($file->file_path);
-//        return Storage::download($filename);
+        //        return Storage::download($filename);
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         $record = Download::find($id);
-        if($record){
+        if ($record) {
             $file = 'app/'.$record->file_path;
             if (File::exists(storage_path($file))) {
                 File::delete(storage_path($file));
             }
             $record->delete();
+
             return 1;
         }
+
         return 0;
     }
 }

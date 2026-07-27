@@ -272,7 +272,6 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Accommodation & Events Fees</h5>
-{{--                        {{ dd($confirmed_registrant, $accommodation, $confirmed_registrant->accommodation_type) }}--}}
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <x-input-select

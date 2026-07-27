@@ -20,6 +20,7 @@ class AuthenticatedSessionController extends Controller
     public function create(): View
     {
         $data['events'] = Event::where('active_flag', 1)->orderBy('name')->get();
+
         return view('auth.login', $data);
     }
 
@@ -32,10 +33,9 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-//        dd($request->event_id, get_logged_in_user_id());
         $update = User::find(get_logged_in_user_id())->update(['event_id' => $request->event_id]);
 
-        if($update){
+        if ($update) {
             return redirect()->intended(RouteServiceProvider::HOME);
         }
 

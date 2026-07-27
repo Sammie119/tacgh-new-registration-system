@@ -90,7 +90,6 @@
         @isset($event)
             <div class="px-4 mb-3 col-6">
                 <?php  ?>
-{{--                {{dd(asset('public/storage/' . $event->flyer_path))}}--}}
                 <img src="{{ asset('storage/' . str_replace("public","", $event->flyer_path)) }}" alt="Flyer" width="200">
             </div>
         @endisset

@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\Accommodation;
 use App\Models\Admin\Event;
-use App\Models\Admin\EventVenue;
 use App\Services\Admin\AccommodationService;
 use Illuminate\Http\Request;
 
@@ -17,6 +15,7 @@ class AccommodationController extends Controller
     {
         $this->accommodationService = $accommodationService;
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -30,7 +29,6 @@ class AccommodationController extends Controller
      */
     public function store(Request $request)
     {
-//        dd($request->all());
         $request->validate([
             'accommodation_id' => 'required',
             'accommodation' => 'required',
@@ -56,13 +54,14 @@ class AccommodationController extends Controller
     public function allocateRoomsSingle()
     {
         $venue = Event::find(get_logged_in_user_event_id())->venue_id;
+
         return $this->accommodationService->allocateRoomsSingle($venue);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return AccommodationService::accommodationDelete($id);
     }

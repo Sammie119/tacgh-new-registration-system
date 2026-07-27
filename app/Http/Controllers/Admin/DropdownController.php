@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\Dropdown;
 use App\Services\Admin\DropdownService;
 use Illuminate\Http\Request;
 
@@ -44,7 +43,7 @@ class DropdownController extends Controller
         return $this->dropdownService->updateCategory($request->all());
     }
 
-    static public function destroyCategory($id)
+    public static function destroyCategory($id)
     {
         return DropdownService::deleteCategory($id);
     }
@@ -54,7 +53,6 @@ class DropdownController extends Controller
      */
     public function store(Request $request)
     {
-//        dd($request->all());
         $request->validate([
             'dropdown' => ['required'],
         ]);
@@ -65,7 +63,7 @@ class DropdownController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return DropdownService::delete($id);
     }

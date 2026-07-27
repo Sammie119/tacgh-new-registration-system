@@ -2,22 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\RegistrationStageExport;
 use App\Helpers\PayStackPayment;
-use App\Helpers\Utils;
-use App\Models\Admin\Country;
-use App\Models\Admin\Event;
 use App\Models\Registrant;
-use App\Models\RegistrantStage;
 use App\Services\Admin\PaymentService;
 use App\Services\Registrant\RegistrantService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 
 class RegistrantController extends Controller
 {
     private RegistrantService $registrant;
+
     private PaymentService $paymentService;
 
     public function __construct(RegistrantService $registrant, PaymentService $paymentService)
@@ -44,7 +38,7 @@ class RegistrantController extends Controller
      */
     public function store(Request $request)
     {
-        $this->formValidation($request, 'create');;
+        $this->formValidation($request, 'create');
 
         return $this->registrant->registrantRegistration($request->all());
     }
@@ -59,13 +53,11 @@ class RegistrantController extends Controller
         $this->formValidation($request);
 
         return $this->registrant->individualRegistrationConfirm($request->all());
-//        dd($request->all());
     }
 
     public function individualRegistrationUpdate(Request $request)
     {
         return $this->registrant->individualRegistrationUpdate($request->all());
-//        dd($request->all());
     }
 
     public function batchRegistrationStage(Request $request)
@@ -75,12 +67,12 @@ class RegistrantController extends Controller
             'email' => 'required|email',
             'phone_number' => 'required|regex:/^\+[1-9][0-9]{10,}$/',
             'whatsapp_number' => 'nullable|regex:/^\+[1-9][0-9]{10,}$/',
-            'file' => 'required|mimes:csv,xlx,xls,xlsx|max:1048'
+            'file' => 'required|mimes:csv,xlx,xls,xlsx|max:1048',
         ],
-        [
-            'phone_number.regex' => 'Phone number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-            'whatsapp_number.regex' => 'WhatsApp number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-        ]);
+            [
+                'phone_number.regex' => 'Phone number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+                'whatsapp_number.regex' => 'WhatsApp number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+            ]);
 
         return $this->registrant->batchImportRegistration($request);
     }
@@ -107,7 +99,8 @@ class RegistrantController extends Controller
     {
         $result = $this->paymentService->makePayment($request->all());
 
-        $response = (new PayStackPayment())->initializeTransaction($result);
+        $response = (new PayStackPayment)->initializeTransaction($result);
+
         return redirect($response['data']['authorization_url']);
     }
 
@@ -136,8 +129,8 @@ class RegistrantController extends Controller
         ]);
         foreach ($request->reg as $kay => $value) {
             $confirm = Registrant::where('stage_id', $value['registrant_id'])->first();
-            if(!$confirm){
-                return back()->with('error', "Line No. ".$kay." has not been confirmed yet!!!");
+            if (! $confirm) {
+                return back()->with('error', 'Line No. '.$kay.' has not been confirmed yet!!!');
             }
         }
 
@@ -147,18 +140,15 @@ class RegistrantController extends Controller
     public function registrantLogout()
     {
         session()->forget('registrant');
-        return redirect(route('registrant_login', absolute: false))->with('success', "Logout Successful!!!.");
+
+        return redirect(route('registrant_login', absolute: false))->with('success', 'Logout Successful!!!.');
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         return RegistrantService::destroy($id);
     }
 
-    /**
-     * @param Request $request
-     * @return void
-     */
     protected function formValidation(Request $request, $type = 'update'): void
     {
         $request->validate([
@@ -190,10 +180,10 @@ class RegistrantController extends Controller
             'registration_fee' => ($type === 'update') ? 'required|exists:event_fees,id' : 'nullable',
             'amount_to_pay' => ($type === 'update') ? 'required|numeric' : 'nullable',
         ],
-        [
-            'phone_number.regex' => 'Phone number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-            'whatsapp_number.regex' => 'WhatsApp number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
-            'emergency_contacts_phone_number.regex' => 'Emergency Contact number must start with "+" and contain at least 12 digits (e.g., +233541234567).'
-        ]);
+            [
+                'phone_number.regex' => 'Phone number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+                'whatsapp_number.regex' => 'WhatsApp number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+                'emergency_contacts_phone_number.regex' => 'Emergency Contact number must start with "+" and contain at least 12 digits (e.g., +233541234567).',
+            ]);
     }
 }

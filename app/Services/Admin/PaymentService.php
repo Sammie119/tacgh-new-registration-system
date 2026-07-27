@@ -11,7 +11,7 @@ class PaymentService
 {
     public function makePayment(array $data)
     {
-        if(isset($data['batch'])){
+        if (isset($data['batch'])) {
             $reg = BatchLog::find($data['batch_id']);
         } else {
             $reg = RegistrantStage::find($data['stage_id']);
@@ -22,7 +22,7 @@ class PaymentService
             'amount' => $data['total_fee'] * 100,
             'metadata' => [
                 'name' => event_registrant_name($reg['id']),
-                'phone' => $reg['phone_number']
+                'phone' => $reg['phone_number'],
             ],
             'callback_url' => isset($data['batch']) ? route('registrant_page_batch') : route('registrant_page'),
         ];
@@ -32,12 +32,11 @@ class PaymentService
 
     public function paymentReceipt(array $data, $paymentDetails, $response)
     {
-        if(isset($data['batch'])){
+        if (isset($data['batch'])) {
             $batch_payment = session('batch_payment')['reg'];
-            foreach ($data['batch'] as $data){
+            foreach ($data['batch'] as $data) {
                 $confirmed_registrant = Registrant::where('stage_id', $data['id'])->first();
                 $amount_paid = collect($batch_payment)->where('registrant_id', $data['id'])->first();
-//                dd($data['event_id'], $confirmed_registrant, $amount_paid['amount_paid']);
                 OnlinePayment::create([
                     'reg_id' => $data['id'],
                     'payment_mode' => $paymentDetails['channel'],

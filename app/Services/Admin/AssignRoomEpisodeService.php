@@ -13,40 +13,39 @@ class AssignRoomEpisodeService
     {
         $registrant = Registrant::where('registration_no', $data['registration_no'])->first();
         $count = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id])->count();
-//dd(event_registrant_age($registrant->stage_id));
-        if(event_registrant_age($registrant->stage_id) < 6){
+        if (event_registrant_age($registrant->stage_id) < 6) {
             return back()->with('error', "Registration No. $data[registration_no] is less than 6 years old!!!.");
         }
 
         $financial_clarance = OnlinePayment::where(['reg_id' => $registrant->stage_id, 'event_id' => $data['event_id']])->first();
         $total_payment = OnlinePayment::where(['reg_id' => $registrant->stage_id, 'event_id' => $data['event_id']])->sum('amount_paid');
 
-        if(($total_payment < $registrant->total_fee) && (($financial_clarance->approved ?? 1) == 1)){
+        if (($total_payment < $registrant->total_fee) && (($financial_clarance->approved ?? 1) == 1)) {
             return back()->with('error', "Registration No. $data[registration_no] has not completed payment yet!!! See Finance Committee.");
         }
 
-        if($count >= 1){
+        if ($count >= 1) {
             return back()->with('error', "Registration No. $data[registration_no] already assigned to another room!!!");
         }
 
         $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
         $total_occupants = AccommodationRoom::find($data['room_id'])->total_occupants;
 
-        if($total_assigns == $total_occupants){
-            return back()->with('error', "Room ".get_room_number($data['room_id'])." is full!!!");
+        if ($total_assigns == $total_occupants) {
+            return back()->with('error', 'Room '.get_room_number($data['room_id']).' is full!!!');
         }
 
         $assigned = AssignedRoomEpisode::firstOrCreate([
             'room_id' => $data['room_id'],
             'event_id' => $data['event_id'],
             'registrant_id' => $registrant->id,
-        ],[
+        ], [
             'active_flag' => 1,
             'created_by' => get_logged_in_user_id(),
             'updated_by' => get_logged_in_user_id(),
         ]);
 
-        if($assigned){
+        if ($assigned) {
             Registrant::where('registration_no', $data['registration_no'])->update(['room_no' => $data['room_id']]);
         }
 
@@ -58,14 +57,14 @@ class AssignRoomEpisodeService
         $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
         $total_occupants = AccommodationRoom::find($data['room_id'])->total_occupants;
 
-        if($total_assigns == $total_occupants){
-            return back()->with('error', "Room ".get_room_number($data['room_id'])." is full!!!");
+        if ($total_assigns == $total_occupants) {
+            return back()->with('error', 'Room '.get_room_number($data['room_id']).' is full!!!');
         }
 
         $registrant = Registrant::where('registration_no', $data['registration_no'])->first();
         $assigned_to = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id])->first();
 
-        if(!$assigned_to){
+        if (! $assigned_to) {
             return back()->with('error', "Registration No. $data[registration_no] has not been assigned to room yet!!!");
         }
 
@@ -74,20 +73,22 @@ class AssignRoomEpisodeService
             'updated_by' => get_logged_in_user_id(),
         ]);
 
-        if($assigned){
+        if ($assigned) {
             Registrant::where('registration_no', $data['registration_no'])->update(['room_no' => $data['room_id']]);
         }
 
         return back()->with('success', "Registration No. $data[registration_no] has been transferred successfully!!!");
     }
 
-    static public function destroy($id)
+    public static function destroy($id)
     {
         $record = AssignedRoomEpisode::find($id);
-        if($record){
+        if ($record) {
             $record->delete();
+
             return 1;
         }
+
         return 0;
     }
 }

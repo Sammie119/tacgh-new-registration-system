@@ -237,7 +237,6 @@
                                         <tr class="roommate_{{ $room->id }}">
                                             @php
                                                 $registrant = \App\Models\Registrant::where('id', $roommate->registrant_id)->first();
-//                                                dd($registrant, $roommate, $roommate);
                                             @endphp
                                             <th scope="row">{{ ++$key }}</th>
                                             <td>{{ $registrant->registration_no ?? null }}</td>

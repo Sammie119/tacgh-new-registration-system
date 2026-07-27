@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
 use Illuminate\Validation\Rules;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
@@ -20,6 +20,7 @@ class ProfileController extends Controller
     {
         $data['user'] = $request->user();
         $data['roles'] = $data['user']->getRoleNames()->toArray();
+
         return view('profile.edit', $data);
     }
 
@@ -28,7 +29,6 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-//        dd($request->all());
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {

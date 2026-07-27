@@ -100,7 +100,6 @@
                             </tr>
                         @endforelse
                         <tr>
-{{--                            {{dd(floatval($total_amount_paid))}}--}}
                             <th colspan="9">TOTAL</th>
                             <th>{{ number_format( $total_fee, 2) }}</th>
                             @if($amount_paid > 0)
