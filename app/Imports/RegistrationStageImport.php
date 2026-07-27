@@ -37,7 +37,7 @@ class RegistrationStageImport implements ToModel, WithHeadingRow, WithValidation
 
     private function getLookup($name): int
     {
-        $id = Dropdown::whereRaw("full_name LIKE '%$name%'")->first();
+        $id = Dropdown::where('full_name', 'LIKE', '%'.$name.'%')->first();
         if ($id != null) {
             return $id->id;
         }
@@ -47,7 +47,7 @@ class RegistrationStageImport implements ToModel, WithHeadingRow, WithValidation
 
     private function getCountry($name): int
     {
-        $id = Country::whereRaw("name LIKE '%$name%'")->first();
+        $id = Country::where('name', 'LIKE', '%'.$name.'%')->first();
         if ($id != null) {
             return $id->id;
         }
