@@ -57,6 +57,8 @@ class FormViewService
 
             case 'generate_rooms':
                 $data['block'] = AccommodationBlock::find($id);
+                abort_if(! $data['block'], 404, 'Accommodation block not found.');
+
                 $data['rooms'] = AccommodationRoom::where('block_id', $id)->get();
 
                 return view('admin.accommodation.room.create', $data);

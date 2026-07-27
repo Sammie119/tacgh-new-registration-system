@@ -30,4 +30,17 @@ class GenerateRoomsViewGuardTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_returns_404_when_the_block_itself_does_not_exist(): void
+    {
+        $role = Role::create(['name' => RolesEnum::SUPERADMIN->value]);
+        $user = User::factory()->create();
+        $user->assignRole($role);
+
+        // No AccommodationBlock with this id at all — used to crash via
+        // $block->status/$block->residence_id with no guard on $block itself.
+        $response = $this->actingAs($user)->get('/execute_form/view/generate_rooms/999999');
+
+        $response->assertNotFound();
+    }
 }
