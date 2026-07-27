@@ -68,6 +68,10 @@ class DownloadService
     public function downloadFile($id)
     {
         $file = Download::find($id);
+        if (! $file) {
+            return redirect(route('registrant_page', absolute: false))->with('error', 'File Not Found!!!');
+        }
+
         $filename = 'app/'.$file->file_path;
         if (! File::exists(storage_path($filename))) {
             return redirect(route('registrant_page', absolute: false))->with('error', 'File Not Found!!!');
