@@ -91,6 +91,7 @@ class RoomAllocationPipe
                             'event_id' => $event['id'],
                             'registrant_id' => $registrant['id'],
                         ], [
+                            'checkin_date' => now()->toDateString(),
                             'active_flag' => 1,
                             'created_by' => $registrant['id'],
                             'updated_by' => $registrant['id'],

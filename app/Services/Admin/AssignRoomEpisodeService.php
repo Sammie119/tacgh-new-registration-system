@@ -44,6 +44,7 @@ class AssignRoomEpisodeService
             'event_id' => $data['event_id'],
             'registrant_id' => $registrant->id,
         ], [
+            'checkin_date' => now()->toDateString(),
             'active_flag' => 1,
             'created_by' => get_logged_in_user_id(),
             'updated_by' => get_logged_in_user_id(),

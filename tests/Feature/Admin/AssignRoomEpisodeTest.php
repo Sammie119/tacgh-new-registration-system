@@ -108,14 +108,12 @@ class AssignRoomEpisodeTest extends TestCase
             'registration_no' => 'REG-1',
         ]);
 
-        // Proves the Room Allocator role clears the role middleware (fixed
-        // separately in routes/admin.php) rather than being blocked with a
-        // 403. Not asserting full success here: a separate, pre-existing bug
-        // (assigned_room_episodes.checkin_date is NOT NULL but never set by
-        // this method) currently breaks this request regardless of role or
-        // the vw_registration view — see VwRegistrationViewTest for isolated
-        // coverage of the view itself.
-        $this->assertNotSame(403, $response->getStatusCode());
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('assigned_room_episodes', [
+            'room_id' => $room->id,
+            'event_id' => $event->id,
+        ]);
     }
 
     public function test_adding_a_roommate_with_a_soft_deleted_registrant_fails_gracefully(): void
