@@ -6,20 +6,61 @@ use App\Helpers\Utils;
 use App\Models\Admin\Country;
 use App\Models\Admin\Dropdown;
 use App\Models\RegistrantStage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
-class RegistrationStageImport implements ToModel, WithHeadingRow, WithValidation
+class RegistrationStageImport extends DefaultValueBinder implements ToModel, WithCustomValueBinder, WithHeadingRow, WithValidation
 {
+    /**
+     * Columns that must always be read as text. CSV has no cell-type
+     * information, so PhpSpreadsheet's default numeric auto-detection
+     * treats a leading "+" as a numeric sign and strips it (e.g.
+     * "+233500000001" becomes "233500000001"), silently breaking the
+     * phone_number regex validation below. XLSX preserves the "+" only if
+     * the column happens to be formatted as text in the source file, so
+     * this is enforced here instead of relying on that.
+     */
+    private const TEXT_COLUMNS = ['phone_number', 'whatsapp_number', 'emergency_contacts_phone_number'];
+
     private $event_id;
 
     private $batch_no;
+
+    /**
+     * Column letter => slugified heading name, captured from row 1 as it's
+     * read, so bindValue() can tell which column it's currently binding.
+     */
+    private array $headingColumns = [];
 
     public function __construct($event_id, $batch_no)
     {
         $this->event_id = $event_id;
         $this->batch_no = $batch_no;
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if ($cell->getRow() === 1) {
+            $this->headingColumns[$cell->getColumn()] = Str::slug((string) $value, '_');
+
+            return parent::bindValue($cell, $value);
+        }
+
+        $heading = $this->headingColumns[$cell->getColumn()] ?? null;
+
+        if (in_array($heading, self::TEXT_COLUMNS, true)) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     /**
