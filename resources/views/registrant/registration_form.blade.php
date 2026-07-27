@@ -129,13 +129,13 @@
                                                             required="true"
                                                             label="Phone Number"
                                                             value=""
-                                                            placeholder="+233541234567"
-                                                            {{--                                            pattern="^\+[1-9][0-9]{10,}$"--}}
+                                                            placeholder="0248000000"
+                                                            {{--                                            pattern="^(0[0-9]{9}|\+233[0-9]{9})$"--}}
                                                             class="phoneInput"
                                                             oninput="clearError(1)"
                                                         />
                                                         <div class="error-message" id="errorMsg">
-                                                            Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                            Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
                                                     </div>
                                                     <div class="col-md-3">
@@ -145,12 +145,12 @@
                                                             required=""
                                                             label="WhatsApp Number"
                                                             value=""
-                                                            placeholder="+233541234567"
+                                                            placeholder="0248000000"
                                                             class="phoneInput"
                                                             oninput="clearError(2)"
                                                         />
                                                         <div class="error-message" id="errorMsg2">
-                                                            Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                            Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
                                                     </div>
                                                     <div class="col-md-3">
@@ -261,12 +261,12 @@
                                                             required="true"
                                                             label="Emergency Contact Phone Number"
                                                             value=""
-                                                            placeholder="+233541234567"
+                                                            placeholder="0248000000"
                                                             class="phoneInput"
                                                             oninput="clearError(3)"
                                                         />
                                                         <div class="error-message" id="errorMsg3">
-                                                            Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                            Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
                                                     </div>
                                                     <div class="col-md-3">
@@ -384,12 +384,12 @@
                                                             required="true"
                                                             label="Phone Number"
                                                             value=""
-                                                            placeholder="+233541234567"
+                                                            placeholder="0248000000"
                                                             class="phoneInput2"
                                                             oninput="clearError2(1)"
                                                         />
                                                         <div class="error-message" id="errorMsgg">
-                                                            Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                            Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
                                                     </div>
                                                     <div class="col-md-3">
@@ -399,12 +399,12 @@
                                                             required=""
                                                             label="WhatsApp Number"
                                                             value=""
-                                                            placeholder="+233541234567"
+                                                            placeholder="0248000000"
                                                             class="phoneInput2"
                                                             oninput="clearError2(2)"
                                                         />
                                                         <div class="error-message" id="errorMsgg2">
-                                                            Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                            Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
                                                     </div>
                                                     <div class="col-md-3">
@@ -453,7 +453,7 @@
             const errorMsg = document.getElementById('errorMsg');
             const errorMsg2 = document.getElementById('errorMsg2');
             const errorMsg3 = document.getElementById('errorMsg3');
-            const regex = /^\+[1-9][0-9]{10,}$/;
+            const regex = /^(0[0-9]{9}|\+233[0-9]{9})$/;
 
             if (!regex.test(phoneInput[0].value)) {
                 errorMsg.style.display = 'block';
@@ -495,7 +495,7 @@
             const phoneInput2 = document.querySelectorAll('.phoneInput2');
             const errorMsgg = document.getElementById('errorMsgg');
             const errorMsgg2 = document.getElementById('errorMsgg2');
-            const regex = /^\+[1-9][0-9]{10,}$/;
+            const regex = /^(0[0-9]{9}|\+233[0-9]{9})$/;
 
             if (!regex.test(phoneInput2[0].value)) {
                 errorMsgg.style.display = 'block';

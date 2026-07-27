@@ -113,13 +113,13 @@
                                                     required="true"
                                                     label="Phone Number"
                                                     value="{{ $registrant->phone_number }}"
-                                                    placeholder="+233541234567"
+                                                    placeholder="0248000000"
                                                     {{--                                            pattern="^\+[1-9][0-9]{10,}$"--}}
                                                     class="phoneInput"
                                                     oninput="clearError(1)"
                                                 />
                                                 <div class="error-message" id="errorMsg">
-                                                    Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                    Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                 </div><br>
                                             </div>
                                             <div class="col-md-3">
@@ -129,12 +129,12 @@
                                                     required=""
                                                     label="WhatsApp Number"
                                                     value="{{ $registrant->whatsapp_number }}"
-                                                    placeholder="+233541234567"
+                                                    placeholder="0248000000"
                                                     class="phoneInput"
                                                     oninput="clearError(2)"
                                                 />
                                                 <div class="error-message" id="errorMsg2">
-                                                    Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                    Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                 </div><br>
                                             </div>
                                             <div class="col-md-3">
@@ -245,12 +245,12 @@
                                                     required="true"
                                                     label="Emergency Contact Phone Number"
                                                     value="{{ $registrant->emergency_contacts_phone_number }}"
-                                                    placeholder="+233541234567"
+                                                    placeholder="0248000000"
                                                     class="phoneInput"
                                                     oninput="clearError(3)"
                                                 />
                                                 <div class="error-message" id="errorMsg3">
-                                                    Please enter a valid phone number starting with + and at least 12 digits (e.g., +233541234567).
+                                                    Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                 </div><br>
                                             </div>
                                             <div class="col-md-3">
@@ -680,7 +680,7 @@
             const errorMsg = document.getElementById('errorMsg');
             const errorMsg2 = document.getElementById('errorMsg2');
             const errorMsg3 = document.getElementById('errorMsg3');
-            const regex = /^\+[1-9][0-9]{10,}$/;
+            const regex = /^(0[0-9]{9}|\+233[0-9]{9})$/;
 
             if (!regex.test(phoneInput[0].value)) {
                 errorMsg.style.display = 'block';

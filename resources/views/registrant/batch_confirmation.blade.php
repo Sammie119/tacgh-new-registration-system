@@ -93,7 +93,7 @@
                                     required="true"
                                     label="Phone Number"
                                     value="{{ $registrant->phone_number }}"
-                                    placeholder="+233541234567"
+                                    placeholder="0248000000"
                                 />
                             </div>
                             <div class="col-md-4">
@@ -103,7 +103,7 @@
                                     required=""
                                     label="WhatsApp Number"
                                     value="{{ $registrant->whatsapp_number }}"
-                                    placeholder="+233541234567"
+                                    placeholder="0248000000"
                                 />
                             </div>
                             <div class="col-md-4">
@@ -214,7 +214,7 @@
                                     required="true"
                                     label="Emergency Contact Phone Number"
                                     value="{{ $registrant->emergency_contacts_phone_number }}"
-                                    placeholder="+233541234567"
+                                    placeholder="0248000000"
                                 />
                             </div>
                             <div class="col-md-4">
