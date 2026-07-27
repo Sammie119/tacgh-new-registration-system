@@ -53,12 +53,15 @@ class RegistrantController extends Controller
     public function individualRegistrationConfirm(Request $request)
     {
         $this->formValidation($request);
+        $this->authorizeIndividualRegistrant($request->id);
 
         return $this->registrant->individualRegistrationConfirm($request->all());
     }
 
     public function individualRegistrationUpdate(Request $request)
     {
+        $this->authorizeIndividualRegistrant($request->reg_id);
+
         return $this->registrant->individualRegistrationUpdate($request->all());
     }
 
@@ -113,12 +116,15 @@ class RegistrantController extends Controller
 
     public function batchRegistrationConfirm($id)
     {
+        $this->authorizeBatchRegistrant($id);
+
         return $this->registrant->batchRegistrationConfirm($id);
     }
 
     public function batchRegistrationConfirmation(Request $request)
     {
         $this->formValidation($request);
+        $this->authorizeBatchRegistrant($request->id);
 
         return $this->registrant->batchRegistrationConfirmation($request->all());
     }
@@ -129,10 +135,21 @@ class RegistrantController extends Controller
             'total_amount_paid' => 'required|numeric',
             'reg.*' => 'required',
         ]);
+
+        $session = session('registrant');
+        if (! $session instanceof BatchLog || (string) $session->id !== (string) $request->batch_id) {
+            abort(403, 'You are not authorized to perform this action.');
+        }
+
         foreach ($request->reg as $kay => $value) {
             $confirm = Registrant::where('stage_id', $value['registrant_id'])->first();
             if (! $confirm) {
                 return back()->with('error', 'Line No. '.$kay.' has not been confirmed yet!!!');
+            }
+
+            $stage = RegistrantStage::find($value['registrant_id']);
+            if (! $stage || $stage->batch_no != $session->batch_no) {
+                abort(403, 'You are not authorized to perform this action.');
             }
         }
 
@@ -148,21 +165,42 @@ class RegistrantController extends Controller
 
     public function removeFromBatch($id)
     {
+        $this->authorizeBatchRegistrant($id);
+
+        return RegistrantService::destroy($id);
+    }
+
+    /**
+     * Require the logged-in session to be an individual registrant acting
+     * on their own stage record — not a batch coordinator, and not someone
+     * else's registration.
+     */
+    protected function authorizeIndividualRegistrant($id): void
+    {
         $session = session('registrant');
 
-        // Only a batch coordinator's own session may remove a registrant,
-        // and only from their own batch.
+        if (! $session instanceof RegistrantStage || (string) $session->id !== (string) $id) {
+            abort(403, 'You are not authorized to perform this action.');
+        }
+    }
+
+    /**
+     * Require the logged-in session to be a batch coordinator acting on a
+     * registrant that belongs to their own batch.
+     */
+    protected function authorizeBatchRegistrant($id): void
+    {
+        $session = session('registrant');
+
         if (! $session instanceof BatchLog) {
-            abort(403, 'You are not authorized to remove this registrant.');
+            abort(403, 'You are not authorized to perform this action.');
         }
 
         $registrant = RegistrantStage::find($id);
 
         if (! $registrant || $registrant->batch_no != $session->batch_no) {
-            abort(403, 'You are not authorized to remove this registrant.');
+            abort(403, 'You are not authorized to perform this action.');
         }
-
-        return RegistrantService::destroy($id);
     }
 
     protected function formValidation(Request $request, $type = 'update'): void
