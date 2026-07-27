@@ -21,6 +21,8 @@ class FormViewService
         switch ($type) {
             case 'user_roles':
                 $user = User::find($id);
+                abort_if(! $user, 404, 'User not found.');
+
                 $data['user'] = $user->id;
                 $data['roles'] = Role::select('id', 'name')->get();
                 $data['assigned_roles'] = $user->getRoleNames()->toArray();
@@ -51,6 +53,8 @@ class FormViewService
 
             case 'blocks_setup':
                 $data['resident'] = Accommodation::find($id);
+                abort_if(! $data['resident'], 404, 'Accommodation not found.');
+
                 $data['blocks'] = AccommodationBlock::where('residence_id', $id)->get();
 
                 return view('admin.accommodation.resident.setup_block', $data);
@@ -78,6 +82,8 @@ class FormViewService
 
             case 'financial_clearance':
                 $data['payment'] = OnlinePayment::find($id);
+                abort_if(! $data['payment'], 404, 'Payment not found.');
+
                 $data['payment_made'] = OnlinePayment::where([
                     'reg_id' => $data['payment']->reg_id,
                     'event_id' => $data['payment']->event_id,
