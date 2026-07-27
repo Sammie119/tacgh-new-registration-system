@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\PayStackPayment;
+use App\Models\BatchLog;
 use App\Models\Registrant;
+use App\Models\RegistrantStage;
 use App\Services\Admin\PaymentService;
 use App\Services\Registrant\RegistrantService;
 use Illuminate\Http\Request;
@@ -144,8 +146,22 @@ class RegistrantController extends Controller
         return redirect(route('registrant_login', absolute: false))->with('success', 'Logout Successful!!!.');
     }
 
-    public static function destroy($id)
+    public function removeFromBatch($id)
     {
+        $session = session('registrant');
+
+        // Only a batch coordinator's own session may remove a registrant,
+        // and only from their own batch.
+        if (! $session instanceof BatchLog) {
+            abort(403, 'You are not authorized to remove this registrant.');
+        }
+
+        $registrant = RegistrantStage::find($id);
+
+        if (! $registrant || $registrant->batch_no != $session->batch_no) {
+            abort(403, 'You are not authorized to remove this registrant.');
+        }
+
         return RegistrantService::destroy($id);
     }
 

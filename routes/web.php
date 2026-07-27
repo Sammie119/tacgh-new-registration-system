@@ -43,6 +43,8 @@ Route::controller(RegistrantController::class)->group(function () {
     Route::post('/batch_payment', 'batchPayment')->name('batch_payment');
 
     Route::post('/registrant_logout', 'registrantLogout')->name('registrant_logout');
+
+    Route::get('/remove_registrant_from_batch/{id}', 'removeFromBatch')->name('remove_registrant_from_batch');
 });
 
 Route::get('/download.file/{file_path}', [DownloadController::class, 'downloadFile'])->name('registrant.download.file');
@@ -50,8 +52,4 @@ Route::get('/download.file/{file_path}', [DownloadController::class, 'downloadFi
 Route::controller(ResponseController::class)->group(function () {
     Route::get('/forms/{slug}', 'showForm')->name('forms.public');
     Route::post('/forms/{slug}', 'storeResponse')->name('forms.submit');
-});
-
-Route::get('/remove_registrant_from_batch/{id}', function ($id) {
-    return RegistrantController::destroy($id);
 });
