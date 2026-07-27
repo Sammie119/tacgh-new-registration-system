@@ -51,11 +51,6 @@ Route::middleware('auth')->group(function () {
                 Route::put('/accommodation_episode', 'update')->name('accommodation_episode');
             });
 
-            Route::controller(AssignedRoomEpisodeController::class)->group(function () {
-                Route::post('/add_roommate', 'addRoomMate')->name('add_roommate');
-                Route::post('/transfer_roommate', 'transferRoomMate')->name('transfer_roommate');
-            });
-
             Route::controller(EventFeesController::class)->group(function () {
                 Route::post('/fees', 'store')->name('fees');
             });
@@ -96,6 +91,11 @@ Route::middleware('auth')->group(function () {
                 Route::post('/rooms', 'store')->name('rooms');
                 Route::get('/room/{id}', 'show')->name('room');
                 Route::post('/room/{id}', 'update')->name('room');
+            });
+
+            Route::controller(AssignedRoomEpisodeController::class)->group(function () {
+                Route::post('/add_roommate', 'addRoomMate')->name('add_roommate');
+                Route::post('/transfer_roommate', 'transferRoomMate')->name('transfer_roommate');
             });
 
             Route::get('/check_in/{registrant_id}', function ($registrant_id) {

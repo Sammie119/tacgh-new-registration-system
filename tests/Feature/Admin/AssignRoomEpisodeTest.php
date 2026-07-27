@@ -27,6 +27,15 @@ class AssignRoomEpisodeTest extends TestCase
         return $user;
     }
 
+    private function roomAllocatorUser(): User
+    {
+        $role = Role::create(['name' => RolesEnum::ROOMALLOCATOR->value]);
+        $user = User::factory()->create();
+        $user->assignRole($role);
+
+        return $user;
+    }
+
     private function createRoom(): AccommodationRoom
     {
         $residence = Accommodation::create(['name' => 'Hostel A', 'created_by' => 1, 'updated_by' => 1]);
@@ -52,6 +61,43 @@ class AssignRoomEpisodeTest extends TestCase
             'created_by' => 1,
             'updated_by' => 1,
         ]);
+    }
+
+    public function test_a_room_allocator_can_add_a_roommate(): void
+    {
+        $user = $this->roomAllocatorUser();
+        $event = Event::create([
+            'name' => 'Test Conference', 'description' => 'desc', 'code_prefix' => 'TC',
+            'start_date' => now()->toDateString(), 'end_date' => now()->addDay()->toDateString(),
+            'is_payment_required' => 'No', 'status' => 'In-Progress', 'active_flag' => 1,
+            'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $room = $this->createRoom();
+
+        $stage = RegistrantStage::create([
+            'title' => 1, 'first_name' => 'Ama', 'surname' => 'Mensah', 'gender' => 1,
+            'date_of_birth' => '1990-01-01', 'marital_status' => 1, 'nationality_id' => 1,
+            'phone_number' => '+233541234567', 'email' => 'ama@example.com', 'address' => 'Address',
+            'position_held' => 1, 'profession' => 1, 'residence_country_id' => 1,
+            'languages_spoken' => 'English', 'need_accommodation' => 1,
+            'emergency_contacts_name' => 'Contact', 'attendance_type' => 'In-Person',
+            'event_id' => $event->id, 'disability' => 0, 'confirmed' => 'Yes', 'token' => 'TOK1',
+        ]);
+        Registrant::create([
+            'registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('add_roommate'), [
+            'room_id' => $room->id,
+            'event_id' => $event->id,
+            'registration_no' => 'REG-1',
+        ]);
+
+        // The route's role middleware ('System Admin|Room Allocator|Super Admin')
+        // now accepts Room Allocator, so the request reaches application code
+        // instead of being blocked with a 403. (Any further error here would come
+        // from the separately-tracked missing vw_registration view, not this route.)
+        $this->assertNotSame(403, $response->getStatusCode());
     }
 
     public function test_adding_a_roommate_with_a_soft_deleted_registrant_fails_gracefully(): void
