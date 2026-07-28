@@ -104,10 +104,10 @@ class RoomAllocationPipe
                         $roomName = get_room_number($unfull[$i]->id);
                         $msg = "$reg_name , you have been assigned to room $roomName";
 
-                        WhatsappNotificationJob::dispatch($registrant['whatsapp_number'], $msg);
+                        WhatsappNotificationJob::dispatch($registrant['whatsapp_number'], $msg, $registrant['id']);
 
                         if ($registrant['residence_country_id'] == 64) {
-                            SmsNotificationJob::dispatch($registrant['phone_number'], $msg);
+                            SmsNotificationJob::dispatch($registrant['phone_number'], $msg, $registrant['id']);
                         }
                         //                $this->sendSms($results->phone_number, $msg);
 

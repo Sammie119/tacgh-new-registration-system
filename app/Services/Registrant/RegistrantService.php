@@ -135,10 +135,10 @@ class RegistrantService
                 $msg = 'Congrats '.$results->first_name.' for your interest in '.$event->name.'. Registration is incomplete until full payment of the Event registration fee is made.'."\n".'Login token : '.$token :
                 $msg = 'Congrats '.$results->first_name.' for your interest in '.$event->name.'. Use the details below to complete your Registration process.'."\n".'Login token : '.$token;
 
-            WhatsappNotificationJob::dispatch($results->whatsapp_number, $msg);
+            WhatsappNotificationJob::dispatch($results->whatsapp_number, $msg, $results->id);
 
             if ($results->residence_country_id == 64) {
-                SmsNotificationJob::dispatch($results->phone_number, $msg);
+                SmsNotificationJob::dispatch($results->phone_number, $msg, $results->id);
             }
             //                $this->sendSms($results->phone_number, $msg);
 
@@ -242,9 +242,9 @@ class RegistrantService
             $msg = 'Congrats for your interest in '.$event->name.'. Registration is incomplete until full payment of the Event registration fee is made.'."\n".'Login token : '.$token :
             $msg = 'Congrats for your interest in '.$event->name.'. Use the details below to complete your Registration process.'."\n".'Login token : '.$token;
 
-        WhatsappNotificationJob::dispatch($results->whatsapp_number, $msg);
+        WhatsappNotificationJob::dispatch($results->whatsapp_number, $msg, $results->id);
 
-        SmsNotificationJob::dispatch($results->phone_number, $msg);
+        SmsNotificationJob::dispatch($results->phone_number, $msg, $results->id);
 
         return redirect(route('registrant_login', absolute: false))->with('success', 'Registration Successful!!. Check your SMS/Whatsapp for further instructions.');
     }
