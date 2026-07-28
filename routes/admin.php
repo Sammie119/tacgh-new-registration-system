@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
                 Route::put('/accommodation_single', 'update')->name('accommodation_single');
 
                 Route::get('allocate_room', 'allocateRoomsSingle')->name('allocate_room');
+                Route::get('occupancy_report', 'occupancyReport')->name('occupancy_report');
             });
 
             Route::controller(AccommodationBlockController::class)->group(function () {

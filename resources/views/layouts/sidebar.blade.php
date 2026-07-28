@@ -30,6 +30,13 @@
                 type="single"
                 icon="ri-hotel-bed-fill fs-5"
             />
+
+            <x-menu-main
+                title="Occupancy Report"
+                route="occupancy_report"
+                type="single"
+                icon="bi bi-house-check"
+            />
         @endif
 
         @if(use_roles_sidebar(RolesEnum::FINANCE) || use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))

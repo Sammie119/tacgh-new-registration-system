@@ -59,6 +59,14 @@ class AccommodationController extends Controller
         return $this->accommodationService->allocateRoomsSingle($venue);
     }
 
+    public function occupancyReport()
+    {
+        $event = Event::find(get_logged_in_user_event_id());
+        abort_if(! $event?->venue_id, 404, 'Event or venue not found.');
+
+        return $this->accommodationService->occupancyReport($event->venue_id, $event->id);
+    }
+
     /**
      * Remove the specified resource from storage.
      */

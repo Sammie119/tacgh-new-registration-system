@@ -228,4 +228,52 @@ class AccommodationService
 
         return view('admin.accommodation.allocation_room', $data);
     }
+
+    public function occupancyReport($venueId, $eventId)
+    {
+        $residences = Accommodation::where('venue_id', $venueId)->orderBy('name')->get(['id', 'name']);
+
+        $blocks = AccommodationBlock::whereIn('residence_id', $residences->pluck('id'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'residence_id']);
+
+        $blockIds = $blocks->pluck('id');
+
+        $capacityByBlock = AccommodationRoom::whereIn('block_id', $blockIds)
+            ->selectRaw('block_id, SUM(total_occupants) as capacity')
+            ->groupBy('block_id')
+            ->get()
+            ->pluck('capacity', 'block_id');
+
+        $roomIdsByBlock = AccommodationRoom::whereIn('block_id', $blockIds)
+            ->get(['id', 'block_id'])
+            ->groupBy('block_id')
+            ->map(fn ($rooms) => $rooms->pluck('id'));
+
+        $occupiedByRoom = AssignedRoomEpisode::where('event_id', $eventId)
+            ->where('active_flag', 1)
+            ->whereIn('room_id', $roomIdsByBlock->flatten())
+            ->selectRaw('room_id, COUNT(*) as occupied')
+            ->groupBy('room_id')
+            ->get()
+            ->pluck('occupied', 'room_id');
+
+        $data['residences'] = $residences->map(function ($residence) use ($blocks, $capacityByBlock, $roomIdsByBlock, $occupiedByRoom) {
+            $residence->blocks = $blocks->where('residence_id', $residence->id)->map(function ($block) use ($capacityByBlock, $roomIdsByBlock, $occupiedByRoom) {
+                $capacity = (int) ($capacityByBlock[$block->id] ?? 0);
+                $occupied = ($roomIdsByBlock[$block->id] ?? collect())
+                    ->sum(fn ($roomId) => $occupiedByRoom[$roomId] ?? 0);
+
+                $block->capacity = $capacity;
+                $block->occupied = $occupied;
+                $block->vacant = max($capacity - $occupied, 0);
+
+                return $block;
+            });
+
+            return $residence;
+        });
+
+        return view('admin.accommodation.occupancy_report', $data);
+    }
 }
