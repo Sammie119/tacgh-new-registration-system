@@ -82,8 +82,16 @@ Offline payments are recorded manually by Finance-role users via financial clear
 
 ## Notifications
 
-SMS (mNotify) and WhatsApp (waapi.app) notifications (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`) run inline via `dispatch(...)->afterResponse()` — they execute automatically as part of the same request that triggers them (registration, room allocation), right after the HTTP response has already been sent to the user. No queue worker, no queue table, and no cron are required for notifications to send.
+SMS (mNotify) and WhatsApp (waapi.app) notifications (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`) are dispatched onto a real Laravel queue (`ShouldQueue`, `QUEUE_CONNECTION=database`). Dispatching a job is just a fast row insert into the `jobs` table — the web request never waits on the SMS/WhatsApp API call.
 
-This app previously used a real Laravel queue (`ShouldQueue`) for these jobs, processed either by a scheduled `queue:work --stop-when-empty` command or, briefly, by a global HTTP middleware that ran the queue worker inline on random unrelated requests whenever jobs were pending — both approaches have been removed. The middleware version in particular made arbitrary page loads pay the full cost (including live SMS/WhatsApp API calls) of someone else's notification backlog; `afterResponse()` avoids that because the cost is paid by the same request that caused the notification, after that request's own response has already gone out.
+**Required in production:** a persistent `queue:work` process, managed by Supervisor so it survives crashes and restarts on deploy. A ready-to-use config template is at `deploy/supervisor-queue-worker.conf` — copy it to `/etc/supervisor/conf.d/`, fill in the real app path and user, then:
 
-If notification volume grows enough that inline dispatch becomes a bottleneck, switching back to a real queue (`ShouldQueue` + a persistently running `queue:work` worker, e.g. via Supervisor) is the right next step — not the old middleware.
+```
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start tacgh-queue-worker:*
+```
+
+After every deploy that changes code, restart the workers so they pick it up (`php artisan queue:restart`, or `supervisorctl restart tacgh-queue-worker:*`) — a running worker keeps the old code loaded in memory otherwise.
+
+Both `sendSms()` and `sendWhatsApp()` (`App\Http\Traits\SMSNotify`) have a 5s connect / 10s total cURL timeout, and both jobs retry up to 3 times with a 10s backoff on failure (permanently-failed jobs land in `failed_jobs` — inspect with `php artisan queue:failed`). This app previously ran the queue worker inline inside a global HTTP middleware on every request whenever jobs were pending, which made arbitrary unrelated page loads pay the full cost — including live SMS/WhatsApp API calls — of someone else's notification backlog. That middleware has been removed; a dedicated Supervisor-managed worker, fully decoupled from the web server's request-handling workers, is the correct fix.
