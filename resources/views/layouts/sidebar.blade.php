@@ -58,6 +58,19 @@
             </x-menu-main>
         @endif
 
+        @if(use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::ROOMALLOCATOR) || use_roles_sidebar(RolesEnum::FINANCE) || use_roles_sidebar(RolesEnum::SUPERADMIN))
+            <x-menu-main
+                title="Reports"
+                type="multi"
+                icon="bi bi-bar-chart-line"
+                id="reports-nav"
+                :routes_array="['demographics_report', 'notification_log']"
+            >
+                <x-menu-item route="demographics_report" title="Demographics" />
+
+            </x-menu-main>
+        @endif
+
         @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER) || use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))
             <x-menu-main
                 title="Forms"
