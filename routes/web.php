@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DownloadController;
 use App\Http\Controllers\Admin\ResponseController;
+use App\Http\Controllers\QueueRunController;
 use App\Http\Controllers\RegistrantController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,10 @@ Route::controller(RegistrantController::class)->group(function () {
 });
 
 Route::get('/download.file/{file_path}', [DownloadController::class, 'downloadFile'])->name('registrant.download.file');
+
+Route::get('/tasks/run-queue/{secret}', [QueueRunController::class, 'run'])
+    ->middleware('throttle:queue-run')
+    ->name('tasks.run_queue');
 
 Route::controller(ResponseController::class)->group(function () {
     Route::get('/forms/{slug}', 'showForm')->name('forms.public');
