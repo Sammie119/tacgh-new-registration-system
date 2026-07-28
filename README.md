@@ -82,4 +82,12 @@ Offline payments are recorded manually by Finance-role users via financial clear
 
 ## Notifications
 
-SMS (mNotify) and WhatsApp (waapi.app) notifications are dispatched as queued jobs (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`). The queue worker runs on a schedule (`queue:work --stop-when-empty` every minute, see `App\Console\Kernel`) — ensure `php artisan schedule:run` is wired into a system cron in production for jobs to actually process.
+SMS (mNotify) and WhatsApp (waapi.app) notifications are dispatched as queued jobs (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`). The queue worker runs on a schedule (`queue:work --stop-when-empty` every minute, see `App\Console\Kernel`).
+
+**Required in production:** wire `php artisan schedule:run` into a real system cron, or queued jobs will never be processed and no SMS/WhatsApp notifications will send. Add this to the crontab of the user running the app (`crontab -e`):
+
+```
+* * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+An earlier version of this app worked around a missing cron by running `queue:work` inside a global HTTP middleware on every request whenever jobs were pending. That middleware has been removed — it made arbitrary, unrelated page loads pay the full cost (including live SMS/WhatsApp API calls) of draining someone else's notification backlog. The scheduled command above is the only mechanism that processes the queue now, so this cron entry is not optional.
