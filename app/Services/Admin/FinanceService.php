@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Models\Admin\Dropdown;
 use App\Models\Admin\OnlinePayment;
 use App\Models\FinancialEpisode;
 use App\Models\RegistrantStage;
@@ -10,9 +11,47 @@ use Illuminate\Support\Facades\DB;
 
 class FinanceService
 {
-    public function index($id)
+    public function index($id, ?string $search = null)
     {
-        $data['finances'] = OnlinePayment::where('event_id', $id)->orderByDesc('id')->get();
+        $query = OnlinePayment::with('registrant')
+            ->where('event_id', $id)
+            ->where('amount_to_pay', '>', 0)
+            ->orderByDesc('id');
+
+        if (! empty($search)) {
+            $matchingStageIds = RegistrantStage::where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('surname', 'like', "%{$search}%")
+                    ->orWhere('other_names', 'like', "%{$search}%");
+            })->pluck('id');
+
+            $query->where(function ($q) use ($search, $matchingStageIds) {
+                $q->whereIn('reg_id', $matchingStageIds)
+                    ->orWhereHas('registrant', fn ($rq) => $rq->where('registration_no', 'like', "%{$search}%"));
+            });
+        }
+
+        $data['finances'] = $query->paginate(50)->withQueryString();
+        $data['search'] = $search;
+
+        $regIds = $data['finances']->pluck('reg_id')->filter()->unique();
+
+        $stages = RegistrantStage::whereIn('id', $regIds)->get(['id', 'title', 'first_name', 'other_names', 'surname']);
+        $titleIds = $stages->pluck('title')->filter()->unique();
+        $dropdownNames = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
+
+        $data['registrant_names'] = $stages->mapWithKeys(function ($stage) use ($dropdownNames) {
+            $name = trim(($dropdownNames[$stage->title] ?? '').' '.$stage->first_name.' '.$stage->other_names.' '.$stage->surname);
+
+            return [$stage->id => strtoupper($name)];
+        });
+
+        $data['amount_paid_totals'] = OnlinePayment::where('event_id', $id)
+            ->whereIn('reg_id', $regIds)
+            ->selectRaw('reg_id, SUM(amount_paid) as total_paid')
+            ->groupBy('reg_id')
+            ->get()
+            ->pluck('total_paid', 'reg_id');
 
         return view('admin.finance.index', $data);
     }

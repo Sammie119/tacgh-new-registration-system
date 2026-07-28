@@ -15,9 +15,9 @@ class FinanceController extends Controller
         $this->financeService = $financeService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return $this->financeService->index(get_logged_in_user_event_id());
+        return $this->financeService->index(get_logged_in_user_event_id(), $request->get('search'));
     }
 
     public function financialClearance(Request $request)

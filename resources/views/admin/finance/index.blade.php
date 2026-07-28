@@ -37,8 +37,26 @@
 
                             <x-notify-error :messages="$errors->all()" />
 
+                            <form method="GET" action="{{ route('payments') }}" class="row g-2 mb-3">
+                                <div class="col-auto">
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        class="form-control"
+                                        placeholder="Search by name or reg. #"
+                                        value="{{ $search }}"
+                                    />
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    @if($search)
+                                        <a href="{{ route('payments') }}" class="btn btn-outline-secondary">Clear</a>
+                                    @endif
+                                </div>
+                            </form>
+
                             <!-- Table with stripped rows -->
-                            <table class="table datatable">
+                            <table class="table">
                                 <thead>
                                 <tr>
                                     <th class="no-sort">#</th>
@@ -54,54 +72,49 @@
                                 <tbody>
                                 @forelse($finances as $key => $finance)
                                     @php
-                                        $amount_paid = \App\Models\Admin\OnlinePayment::where([
-                                                'reg_id' => $finance->reg_id,
-                                                'event_id' => $finance->event_id
-                                            ])->sum('amount_paid');
+                                        $amount_paid = $amount_paid_totals[$finance->reg_id] ?? 0;
                                     @endphp
-                                    @if($finance->amount_to_pay > 0)
-                                        <tr class="event_{{ $finance->id }}">
-                                            <td style="width: 40px">{{ ++$key }}</td>
-                                            <td>{{ event_registrant_name($finance->reg_id) }}</td>
-                                            <td>{{ $finance->registrant->registration_no }}</td>
-                                            <td>{{ $finance->amount_to_pay }}</td>
-                                            <td>{{ $finance->amount_paid }}</td>
-                                            <td>{{ ($finance->payment_status) ? 'Successful' : 'Failed' }}</td>
-                                            <td>{{ $finance->date_paid }}</td>
-                                            <td style="width: 50px">
-                                                @if($amount_paid >= $finance->amount_to_pay)
-                                                    <x-button
-                                                        type='button'
-                                                        class="btn-info btn-sm"
-                                                        icon="fas fa-angle-double-down"
-                                                        name="Approve"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#exampleModal"
-                                                        data-bs-title="Clearance"
-                                                        data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
-                                                        data-bs-size=""
-                                                        title="Approve"
-                                                        style="padding: 6px 10px 6px 10px"
-                                                        disabled
-                                                    />
-                                                @else
-                                                    <x-button
-                                                        type='button'
-                                                        class="btn-info btn-sm"
-                                                        icon="fas fa-angle-double-down"
-                                                        name="Approve"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#exampleModal"
-                                                        data-bs-title="Clearance"
-                                                        data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
-                                                        data-bs-size=""
-                                                        title="Approve"
-                                                        style="padding: 6px 10px 6px 10px"
-                                                    />
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endif
+                                    <tr class="event_{{ $finance->id }}">
+                                        <td style="width: 40px">{{ $finances->firstItem() + $key }}</td>
+                                        <td>{{ $registrant_names[$finance->reg_id] ?? null }}</td>
+                                        <td>{{ $finance->registrant->registration_no }}</td>
+                                        <td>{{ $finance->amount_to_pay }}</td>
+                                        <td>{{ $finance->amount_paid }}</td>
+                                        <td>{{ ($finance->payment_status) ? 'Successful' : 'Failed' }}</td>
+                                        <td>{{ $finance->date_paid }}</td>
+                                        <td style="width: 50px">
+                                            @if($amount_paid >= $finance->amount_to_pay)
+                                                <x-button
+                                                    type='button'
+                                                    class="btn-info btn-sm"
+                                                    icon="fas fa-angle-double-down"
+                                                    name="Approve"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#exampleModal"
+                                                    data-bs-title="Clearance"
+                                                    data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
+                                                    data-bs-size=""
+                                                    title="Approve"
+                                                    style="padding: 6px 10px 6px 10px"
+                                                    disabled
+                                                />
+                                            @else
+                                                <x-button
+                                                    type='button'
+                                                    class="btn-info btn-sm"
+                                                    icon="fas fa-angle-double-down"
+                                                    name="Approve"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#exampleModal"
+                                                    data-bs-title="Clearance"
+                                                    data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
+                                                    data-bs-size=""
+                                                    title="Approve"
+                                                    style="padding: 6px 10px 6px 10px"
+                                                />
+                                            @endif
+                                        </td>
+                                    </tr>
                                 @empty
                                     <tr>
                                         <td colspan="50">No Data Found</td>
@@ -110,6 +123,8 @@
                                 </tbody>
                             </table>
                             <!-- End Table with stripped rows -->
+
+                            {{ $finances->links() }}
 
                         </div>
                     </div>
