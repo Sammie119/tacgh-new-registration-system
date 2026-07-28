@@ -64,11 +64,15 @@
                 type="multi"
                 icon="bi bi-bar-chart-line"
                 id="reports-nav"
-                :routes_array="['demographics_report', 'notification_log']"
+                :routes_array="['demographics_report', 'notification_log', 'tokens_report']"
             >
                 <x-menu-item route="demographics_report" title="Demographics" />
 
                 <x-menu-item route="notification_log" title="Notification Delivery" />
+
+                @if(use_roles_sidebar(RolesEnum::SYSTEMADMIN) || use_roles_sidebar(RolesEnum::SUPERADMIN))
+                    <x-menu-item route="tokens_report" title="Login Tokens" />
+                @endif
 
             </x-menu-main>
         @endif

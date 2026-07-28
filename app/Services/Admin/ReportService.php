@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Admin\Dropdown;
+use App\Models\BatchLog;
 use App\Models\RegistrantStage;
 use Carbon\Carbon;
 
@@ -48,5 +49,64 @@ class ReportService
         $data['age_brackets'] = $brackets;
 
         return view('admin.reports.demographics', $data);
+    }
+
+    public function tokens($eventId, ?string $individualSearch = null, ?string $batchSearch = null, ?string $memberSearch = null)
+    {
+        $individualQuery = RegistrantStage::where('event_id', $eventId)->where('batch_no', 0)->orderByDesc('id');
+        if (! empty($individualSearch)) {
+            $individualQuery->where(function ($q) use ($individualSearch) {
+                $q->where('first_name', 'like', "%{$individualSearch}%")
+                    ->orWhere('surname', 'like', "%{$individualSearch}%")
+                    ->orWhere('other_names', 'like', "%{$individualSearch}%")
+                    ->orWhere('phone_number', 'like', "%{$individualSearch}%")
+                    ->orWhere('email', 'like', "%{$individualSearch}%")
+                    ->orWhere('token', 'like', "%{$individualSearch}%");
+            });
+        }
+        $data['individuals'] = $individualQuery->paginate(50, ['*'], 'individual_page')->withQueryString();
+
+        $batchQuery = BatchLog::where('event_id', $eventId)->orderByDesc('id');
+        if (! empty($batchSearch)) {
+            $batchQuery->where(function ($q) use ($batchSearch) {
+                $q->where('email', 'like', "%{$batchSearch}%")
+                    ->orWhere('phone_number', 'like', "%{$batchSearch}%")
+                    ->orWhere('whatsapp_number', 'like', "%{$batchSearch}%")
+                    ->orWhere('token', 'like', "%{$batchSearch}%")
+                    ->orWhere('batch_no', 'like', "%{$batchSearch}%");
+            });
+        }
+        $data['batches'] = $batchQuery->paginate(50, ['*'], 'batch_page')->withQueryString();
+
+        $memberQuery = RegistrantStage::where('event_id', $eventId)->where('batch_no', '!=', 0)->orderByDesc('id');
+        if (! empty($memberSearch)) {
+            $memberQuery->where(function ($q) use ($memberSearch) {
+                $q->where('first_name', 'like', "%{$memberSearch}%")
+                    ->orWhere('surname', 'like', "%{$memberSearch}%")
+                    ->orWhere('other_names', 'like', "%{$memberSearch}%")
+                    ->orWhere('phone_number', 'like', "%{$memberSearch}%")
+                    ->orWhere('email', 'like', "%{$memberSearch}%")
+                    ->orWhere('token', 'like', "%{$memberSearch}%")
+                    ->orWhere('batch_no', 'like', "%{$memberSearch}%");
+            });
+        }
+        $data['members'] = $memberQuery->paginate(50, ['*'], 'member_page')->withQueryString();
+
+        $data['individual_search'] = $individualSearch;
+        $data['batch_search'] = $batchSearch;
+        $data['member_search'] = $memberSearch;
+
+        $titleIds = $data['individuals']->pluck('title')->merge($data['members']->pluck('title'))->filter()->unique();
+        $data['dropdown_names'] = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
+
+        $batchNos = $data['batches']->pluck('batch_no');
+        $data['member_counts'] = RegistrantStage::whereIn('batch_no', $batchNos)
+            ->where('batch_no', '!=', 0)
+            ->selectRaw('batch_no, COUNT(*) as cnt')
+            ->groupBy('batch_no')
+            ->get()
+            ->pluck('cnt', 'batch_no');
+
+        return view('admin.reports.tokens', $data);
     }
 }

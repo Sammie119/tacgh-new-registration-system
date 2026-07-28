@@ -63,6 +63,10 @@ Route::middleware('auth')->group(function () {
                 Route::get('/forms/{form}/report', 'report')->name('forms.report');
                 Route::get('/forms/{form}/export', 'export')->name('forms.export');
             });
+
+            Route::controller(ReportController::class)->group(function () {
+                Route::get('/tokens_report', 'tokens')->name('tokens_report');
+            });
         });
 
         Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::ROOMALLOCATOR->value.'|'.RolesEnum::SUPERADMIN->value]], function () {
