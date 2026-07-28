@@ -23,9 +23,9 @@ class RegistrantController extends Controller
         $this->paymentService = $paymentService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return $this->registrant->index(get_logged_in_user_event_id());
+        return $this->registrant->index(get_logged_in_user_event_id(), $request->get('search'));
     }
 
     /**

@@ -33,12 +33,26 @@ class RegistrantService
 {
     use SMSNotify;
 
-    public function index($event_id)
+    public function index($event_id, ?string $search = null)
     {
-        $data['registrants'] = RegistrantStage::with('stage')
+        $query = RegistrantStage::with('stage')
             ->where(['event_id' => $event_id, 'confirmed' => 'Yes'])
-            ->orderBy('id', 'desc')
-            ->get();
+            ->orderBy('id', 'desc');
+
+        if (! empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('surname', 'like', "%{$search}%")
+                    ->orWhere('other_names', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%")
+                    ->orWhereHas('stage', function ($sq) use ($search) {
+                        $sq->where('registration_no', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $data['registrants'] = $query->paginate(50)->withQueryString();
+        $data['search'] = $search;
 
         $lookupIds = $data['registrants']->pluck('title')
             ->merge($data['registrants']->pluck('gender'))

@@ -18,7 +18,26 @@
                             </div>
 
                             <x-notify-error :messages="$errors->all()" />
-                            <table class="table datatable">
+
+                            <form method="GET" action="{{ route('all_registrant') }}" class="row g-2 mb-3">
+                                <div class="col-auto">
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        class="form-control"
+                                        placeholder="Search by name, phone or reg. #"
+                                        value="{{ $search }}"
+                                    />
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    @if($search)
+                                        <a href="{{ route('all_registrant') }}" class="btn btn-outline-secondary">Clear</a>
+                                    @endif
+                                </div>
+                            </form>
+
+                            <table class="table">
                                 <thead>
                                 <tr>
                                     <th class="no-sort">#</th>
@@ -41,7 +60,7 @@
                                     @endphp
 
                                     <tr class="venue_{{ $registrant->id }}">
-                                        <td style="width: 50px">{{ ++$key }}</td>
+                                        <td style="width: 50px">{{ $registrants->firstItem() + $key }}</td>
                                         <td>{{ $registrant_name }}</td>
                                         <td>{{ $confirmed_registrant->registration_no ?? 'NULL' }}</td>
                                         <td>{{ $dropdown_names[$registrant->gender] ?? null }}</td>
@@ -78,6 +97,8 @@
                                 @endforelse
                                 </tbody>
                             </table>
+
+                            {{ $registrants->links() }}
 
                         </div>
                     </div>

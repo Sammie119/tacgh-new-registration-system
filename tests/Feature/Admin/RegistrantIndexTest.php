@@ -113,4 +113,91 @@ class RegistrantIndexTest extends TestCase
         // A handful of fixed, batched queries regardless of row count proves the N+1 is gone.
         $this->assertLessThan(20, $queryCount, "Expected a small, constant number of queries, got {$queryCount} for 15 rows.");
     }
+
+    private function createConfirmedRegistrant(Event $event, int $i, string $firstName): RegistrantStage
+    {
+        $stage = RegistrantStage::create([
+            'title' => 1,
+            'first_name' => $firstName,
+            'surname' => 'Test',
+            'gender' => 1,
+            'date_of_birth' => '1990-01-01',
+            'marital_status' => 1,
+            'nationality_id' => 1,
+            'phone_number' => sprintf('+2335412%04d', $i),
+            'email' => "registrant{$i}@example.com",
+            'address' => 'Address',
+            'position_held' => 1,
+            'profession' => 1,
+            'residence_country_id' => 1,
+            'languages_spoken' => 'English',
+            'need_accommodation' => 1,
+            'emergency_contacts_name' => 'Contact',
+            'attendance_type' => 'In-Person',
+            'event_id' => $event->id,
+            'disability' => 0,
+            'confirmed' => 'Yes',
+            'token' => "TOK{$i}",
+        ]);
+
+        Registrant::create([
+            'registration_no' => "REG-{$i}",
+            'stage_id' => $stage->id,
+            'event_id' => $event->id,
+        ]);
+
+        return $stage;
+    }
+
+    public function test_all_registrants_page_paginates_results(): void
+    {
+        $role = Role::create(['name' => RolesEnum::SUPERADMIN->value]);
+        $event = Event::create([
+            'name' => 'Test Conference', 'description' => 'A test event', 'code_prefix' => 'TC',
+            'start_date' => now()->toDateString(), 'end_date' => now()->addDays(2)->toDateString(),
+            'is_payment_required' => 'No', 'status' => 'In-Progress', 'active_flag' => 1,
+            'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $user = User::factory()->create(['event_id' => $event->id]);
+        $user->assignRole($role);
+
+        foreach (range(1, 55) as $i) {
+            $this->createConfirmedRegistrant($event, $i, "Registrant-{$i}-END");
+        }
+
+        // Results are ordered by id desc, so page 1 holds the highest ids (51-55, oldest last)
+        // and page 2 holds the lowest ids (1-5). The "-END" suffix avoids false substring
+        // matches (e.g. "Registrant-1" would otherwise match "Registrant-10").
+        $firstPage = $this->actingAs($user)->get(route('all_registrant'));
+        $firstPage->assertOk();
+        $firstPage->assertSee('REGISTRANT-55-END');
+        $firstPage->assertDontSee('REGISTRANT-1-END');
+
+        $secondPage = $this->actingAs($user)->get(route('all_registrant', ['page' => 2]));
+        $secondPage->assertOk();
+        $secondPage->assertSee('REGISTRANT-1-END');
+        $secondPage->assertDontSee('REGISTRANT-55-END');
+    }
+
+    public function test_all_registrants_page_can_be_searched(): void
+    {
+        $role = Role::create(['name' => RolesEnum::SUPERADMIN->value]);
+        $event = Event::create([
+            'name' => 'Test Conference', 'description' => 'A test event', 'code_prefix' => 'TC',
+            'start_date' => now()->toDateString(), 'end_date' => now()->addDays(2)->toDateString(),
+            'is_payment_required' => 'No', 'status' => 'In-Progress', 'active_flag' => 1,
+            'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $user = User::factory()->create(['event_id' => $event->id]);
+        $user->assignRole($role);
+
+        $this->createConfirmedRegistrant($event, 1, 'Kwame');
+        $this->createConfirmedRegistrant($event, 2, 'Abena');
+
+        $response = $this->actingAs($user)->get(route('all_registrant', ['search' => 'Kwame']));
+
+        $response->assertOk();
+        $response->assertSee('KWAME');
+        $response->assertDontSee('ABENA');
+    }
 }
