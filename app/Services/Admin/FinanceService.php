@@ -183,13 +183,15 @@ class FinanceService
     {
         if (! empty($data['report'])) {
             $eventId = get_logged_in_user_event_id();
+            $event = get_event($eventId);
+            abort_if(! $event, 404, 'Event not found.');
 
             $data['online_payments'] = OnlinePayment::where('event_id', $eventId)->orderByDesc('date_paid')->get();
             $data['finance_income'] = FinancialEpisode::where(['event_id' => $eventId, 'entry_type' => 'Income'])->orderByDesc('transaction_date')->get();
             $data['finance_expense'] = FinancialEpisode::where(['event_id' => $eventId, 'entry_type' => 'Expense'])->orderByDesc('transaction_date')->get();
             $data['finance_income_group'] = FinancialEpisode::selectRaw('transaction_type, SUM(amount) AS amount')->where(['event_id' => $eventId, 'entry_type' => 'Income'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
             $data['finance_expense_group'] = FinancialEpisode::selectRaw('transaction_type, SUM(amount) AS amount')->where(['event_id' => $eventId, 'entry_type' => 'Expense'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
-            $data['header'] = 'Financial Report for '.get_event($eventId)->name;
+            $data['header'] = 'Financial Report for '.$event->name;
             $data['event_id'] = $eventId;
 
             $transactionTypeIds = collect([$data['finance_income'], $data['finance_expense'], $data['finance_income_group'], $data['finance_expense_group']])

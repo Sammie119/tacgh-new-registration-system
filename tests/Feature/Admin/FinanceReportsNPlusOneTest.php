@@ -115,6 +115,17 @@ class FinanceReportsNPlusOneTest extends TestCase
         $this->assertLessThan(15, $queryCount, "Expected a small, constant number of queries, got {$queryCount}.");
     }
 
+    public function test_financial_report_returns_404_when_the_users_event_no_longer_exists(): void
+    {
+        $role = Role::create(['name' => RolesEnum::FINANCE->value]);
+        $user = User::factory()->create(['event_id' => 999999]);
+        $user->assignRole($role);
+
+        $response = $this->actingAs($user)->get(route('financial_report', ['report' => 'generate_report']));
+
+        $response->assertNotFound();
+    }
+
     public function test_print_financial_report_renders_registrant_and_transaction_names(): void
     {
         $user = $this->financeUser();
