@@ -34,7 +34,7 @@
                 <td>
                     <x-input-select
                         :options="$roles"
-                        :selected="$role_permission->role_id"
+                        :selected="$role_permission?->role_id ?? 0"
                         name="roles[]"
                         :type="'role'"
                         required="true"
@@ -44,7 +44,7 @@
                 <td>
                     <x-input-select
                         :options="$permissions"
-                        :selected="$role_permission->permission_id"
+                        :selected="$role_permission?->permission_id ?? 0"
                         name="permissions[]"
                         :type="'role'"
                         required="true"
