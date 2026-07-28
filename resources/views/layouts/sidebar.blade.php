@@ -62,7 +62,7 @@
                 type="multi"
                 icon="bi bi-gear-fill"
                 id="sys-admin-nav"
-                :routes_array="['users', 'venues', 'events', 'roles', 'permissions', 'categories', 'accommodations', 'room', 'downloads']"
+                :routes_array="['users', 'venues', 'events', 'roles', 'permissions', 'categories', 'accommodations', 'room', 'downloads', 'audit_log']"
             >
                 @if(use_roles_sidebar(RolesEnum::SYSTEMDEVELOPER))
                     <x-menu-item route="users" title="User Management" />
@@ -81,6 +81,8 @@
                     <x-menu-item route="roles" title="Roles" />
 
                     <x-menu-item route="permissions" title="Permissions" />
+
+                    <x-menu-item route="audit_log" title="Audit Log" />
                 @endif
 
             </x-menu-main>

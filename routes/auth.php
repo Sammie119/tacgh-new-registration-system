@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\RolesEnum;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
                 Route::put('/role', 'update')->name('role');
                 Route::put('/assign_permissions', 'assignPermission')->name('assign_permissions');
             });
+        });
+
+        Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMDEVELOPER->value]], function () {
+            Route::get('/audit_log', [AuditLogController::class, 'index'])->name('audit_log');
         });
 
         Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');

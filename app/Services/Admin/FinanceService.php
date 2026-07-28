@@ -28,6 +28,12 @@ class FinanceService
             'comment' => $data['comment'],
         ]);
 
+        activity('finance')
+            ->causedBy(auth()->user())
+            ->performedOn($payment)
+            ->withProperties(['reg_id' => $payment->reg_id, 'event_id' => $payment->event_id, 'comment' => $data['comment']])
+            ->log('Payment cleared');
+
         return back()->with('success', 'Financial Clearance Successful!');
     }
 
@@ -56,6 +62,12 @@ class FinanceService
             ]);
 
         if ($results) {
+            activity('finance')
+                ->causedBy(auth()->user())
+                ->performedOn($results)
+                ->withProperties(['entry_type' => $results->entry_type, 'transaction_type' => $results->transaction_type, 'amount' => $results->amount])
+                ->log('Financial entry created');
+
             return redirect(route('financial_entries', absolute: false))->with('success', 'Financial Entry Created Successfully!!!');
         }
 
@@ -69,6 +81,8 @@ class FinanceService
             return redirect(route('financial_entries', absolute: false))->with('error', 'Financial Entry not found!!!');
         }
 
+        $before = $entry->only(['entry_type', 'transaction_type', 'amount', 'description']);
+
         $results = $entry->update([
             'entry_type' => trim($data['entry_type']),
             'transaction_type' => $data['transaction_type'],
@@ -79,6 +93,12 @@ class FinanceService
         ]);
 
         if ($results) {
+            activity('finance')
+                ->causedBy(auth()->user())
+                ->performedOn($entry)
+                ->withProperties(['before' => $before, 'after' => $entry->only(['entry_type', 'transaction_type', 'amount', 'description'])])
+                ->log('Financial entry updated');
+
             return redirect(route('financial_entries', absolute: false))->with('success', 'Financial Entry Updated Successfully!!!');
         }
 
@@ -103,6 +123,12 @@ class FinanceService
     {
         $record = FinancialEpisode::find($id);
         if ($record) {
+            activity('finance')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->withProperties(['entry_type' => $record->entry_type, 'transaction_type' => $record->transaction_type, 'amount' => $record->amount])
+                ->log('Financial entry deleted');
+
             $record->delete();
 
             return 1;
@@ -155,6 +181,17 @@ class FinanceService
         ]);
 
         if ($results) {
+            activity('finance')
+                ->causedBy(auth()->user())
+                ->performedOn($results)
+                ->withProperties([
+                    'registration_no' => $data['registration_no'],
+                    'amount_paid' => $data['amount_paid'],
+                    'payment_mode' => $data['payment_mode'],
+                    'transaction_no' => $data['transaction_no'],
+                ])
+                ->log('Online payment correction recorded');
+
             return redirect(route('payments', absolute: false))->with('success', 'Online Payment Entry Created Successfully!!!');
         }
 

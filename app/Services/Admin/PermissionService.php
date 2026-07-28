@@ -20,6 +20,11 @@ class PermissionService
         ]);
 
         if ($results) {
+            activity('role-management')
+                ->causedBy(auth()->user())
+                ->performedOn($results)
+                ->log("Permission created: {$results->name}");
+
             return redirect(route('permissions', absolute: false))->with('success', 'Permission Created Successfully!!!');
         }
 
@@ -33,6 +38,8 @@ class PermissionService
             return redirect(route('permissions', absolute: false))->with('error', 'Permission not found!!!');
         }
 
+        $oldName = $record->name;
+
         $results = $record->update(
             [
                 'name' => trim($data['name']),
@@ -40,6 +47,12 @@ class PermissionService
         );
 
         if ($results) {
+            activity('role-management')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->withProperties(['old_name' => $oldName, 'new_name' => $record->name])
+                ->log('Permission updated');
+
             return redirect(route('permissions', absolute: false))->with('success', 'Permission Updated Successfully!!!');
         }
 
@@ -50,6 +63,11 @@ class PermissionService
     {
         $record = Permission::find($id);
         if ($record) {
+            activity('role-management')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->log("Permission deleted: {$record->name}");
+
             $record->delete();
 
             return 1;

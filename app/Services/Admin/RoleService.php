@@ -20,6 +20,11 @@ class RoleService
         ]);
 
         if ($results) {
+            activity('role-management')
+                ->causedBy(auth()->user())
+                ->performedOn($results)
+                ->log("Role created: {$results->name}");
+
             return redirect(route('roles', absolute: false))->with('success', 'Role Created Successfully!!!');
         }
 
@@ -33,6 +38,8 @@ class RoleService
             return redirect(route('roles', absolute: false))->with('error', 'Role not found!!!');
         }
 
+        $oldName = $record->name;
+
         $results = $record->update(
             [
                 'name' => trim($data['name']),
@@ -40,6 +47,12 @@ class RoleService
         );
 
         if ($results) {
+            activity('role-management')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->withProperties(['old_name' => $oldName, 'new_name' => $record->name])
+                ->log('Role updated');
+
             return redirect(route('roles', absolute: false))->with('success', 'Role Updated Successfully!!!');
         }
 
@@ -55,6 +68,12 @@ class RoleService
 
         $role->syncPermissions($data['permissions']);
 
+        activity('role-management')
+            ->causedBy(auth()->user())
+            ->performedOn($role)
+            ->withProperties(['permissions' => $data['permissions']])
+            ->log("Permissions assigned to role: {$role->name}");
+
         return redirect(route('roles', absolute: false))->with('success', 'Permissions Assigned Added Successfully!!!');
     }
 
@@ -62,6 +81,11 @@ class RoleService
     {
         $record = Role::find($id);
         if ($record) {
+            activity('role-management')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->log("Role deleted: {$record->name}");
+
             $record->delete();
 
             return 1;

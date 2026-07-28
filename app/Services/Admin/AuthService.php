@@ -33,6 +33,12 @@ class AuthService
             ]);
 
         if ($results) {
+            activity('user-management')
+                ->causedBy(auth()->user())
+                ->performedOn($results)
+                ->withProperties(['name' => $results->name, 'email' => $results->email])
+                ->log('User created');
+
             return redirect(route('users', absolute: false))->with('success', 'User Created Successfully.');
         }
 
@@ -56,11 +62,22 @@ class AuthService
             ]
         );
 
-        if (! empty($data['password'])) {
+        $passwordChanged = ! empty($data['password']);
+        if ($passwordChanged) {
             $results = $record->update(['password' => Hash::make($data['password'])]);
         }
 
         if ($results) {
+            activity('user-management')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->withProperties([
+                    'name' => $record->name,
+                    'email' => $record->email,
+                    'password_changed' => $passwordChanged,
+                ])
+                ->log('User updated');
+
             return redirect(route('users', absolute: false))->with('success', 'User Updated Successfully!!!');
         }
 
@@ -71,6 +88,12 @@ class AuthService
     {
         $record = User::find($id);
         if ($record) {
+            activity('user-management')
+                ->causedBy(auth()->user())
+                ->performedOn($record)
+                ->withProperties(['name' => $record->name, 'email' => $record->email])
+                ->log("User deleted: {$record->name}");
+
             $record->delete();
             DB::table('assign_permission_to_roles')->where('user_id', $id)->delete();
 
@@ -89,6 +112,12 @@ class AuthService
 
         $user->syncRoles($data['roles']);
         $user->syncPermissions($data['permissions']);
+
+        activity('user-management')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->withProperties(['roles' => $data['roles'], 'permissions' => $data['permissions']])
+            ->log('Roles assigned to user');
 
         DB::table('assign_permission_to_roles')->where('user_id', $data['id'])->delete();
 
