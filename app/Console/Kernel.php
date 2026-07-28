@@ -12,8 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // SmsNotificationJob/WhatsappNotificationJob are processed by a persistent
-        // `queue:work` process managed by Supervisor (see README), not the scheduler.
+        // No scheduled tasks; notifications are sent synchronously
+        // in-request (see README "Notifications").
         // $schedule->command('inspire')->hourly();
     }
 

@@ -82,30 +82,8 @@ Offline payments are recorded manually by Finance-role users via financial clear
 
 ## Notifications
 
-SMS (mNotify) and WhatsApp (waapi.app) notifications (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`) are dispatched onto a real Laravel queue (`ShouldQueue`, `QUEUE_CONNECTION=database`). Dispatching a job is just a fast row insert into the `jobs` table — the web request never waits on the SMS/WhatsApp API call. Something still has to periodically drain that table, though; pick one of the two options below depending on server access.
+SMS (mNotify) and WhatsApp (waapi.app) notifications (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`) are dispatched and run synchronously, in-process, as part of the request or Artisan command that triggers them (registration, batch import, payment confirmation) — there's no queue, cron, or Supervisor-managed worker involved. `::dispatch()` on these job classes runs `handle()` immediately since neither implements `ShouldQueue`.
 
-### Option A — webcron (no shell/cron access required)
+The tradeoff: the triggering request blocks briefly on the live mNotify/waapi.app HTTP call before returning a response. Both `sendSms()` and `sendWhatsApp()` (`App\Http\Traits\SMSNotify`) set a 5s connect / 10s total cURL timeout, so a stalled or unreachable provider adds at most ~10s to the request rather than hanging indefinitely. There's no retry — a failed call just returns an error payload/string that isn't currently surfaced back to the end user (see the `catch` block in `sendSms()` and the `$err` check in `sendWhatsApp()` if you want to add failure handling later).
 
-A protected endpoint, `GET /tasks/run-queue/{secret}`, drains the queue when hit. It's meant to be pinged every 1–2 minutes by a free external service (e.g. [cron-job.org](https://cron-job.org), EasyCron, UptimeRobot) — no server access needed at all.
-
-1. Generate a secret: `php artisan tinker --execute="echo Str::random(40);"`
-2. Set it in `.env`: `CRON_SECRET=<the generated value>`
-3. Point the external service at `https://yourapp.com/tasks/run-queue/<the same value>`, every 1–2 minutes.
-
-Without the correct secret the endpoint always returns 404 (and if `CRON_SECRET` is unset, it 404s unconditionally — fails closed). Each hit processes up to 20 jobs or 25 seconds' worth, then stops; overlapping hits are skipped via a cache lock rather than stacking up. The secret is a bearer credential — don't post the real URL anywhere public (issue tracker, chat, etc).
-
-### Option B — Supervisor (if you have shell/persistent-process access)
-
-A persistent `queue:work` process, managed by Supervisor so it survives crashes and restarts on deploy. A ready-to-use config template is at `deploy/supervisor-queue-worker.conf` — copy it to `/etc/supervisor/conf.d/`, fill in the real app path and user, then:
-
-```
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start tacgh-queue-worker:*
-```
-
-After every deploy that changes code, restart the workers so they pick it up (`php artisan queue:restart`, or `supervisorctl restart tacgh-queue-worker:*`) — a running worker keeps the old code loaded in memory otherwise. This scales further than Option A (dedicated always-on workers vs. periodic short bursts), so it's worth switching to if notification volume grows.
-
-### Either way
-
-Both `sendSms()` and `sendWhatsApp()` (`App\Http\Traits\SMSNotify`) have a 5s connect / 10s total cURL timeout, and both jobs retry up to 3 times with a 10s backoff on failure (permanently-failed jobs land in `failed_jobs` — inspect with `php artisan queue:failed`). This app previously ran the queue worker inline inside a global HTTP middleware on every request whenever jobs were pending, which made arbitrary unrelated page loads pay the full cost — including live SMS/WhatsApp API calls — of someone else's notification backlog. That middleware has been removed for exactly this reason.
+This app previously ran notifications through a real queue drained by a global HTTP middleware on every request, which made arbitrary unrelated page loads pay the full cost — including live SMS/WhatsApp API calls — of someone else's notification backlog. That middleware has been removed; sending synchronously as part of the same request that needs the notification avoids that problem entirely, at the cost of that one request being slightly slower.

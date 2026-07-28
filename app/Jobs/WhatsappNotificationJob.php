@@ -4,19 +4,13 @@ namespace App\Jobs;
 
 use App\Http\Traits\SMSNotify;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class WhatsappNotificationJob implements ShouldQueue
+class WhatsappNotificationJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, Queueable, SerializesModels;
     use SMSNotify;
-
-    public $tries = 3;
-
-    public $backoff = 10;
 
     /**
      * Create a new job instance.
