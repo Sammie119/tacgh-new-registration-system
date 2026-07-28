@@ -22,18 +22,18 @@
                             <!-- Bordered Tabs Justified -->
                             <ul class="nav nav-tabs nav-tabs-bordered d-flex" id="tokenTabs" role="tablist">
                                 <li class="nav-item flex-fill" role="presentation">
-                                    <button class="nav-link w-100 active" id="individual-tab" data-bs-toggle="tab" data-bs-target="#individual-tokens" type="button" role="tab" aria-controls="individual-tokens" aria-selected="true">Individual</button>
+                                    <button class="nav-link w-100 {{ $active_tab === 'individual' ? 'active' : '' }}" id="individual-tab" data-bs-toggle="tab" data-bs-target="#individual-tokens" type="button" role="tab" aria-controls="individual-tokens" aria-selected="{{ $active_tab === 'individual' ? 'true' : 'false' }}">Individual</button>
                                 </li>
                                 <li class="nav-item flex-fill" role="presentation">
-                                    <button class="nav-link w-100" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch-tokens" type="button" role="tab" aria-controls="batch-tokens" aria-selected="false">Batch Coordinators</button>
+                                    <button class="nav-link w-100 {{ $active_tab === 'batch' ? 'active' : '' }}" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch-tokens" type="button" role="tab" aria-controls="batch-tokens" aria-selected="{{ $active_tab === 'batch' ? 'true' : 'false' }}">Batch Coordinators</button>
                                 </li>
                                 <li class="nav-item flex-fill" role="presentation">
-                                    <button class="nav-link w-100" id="member-tab" data-bs-toggle="tab" data-bs-target="#member-tokens" type="button" role="tab" aria-controls="member-tokens" aria-selected="false">Batch Members</button>
+                                    <button class="nav-link w-100 {{ $active_tab === 'member' ? 'active' : '' }}" id="member-tab" data-bs-toggle="tab" data-bs-target="#member-tokens" type="button" role="tab" aria-controls="member-tokens" aria-selected="{{ $active_tab === 'member' ? 'true' : 'false' }}">Batch Members</button>
                                 </li>
                             </ul>
                             <div class="tab-content pt-2" id="tokenTabsContent">
 
-                                <div class="tab-pane fade show active" id="individual-tokens" role="tabpanel" aria-labelledby="individual-tab">
+                                <div class="tab-pane fade {{ $active_tab === 'individual' ? 'show active' : '' }}" id="individual-tokens" role="tabpanel" aria-labelledby="individual-tab">
                                     <form method="GET" action="{{ route('tokens_report') }}" class="row g-2 mb-3">
                                         <div class="col-auto">
                                             <input type="text" name="individual_search" class="form-control" placeholder="Search by name, phone, email or token" value="{{ $individual_search }}" />
@@ -81,7 +81,7 @@
                                     {{ $individuals->links() }}
                                 </div>
 
-                                <div class="tab-pane fade" id="batch-tokens" role="tabpanel" aria-labelledby="batch-tab">
+                                <div class="tab-pane fade {{ $active_tab === 'batch' ? 'show active' : '' }}" id="batch-tokens" role="tabpanel" aria-labelledby="batch-tab">
                                     <form method="GET" action="{{ route('tokens_report') }}" class="row g-2 mb-3">
                                         <div class="col-auto">
                                             <input type="text" name="batch_search" class="form-control" placeholder="Search by email, phone, batch no or token" value="{{ $batch_search }}" />
@@ -130,7 +130,7 @@
                                     {{ $batches->links() }}
                                 </div>
 
-                                <div class="tab-pane fade" id="member-tokens" role="tabpanel" aria-labelledby="member-tab">
+                                <div class="tab-pane fade {{ $active_tab === 'member' ? 'show active' : '' }}" id="member-tokens" role="tabpanel" aria-labelledby="member-tab">
                                     <form method="GET" action="{{ route('tokens_report') }}" class="row g-2 mb-3">
                                         <div class="col-auto">
                                             <input type="text" name="member_search" class="form-control" placeholder="Search by name, phone, email, batch no or token" value="{{ $member_search }}" />

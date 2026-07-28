@@ -22,11 +22,18 @@ class ReportController extends Controller
 
     public function tokens(Request $request)
     {
+        $activeTab = 'individual';
+        if ($request->filled('batch_search') || $request->filled('batch_page')) {
+            $activeTab = 'batch';
+        } elseif ($request->filled('member_search') || $request->filled('member_page')) {
+            $activeTab = 'member';
+        }
+
         return $this->reportService->tokens(
             get_logged_in_user_event_id(),
             $request->input('individual_search'),
             $request->input('batch_search'),
             $request->input('member_search'),
-        );
+        )->with('active_tab', $activeTab);
     }
 }

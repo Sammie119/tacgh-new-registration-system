@@ -121,6 +121,56 @@ class ReportTokensTest extends TestCase
         $this->assertCount(1, $data['batches']);
     }
 
+    public function test_default_page_load_opens_on_the_individual_tab(): void
+    {
+        $user = $this->userWithRole(RolesEnum::SUPERADMIN);
+
+        $response = $this->actingAs($user)->get(route('tokens_report'));
+
+        $response->assertOk();
+        $response->assertSee('tab-pane fade show active" id="individual-tokens"', false);
+        $response->assertDontSee('tab-pane fade show active" id="batch-tokens"', false);
+        $response->assertDontSee('tab-pane fade show active" id="member-tokens"', false);
+    }
+
+    public function test_searching_the_batch_tab_reopens_on_the_batch_tab(): void
+    {
+        $user = $this->userWithRole(RolesEnum::SUPERADMIN);
+        $this->createBatchLog(1, ['email' => 'coordinator-lookup@example.com']);
+
+        $response = $this->actingAs($user)->get(route('tokens_report', ['batch_search' => 'coordinator-lookup']));
+
+        $response->assertOk();
+        $response->assertSee('coordinator-lookup@example.com'); // sanity: result actually present
+        $response->assertSee('tab-pane fade show active" id="batch-tokens"', false);
+        $response->assertDontSee('tab-pane fade show active" id="individual-tokens"', false);
+        $response->assertDontSee('tab-pane fade show active" id="member-tokens"', false);
+    }
+
+    public function test_searching_the_member_tab_reopens_on_the_member_tab(): void
+    {
+        $user = $this->userWithRole(RolesEnum::SUPERADMIN);
+        $this->createStage(1, ['first_name' => 'MemberLookup', 'batch_no' => 20260101000003]);
+
+        $response = $this->actingAs($user)->get(route('tokens_report', ['member_search' => 'MemberLookup']));
+
+        $response->assertOk();
+        $response->assertSee('MEMBERLOOKUP');
+        $response->assertSee('tab-pane fade show active" id="member-tokens"', false);
+        $response->assertDontSee('tab-pane fade show active" id="individual-tokens"', false);
+        $response->assertDontSee('tab-pane fade show active" id="batch-tokens"', false);
+    }
+
+    public function test_paginating_the_batch_tab_reopens_on_the_batch_tab(): void
+    {
+        $user = $this->userWithRole(RolesEnum::SUPERADMIN);
+
+        $response = $this->actingAs($user)->get(route('tokens_report', ['batch_page' => 1]));
+
+        $response->assertOk();
+        $response->assertSee('tab-pane fade show active" id="batch-tokens"', false);
+    }
+
     public function test_individual_tab_can_be_searched_by_token_value(): void
     {
         $user = $this->userWithRole(RolesEnum::SUPERADMIN);
