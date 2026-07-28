@@ -80,7 +80,7 @@
                                                         </tr>
                                                         @foreach($finance_income_group as $income)
                                                             <tr>
-                                                                <th style="padding-left: 20px;">{{ get_dropdown_name($income->transaction_type) }}</th>
+                                                                <th style="padding-left: 20px;">{{ $dropdown_names[$income->transaction_type] ?? null }}</th>
                                                                 <th style="text-align: right">{{ number_format($income->amount, 2) }}</th>
                                                                 <th></th>
                                                             </tr>
@@ -98,7 +98,7 @@
                                                         </tr>
                                                         @foreach($finance_expense_group as $expense)
                                                             <tr>
-                                                                <th style="padding-left: 20px;">{{ get_dropdown_name($expense->transaction_type) }}</th>
+                                                                <th style="padding-left: 20px;">{{ $dropdown_names[$expense->transaction_type] ?? null }}</th>
                                                                 <th style="text-align: right">{{ number_format($expense->amount, 2) }}</th>
                                                                 <th></th>
                                                             </tr>
@@ -144,7 +144,7 @@
                                                         @foreach($online_payments as $online)
                                                             @if($online->amount_paid > 0)
                                                                 <tr>
-                                                                    <td style="padding-left: 20px;">Registration - {{ event_registrant_name($online->reg_id) }}</td>
+                                                                    <td style="padding-left: 20px;">Registration - {{ $registrant_names[$online->reg_id] ?? null }}</td>
                                                                     <td style="text-align: right">{{ number_format($online->amount_paid, 2) }}</td>
                                                                     <td></td>
                                                                 </tr>
@@ -152,7 +152,7 @@
                                                         @endforeach
                                                         @foreach($finance_income as $f_income)
                                                             <tr>
-                                                                <td style="padding-left: 20px;">{{ ($f_income->transaction_type == 'Others') ? $f_income->description : get_dropdown_name($f_income->transaction_type) }}</td>
+                                                                <td style="padding-left: 20px;">{{ ($f_income->transaction_type == 'Others') ? $f_income->description : ($dropdown_names[$f_income->transaction_type] ?? null) }}</td>
                                                                 <td style="text-align: right">{{ number_format($f_income->amount, 2) }}</td>
                                                                 <td></td>
                                                             </tr>
@@ -169,7 +169,7 @@
                                                         </tr>
                                                         @foreach($finance_expense as $expense)
                                                             <tr>
-                                                                <td style="padding-left: 20px;">{{ ($expense->transaction_type == 'Others') ? $expense->description : get_dropdown_name($expense->transaction_type) }}</td>
+                                                                <td style="padding-left: 20px;">{{ ($expense->transaction_type == 'Others') ? $expense->description : ($dropdown_names[$expense->transaction_type] ?? null) }}</td>
                                                                 <td style="text-align: right">{{ number_format($expense->amount, 2) }}</td>
                                                                 <td></td>
                                                             </tr>

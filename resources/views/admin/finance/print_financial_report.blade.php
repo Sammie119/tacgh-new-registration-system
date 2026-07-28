@@ -28,14 +28,14 @@
                 </tr>
                 @foreach($online_payments as $online)
                     <tr>
-                        <td style="padding-left: 20px;">Online Payment - {{ event_registrant_name($online->reg_id) }}</td>
+                        <td style="padding-left: 20px;">Online Payment - {{ $registrant_names[$online->reg_id] ?? null }}</td>
                         <td style="text-align: right">{{ number_format($online->amount_paid, 2) }}</td>
                         <td></td>
                     </tr>
                 @endforeach
                 @foreach($finance_income as $f_income)
                     <tr>
-                        <td style="padding-left: 20px;">{{ ($f_income->transaction_type == 'Others') ? $f_income->description : get_dropdown_name($f_income->transaction_type) }}</td>
+                        <td style="padding-left: 20px;">{{ ($f_income->transaction_type == 'Others') ? $f_income->description : ($dropdown_names[$f_income->transaction_type] ?? null) }}</td>
                         <td style="text-align: right">{{ number_format($f_income->amount, 2) }}</td>
                         <td></td>
                     </tr>
@@ -52,7 +52,7 @@
                 </tr>
                 @foreach($finance_expense as $expense)
                     <tr>
-                        <td style="padding-left: 20px;">{{ ($expense->transaction_type == 'Others') ? $expense->description : get_dropdown_name($expense->transaction_type) }}</td>
+                        <td style="padding-left: 20px;">{{ ($expense->transaction_type == 'Others') ? $expense->description : ($dropdown_names[$expense->transaction_type] ?? null) }}</td>
                         <td style="text-align: right">{{ number_format($expense->amount, 2) }}</td>
                         <td></td>
                     </tr>

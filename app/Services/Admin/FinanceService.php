@@ -80,6 +80,9 @@ class FinanceService
     {
         $data['finances'] = FinancialEpisode::where('event_id', get_logged_in_user_event_id())->orderByDesc('transaction_date')->get();
 
+        $transactionTypeIds = $data['finances']->pluck('transaction_type')->filter()->unique();
+        $data['dropdown_names'] = Dropdown::whereIn('id', $transactionTypeIds)->pluck('full_name', 'id');
+
         return view('admin.finance.financial_entries', $data);
     }
 
@@ -179,13 +182,32 @@ class FinanceService
     protected function getFinancialPrintData(array $data): array
     {
         if (! empty($data['report'])) {
-            $data['online_payments'] = OnlinePayment::where('event_id', get_logged_in_user_event_id())->orderByDesc('date_paid')->get();
-            $data['finance_income'] = FinancialEpisode::where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Income'])->orderByDesc('transaction_date')->get();
-            $data['finance_expense'] = FinancialEpisode::where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Expense'])->orderByDesc('transaction_date')->get();
-            $data['finance_income_group'] = FinancialEpisode::selectRaw('transaction_type, SUM(amount) AS amount')->where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Income'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
-            $data['finance_expense_group'] = FinancialEpisode::selectRaw('transaction_type, SUM(amount) AS amount')->where(['event_id' => get_logged_in_user_event_id(), 'entry_type' => 'Expense'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
-            $data['header'] = 'Financial Report for '.get_event(get_logged_in_user_event_id())->name;
-            $data['event_id'] = get_logged_in_user_event_id();
+            $eventId = get_logged_in_user_event_id();
+
+            $data['online_payments'] = OnlinePayment::where('event_id', $eventId)->orderByDesc('date_paid')->get();
+            $data['finance_income'] = FinancialEpisode::where(['event_id' => $eventId, 'entry_type' => 'Income'])->orderByDesc('transaction_date')->get();
+            $data['finance_expense'] = FinancialEpisode::where(['event_id' => $eventId, 'entry_type' => 'Expense'])->orderByDesc('transaction_date')->get();
+            $data['finance_income_group'] = FinancialEpisode::selectRaw('transaction_type, SUM(amount) AS amount')->where(['event_id' => $eventId, 'entry_type' => 'Income'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
+            $data['finance_expense_group'] = FinancialEpisode::selectRaw('transaction_type, SUM(amount) AS amount')->where(['event_id' => $eventId, 'entry_type' => 'Expense'])->groupBy('transaction_type')->orderByDesc('transaction_date')->get();
+            $data['header'] = 'Financial Report for '.get_event($eventId)->name;
+            $data['event_id'] = $eventId;
+
+            $transactionTypeIds = collect([$data['finance_income'], $data['finance_expense'], $data['finance_income_group'], $data['finance_expense_group']])
+                ->flatMap(fn ($collection) => $collection->pluck('transaction_type'))
+                ->filter()
+                ->unique();
+            $data['dropdown_names'] = Dropdown::whereIn('id', $transactionTypeIds)->pluck('full_name', 'id');
+
+            $regIds = $data['online_payments']->pluck('reg_id')->filter()->unique();
+            $stages = RegistrantStage::whereIn('id', $regIds)->get(['id', 'title', 'first_name', 'other_names', 'surname']);
+            $stageTitleIds = $stages->pluck('title')->filter()->unique();
+            $stageTitleNames = Dropdown::whereIn('id', $stageTitleIds)->pluck('full_name', 'id');
+
+            $data['registrant_names'] = $stages->mapWithKeys(function ($stage) use ($stageTitleNames) {
+                $name = trim(($stageTitleNames[$stage->title] ?? '').' '.$stage->first_name.' '.$stage->other_names.' '.$stage->surname);
+
+                return [$stage->id => strtoupper($name)];
+            });
         } else {
             $data['report'] = [];
         }

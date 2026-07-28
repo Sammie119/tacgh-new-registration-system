@@ -49,7 +49,7 @@
                                     <tr class="finance_{{ $finance->id }}">
                                         <td style="width: 40px">{{ ++$key }}</td>
                                         <td>{{ $finance->entry_type }}</td>
-                                        <td>{{ get_dropdown_name($finance->transaction_type) }}</td>
+                                        <td>{{ $dropdown_names[$finance->transaction_type] ?? null }}</td>
                                         <td>{{ $finance->description }}</td>
                                         <td>{{ $finance->transaction_date }}</td>
                                         <td>{{ $finance->amount }}</td>
