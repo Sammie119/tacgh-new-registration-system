@@ -12,7 +12,9 @@ class RegistrantPipe
     {
         $amount_to_pay = $data['amount_to_pay'];
         $ref_date = date('y');
-        $prefix = get_event($data['event_id'])->code_prefix;
+        $event = get_event($data['event_id']);
+        abort_if(! $event, 404, 'Event not found.');
+        $prefix = $event->code_prefix;
 
         $fees = [
             'accommodation_type' => $data['accommodation_fee'],

@@ -66,7 +66,7 @@
 
                                     <div class="row">
                                         <div class="col-lg-3 col-md-4 label">Event</div>
-                                        <div class="col-lg-9 col-md-8">{{ get_event($user->event_id)->name }}</div>
+                                        <div class="col-lg-9 col-md-8">{{ get_event($user->event_id)?->name }}</div>
                                     </div>
 
                                 </div>

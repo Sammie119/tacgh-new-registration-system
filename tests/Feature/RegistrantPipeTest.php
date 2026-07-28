@@ -118,4 +118,19 @@ class RegistrantPipeTest extends TestCase
         $this->assertSame('TC-'.date('y').'-0001', $reconfirmed['registration_no']);
         $this->assertDatabaseCount('registrants', 2);
     }
+
+    public function test_aborts_with_404_when_the_event_no_longer_exists(): void
+    {
+        $event = $this->createEvent('TC');
+        [$accommodation, $registration] = $this->createFees($event);
+        $stage = $this->createStage($event, 'TOK1');
+
+        // exists:events,id validation ignores the SoftDeletes scope, so a
+        // soft-deleted event still reaches this pipe with a stale event_id.
+        $event->delete();
+
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
+
+        $this->runPipe($stage, $event, $accommodation, $registration);
+    }
 }

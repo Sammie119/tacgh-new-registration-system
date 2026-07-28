@@ -476,7 +476,7 @@
                                             <tr>
                                                 <th scope="row">19</th>
                                                 <td>Event</td>
-                                                <td>{{ get_event($registrant->event_id)->name }}</td>
+                                                <td>{{ get_event($registrant->event_id)?->name }}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">20</th>
