@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\EventFeesController;
 use App\Http\Controllers\Admin\EventVenueController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\FormController;
+use App\Http\Controllers\Admin\NotificationLogController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\RegistrantController;
 use Illuminate\Support\Facades\Route;
@@ -146,6 +147,8 @@ Route::middleware('auth')->group(function () {
             Route::controller(ReportController::class)->group(function () {
                 Route::get('/demographics_report', 'demographics')->name('demographics_report');
             });
+
+            Route::get('/notification_log', [NotificationLogController::class, 'index'])->name('notification_log');
         });
 
     });

@@ -68,6 +68,8 @@
             >
                 <x-menu-item route="demographics_report" title="Demographics" />
 
+                <x-menu-item route="notification_log" title="Notification Delivery" />
+
             </x-menu-main>
         @endif
 
