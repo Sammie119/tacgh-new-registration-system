@@ -2,14 +2,34 @@
 
 namespace App\Services;
 
+use App\Enums\RolesEnum;
 use App\Helpers\Utils;
 use App\Models\Admin\EventVenue;
 use Illuminate\Support\Facades\DB;
 
 class FormCreateService
 {
+    /**
+     * Roles allowed to create each resource type, mirroring the role
+     * middleware already applied to that resource's create/update routes.
+     */
+    private const ROLES_ALLOWED_TO_CREATE = [
+        'user' => [RolesEnum::SYSTEMADMIN],
+        'permission' => [RolesEnum::SYSTEMDEVELOPER],
+        'role' => [RolesEnum::SYSTEMDEVELOPER],
+        'dropdown_category' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'venue' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'event' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'forms' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'financial_entry' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
+        'downloads' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'online_payment_correction' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
+    ];
+
     public static function create($type)
     {
+        FormAuthorization::guard($type, self::ROLES_ALLOWED_TO_CREATE);
+
         switch ($type) {
             case 'user':
                 $data['person_type'] = [];

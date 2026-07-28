@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\RolesEnum;
 use App\Models\Admin\Accommodation;
 use App\Models\Admin\AccommodationBlock;
 use App\Models\Admin\AccommodationRoom;
@@ -16,8 +17,25 @@ use Spatie\Permission\Models\Role;
 
 class FormViewService
 {
+    /**
+     * Roles allowed to view each resource type, mirroring the role
+     * middleware already applied to that resource's admin pages/routes.
+     */
+    private const ROLES_ALLOWED_TO_VIEW = [
+        'user_roles' => [RolesEnum::SYSTEMADMIN],
+        'assign_permissions' => [RolesEnum::SYSTEMDEVELOPER],
+        'dropdown' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'accommodations' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
+        'blocks_setup' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
+        'generate_rooms' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
+        'fees' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'financial_clearance' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
+    ];
+
     public static function view($type, $id)
     {
+        FormAuthorization::guard($type, self::ROLES_ALLOWED_TO_VIEW);
+
         switch ($type) {
             case 'user_roles':
                 $user = User::find($id);

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\RolesEnum;
 use App\Helpers\Utils;
 use App\Models\Admin\Accommodation;
 use App\Models\Admin\Download;
@@ -16,8 +17,27 @@ use Spatie\Permission\Models\Role;
 
 class FormEditService
 {
+    /**
+     * Roles allowed to edit each resource type, mirroring the role
+     * middleware already applied to that resource's create/update routes.
+     */
+    private const ROLES_ALLOWED_TO_EDIT = [
+        'user' => [RolesEnum::SYSTEMADMIN],
+        'permission' => [RolesEnum::SYSTEMDEVELOPER],
+        'role' => [RolesEnum::SYSTEMDEVELOPER],
+        'dropdown_category' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'venue' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'event' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'resident' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
+        'forms' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'financial_entry' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
+        'downloads' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+    ];
+
     public static function edit($type, $id)
     {
+        FormAuthorization::guard($type, self::ROLES_ALLOWED_TO_EDIT);
+
         switch ($type) {
             case 'user':
                 $data['user'] = User::find($id);

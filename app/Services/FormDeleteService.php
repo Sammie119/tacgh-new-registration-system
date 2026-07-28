@@ -14,7 +14,6 @@ use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Auth\RegisteredUserController;
-use Illuminate\Support\Facades\Auth;
 
 class FormDeleteService
 {
@@ -39,12 +38,7 @@ class FormDeleteService
 
     public static function delete($type, $id)
     {
-        $allowedRoles = self::ROLES_ALLOWED_TO_DELETE[$type] ?? null;
-
-        if ($allowedRoles) {
-            $roleNames = array_map(fn (RolesEnum $role) => $role->value, $allowedRoles);
-            abort_if(! Auth::user()?->hasAnyRole($roleNames), 403, 'You are not authorized to perform this action.');
-        }
+        FormAuthorization::guard($type, self::ROLES_ALLOWED_TO_DELETE);
 
         switch ($type) {
             case 'user':

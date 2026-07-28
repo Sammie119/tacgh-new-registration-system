@@ -22,9 +22,20 @@ class FormViewServiceGuardTest extends TestCase
         return $user;
     }
 
+    private function systemAdminUser(): User
+    {
+        $role = Role::create(['name' => RolesEnum::SYSTEMADMIN->value]);
+        $user = User::factory()->create();
+        $user->assignRole($role);
+
+        return $user;
+    }
+
     public function test_user_roles_view_returns_404_for_a_nonexistent_user(): void
     {
-        $admin = $this->adminUser();
+        // 'user_roles' is only reachable by System Admin, matching the
+        // role middleware on the real user_roles route.
+        $admin = $this->systemAdminUser();
 
         // A different, nonexistent user id — used to crash via
         // $user->id / $user->getRoleNames() with no null check.
