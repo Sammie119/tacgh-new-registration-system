@@ -127,6 +127,7 @@ Route::middleware('auth')->group(function () {
         Route::group(['middleware' => ['role:'.RolesEnum::SYSTEMADMIN->value.'|'.RolesEnum::FINANCE->value.'|'.RolesEnum::SUPERADMIN->value]], function () {
             Route::controller(FinanceController::class)->group(function () {
                 Route::get('/payments', 'index')->name('payments');
+                Route::get('/outstanding_balances', 'outstandingBalances')->name('outstanding_balances');
                 Route::post('/financial_clearance', 'financialClearance')->name('financial_clearance');
                 Route::get('/financial_entries', 'financialEntryIndex')->name('financial_entries');
                 Route::post('/financial_entry', 'financialEntry')->name('financial_entry');

@@ -18,4 +18,9 @@ class RegistrantStage extends Model
     {
         return $this->hasOne(Registrant::class, 'stage_id', 'id');
     }
+
+    public function onlinePayments()
+    {
+        return $this->hasMany(\App\Models\Admin\OnlinePayment::class, 'reg_id', 'id');
+    }
 }

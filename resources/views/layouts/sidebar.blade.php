@@ -38,13 +38,15 @@
                 type="multi"
                 icon="bi bi-cash-coin"
                 id="finance-nav"
-                :routes_array="['payments', 'financial_entries', 'financial_report']"
+                :routes_array="['payments', 'financial_entries', 'financial_report', 'outstanding_balances']"
             >
                 <x-menu-item route="payments" title="Online Payment" />
 
                 <x-menu-item route="financial_entries" title="Financial Entries" />
 
                 <x-menu-item route="financial_report" title="Financial Report" />
+
+                <x-menu-item route="outstanding_balances" title="Outstanding Balances" />
 
             </x-menu-main>
         @endif

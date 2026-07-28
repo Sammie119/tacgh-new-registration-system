@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\OnlinePayment;
 use App\Models\FinancialEpisode;
+use App\Models\Registrant;
 use App\Models\RegistrantStage;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +55,42 @@ class FinanceService
             ->pluck('total_paid', 'reg_id');
 
         return view('admin.finance.index', $data);
+    }
+
+    public function outstandingBalances($id, ?string $search = null)
+    {
+        // Real GROUP BY + HAVING here (valid everywhere, unlike HAVING on a
+        // non-aggregate query, which sqlite rejects when Eloquent wraps a
+        // paginated query in a count(*) subquery).
+        $balanceTotals = OnlinePayment::where('event_id', $id)
+            ->selectRaw('reg_id, SUM(amount_to_pay) as total_to_pay, SUM(amount_paid) as total_paid')
+            ->groupBy('reg_id')
+            ->havingRaw('SUM(amount_to_pay) > SUM(amount_paid)')
+            ->get()
+            ->keyBy('reg_id');
+
+        $query = RegistrantStage::whereIn('id', $balanceTotals->keys())->orderByDesc('id');
+
+        if (! empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('surname', 'like', "%{$search}%")
+                    ->orWhere('other_names', 'like', "%{$search}%")
+                    ->orWhereHas('stage', fn ($rq) => $rq->where('registration_no', 'like', "%{$search}%"));
+            });
+        }
+
+        $data['balances'] = $query->paginate(50)->withQueryString();
+        $data['balance_totals'] = $balanceTotals;
+        $data['search'] = $search;
+
+        $titleIds = $data['balances']->pluck('title')->filter()->unique();
+        $data['dropdown_names'] = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
+
+        $stageIds = $data['balances']->pluck('id');
+        $data['registration_numbers'] = Registrant::whereIn('stage_id', $stageIds)->pluck('registration_no', 'stage_id');
+
+        return view('admin.finance.outstanding_balances', $data);
     }
 
     public function financialClearance(array $data)

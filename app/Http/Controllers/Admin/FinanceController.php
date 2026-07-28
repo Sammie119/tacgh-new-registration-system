@@ -20,6 +20,11 @@ class FinanceController extends Controller
         return $this->financeService->index(get_logged_in_user_event_id(), $request->get('search'));
     }
 
+    public function outstandingBalances(Request $request)
+    {
+        return $this->financeService->outstandingBalances(get_logged_in_user_event_id(), $request->get('search'));
+    }
+
     public function financialClearance(Request $request)
     {
         return $this->financeService->financialClearance($request->all());
