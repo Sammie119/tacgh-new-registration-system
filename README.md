@@ -82,12 +82,8 @@ Offline payments are recorded manually by Finance-role users via financial clear
 
 ## Notifications
 
-SMS (mNotify) and WhatsApp (waapi.app) notifications are dispatched as queued jobs (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`). The queue worker runs on a schedule (`queue:work --stop-when-empty` every minute, see `App\Console\Kernel`).
+SMS (mNotify) and WhatsApp (waapi.app) notifications (`App\Jobs\SmsNotificationJob`, `App\Jobs\WhatsappNotificationJob`) run inline via `dispatch(...)->afterResponse()` — they execute automatically as part of the same request that triggers them (registration, room allocation), right after the HTTP response has already been sent to the user. No queue worker, no queue table, and no cron are required for notifications to send.
 
-**Required in production:** wire `php artisan schedule:run` into a real system cron, or queued jobs will never be processed and no SMS/WhatsApp notifications will send. Add this to the crontab of the user running the app (`crontab -e`):
+This app previously used a real Laravel queue (`ShouldQueue`) for these jobs, processed either by a scheduled `queue:work --stop-when-empty` command or, briefly, by a global HTTP middleware that ran the queue worker inline on random unrelated requests whenever jobs were pending — both approaches have been removed. The middleware version in particular made arbitrary page loads pay the full cost (including live SMS/WhatsApp API calls) of someone else's notification backlog; `afterResponse()` avoids that because the cost is paid by the same request that caused the notification, after that request's own response has already gone out.
 
-```
-* * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1
-```
-
-An earlier version of this app worked around a missing cron by running `queue:work` inside a global HTTP middleware on every request whenever jobs were pending. That middleware has been removed — it made arbitrary, unrelated page loads pay the full cost (including live SMS/WhatsApp API calls) of draining someone else's notification backlog. The scheduled command above is the only mechanism that processes the queue now, so this cron entry is not optional.
+If notification volume grows enough that inline dispatch becomes a bottleneck, switching back to a real queue (`ShouldQueue` + a persistently running `queue:work` worker, e.g. via Supervisor) is the right next step — not the old middleware.
