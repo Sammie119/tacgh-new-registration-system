@@ -26,21 +26,21 @@ Route::get('/registrant_login', function () {
 
 Route::controller(RegistrantController::class)->group(function () {
     Route::get('/registration', 'register')->name('registrant.registration');
-    Route::post('/registration', 'store')->name('registrant.store');
-    Route::post('/registration_confirm', 'individualRegistrationConfirm')->name('registrant.confirm');
-    Route::post('/registration_update', 'individualRegistrationUpdate')->name('registrant.update');
-    Route::post('/registration_batch', 'batchRegistrationStage')->name('registrant.batch');
+    Route::post('/registration', 'store')->name('registrant.store')->middleware('throttle:registrant-forms');
+    Route::post('/registration_confirm', 'individualRegistrationConfirm')->name('registrant.confirm')->middleware('throttle:registrant-forms');
+    Route::post('/registration_update', 'individualRegistrationUpdate')->name('registrant.update')->middleware('throttle:registrant-forms');
+    Route::post('/registration_batch', 'batchRegistrationStage')->name('registrant.batch')->middleware('throttle:registrant-batch');
     Route::get('/registrant_download', 'exportRegistrationStage')->name('registrant_download');
 
-    Route::post('/registrant_login', 'registrationLogin')->name('registrant_login');
+    Route::post('/registrant_login', 'registrationLogin')->name('registrant_login')->middleware('throttle:registrant-login');
     Route::get('/registrant_page', 'individualLogin')->name('registrant_page');
     Route::get('/registrant_page_batch', 'batchLogin')->name('registrant_page_batch');
 
-    Route::post('/make_payment', 'registrantMakePayment')->name('make_payment');
+    Route::post('/make_payment', 'registrantMakePayment')->name('make_payment')->middleware('throttle:registrant-forms');
 
     Route::get('/registrant/batch/confirmation/{id}', 'batchRegistrationConfirm');
-    Route::post('/batch_confirm', 'batchRegistrationConfirmation')->name('batch.confirm');
-    Route::post('/batch_payment', 'batchPayment')->name('batch_payment');
+    Route::post('/batch_confirm', 'batchRegistrationConfirmation')->name('batch.confirm')->middleware('throttle:registrant-forms');
+    Route::post('/batch_payment', 'batchPayment')->name('batch_payment')->middleware('throttle:registrant-forms');
 
     Route::post('/registrant_logout', 'registrantLogout')->name('registrant_logout');
 

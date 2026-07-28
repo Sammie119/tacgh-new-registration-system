@@ -93,4 +93,22 @@ class LoginTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertNull(session('registrant'));
     }
+
+    public function test_login_attempts_are_rate_limited_after_five_tries(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $response = $this->post(route('registrant_login'), [
+                'email' => 'nobody@example.com',
+                'password' => 'GUESS'.$i,
+            ]);
+            $response->assertStatus(302);
+        }
+
+        $response = $this->post(route('registrant_login'), [
+            'email' => 'nobody@example.com',
+            'password' => 'GUESS5',
+        ]);
+
+        $response->assertStatus(429);
+    }
 }
