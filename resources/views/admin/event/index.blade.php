@@ -58,6 +58,22 @@
                                         <td>{{ $event->is_payment_required }}</td>
                                         <td>{{ $event->status }}</td>
                                         <td style="width: 150px">
+                                            @if((int) $event->id === (int) Auth::user()->event_id)
+                                                <span class="badge bg-success" title="This is your currently active event">Active</span>
+                                            @else
+                                                <form method="POST" action="{{ route('event.switch') }}" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="event_id" value="{{ $event->id }}">
+                                                    <x-button
+                                                        type="submit"
+                                                        class="btn-outline-secondary btn-sm"
+                                                        icon="bi bi-arrow-repeat"
+                                                        name="Switch"
+                                                        title="Make this your active event"
+                                                        style="padding: 6px 10px 6px 10px"
+                                                    />
+                                                </form>
+                                            @endif
                                             <x-button
                                                 type='button'
                                                 class="btn-info btn-sm"

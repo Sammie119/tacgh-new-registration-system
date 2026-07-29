@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Helpers\Utils;
 use App\Models\Admin\Event;
+use App\Models\User;
 
 class EventService
 {
@@ -69,6 +70,18 @@ class EventService
         }
 
         return redirect(route('events', absolute: false))->with('error', 'Events Update Unsuccessful!!!');
+    }
+
+    public function switchActiveEvent($eventId)
+    {
+        $event = Event::find($eventId);
+        if (! $event) {
+            return redirect()->back()->with('error', 'Event not found!!!');
+        }
+
+        User::find(get_logged_in_user_id())->update(['event_id' => $event->id]);
+
+        return redirect()->back()->with('success', "Switched active event to {$event->name}.");
     }
 
     public static function destroy($id)

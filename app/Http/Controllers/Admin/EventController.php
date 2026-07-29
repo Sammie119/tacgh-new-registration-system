@@ -61,6 +61,16 @@ class EventController extends Controller
     }
 
     /**
+     * Switch the logged-in user's active event.
+     */
+    public function switch(Request $request)
+    {
+        $request->validate(['event_id' => 'required|exists:events,id']);
+
+        return $this->eventService->switchActiveEvent($request->event_id);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public static function destroy($id)

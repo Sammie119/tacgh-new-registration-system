@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/events', 'index')->name('events');
                 Route::post('/event', 'store')->name('event');
                 Route::put('/event', 'update')->name('event');
+                Route::post('/event/switch', 'switch')->name('event.switch');
             });
 
             Route::controller(EventVenueController::class)->group(function () {
