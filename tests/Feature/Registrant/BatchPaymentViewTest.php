@@ -176,6 +176,61 @@ class BatchPaymentViewTest extends TestCase
         $response->assertDontSee('value="30.00"', false);
     }
 
+    public function test_the_amount_input_value_never_contains_a_thousands_separator(): void
+    {
+        // Regression: number_format() defaults to a "," thousands
+        // separator (e.g. "1,099.50"), and <input type="number"> silently
+        // rejects any value containing a comma - the field just renders
+        // blank in the browser for any four-figure remaining balance,
+        // even though the raw HTML value= attribute looks fine.
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 1100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 1100]);
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 0.50, 'amount_to_pay' => 1100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertSee('value="1099.50"', false);
+        $response->assertDontSee('value="1,099.50"', false);
+    }
+
+    public function test_the_total_input_value_never_contains_a_thousands_separator(): void
+    {
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 1100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 1100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertSee('value="1100.00"', false);
+        $response->assertDontSee('value="1,100.00"', false);
+    }
+
+    public function test_the_batch_table_does_not_show_an_attendance_type_column(): void
+    {
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 100,
+        ]);
+        $this->createStage($event, 'TOK1');
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertDontSee('attendance_type');
+    }
+
     public function test_the_total_input_defaults_to_the_remaining_batch_balance(): void
     {
         $event = $this->createEvent();

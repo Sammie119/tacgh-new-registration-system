@@ -18,7 +18,6 @@
                         <th>gender</th>
                         <th>date_of_birth</th>
                         <th>phone_number</th>
-                        <th>attendance_type</th>
                         <th>token</th>
                         <th>confirmed</th>
                         <th>fees</th>
@@ -47,7 +46,6 @@
                                 <td>{{ get_dropdown_name($registrant->gender) }}</td>
                                 <td>{{ $registrant->date_of_birth }}</td>
                                 <td>{{ $registrant->phone_number }}</td>
-                                <td>{{ $registrant->attendance_type }}</td>
                                 <td>{{ $registrant->token }}</td>
                                 <td>{{ $registrant->confirmed }}</td>
                                 <td>{{ number_format($confirmed_registrant->total_fee ?? 0, 2) }}</td>
@@ -55,7 +53,7 @@
                                 <td width="110px">
                                     <input type="hidden" name="reg[{{ $key }}][registrant_id]" value="{{ $registrant->id }}">
                                     <input type="number" class="form-control amount"
-                                       value="{{ number_format(($confirmed_registrant->total_fee ?? 0) - $amount_paid, 2) }}"
+                                       value="{{ number_format(($confirmed_registrant->total_fee ?? 0) - $amount_paid, 2, '.', '') }}"
                                        @if($amount_paid >= ($confirmed_registrant->total_fee ?? 0)) readonly @endif
                                        step="0.01"
                                        min="0"
@@ -101,7 +99,7 @@
                             </tr>
                         @endforelse
                         <tr>
-                            <th colspan="9">TOTAL</th>
+                            <th colspan="8">TOTAL</th>
                             <th>{{ number_format($total_fee, 2) }}</th>
                             <th>{{ number_format($total_amount_paid, 2) }}</th>
                             @if($total_amount_paid >= $total_fee)
@@ -114,7 +112,7 @@
                                     <input type="hidden" name="batch_id" value="{{ $get_data->id }}">
                                     <input type="hidden" name="batch" value="batch">
                                     <input type="number" class="form-control"
-                                           value="{{ number_format($total_fee - $total_amount_paid, 2) }}"
+                                           value="{{ number_format($total_fee - $total_amount_paid, 2, '.', '') }}"
                                            step="0.01"
                                            min="0"
                                            required
