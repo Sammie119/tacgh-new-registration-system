@@ -59,7 +59,7 @@
                                             <x-button
                                                 type='button'
                                                 class="btn-info btn-sm"
-                                                icon="fas fa-angle-double-down"
+                                                icon="bi bi-chevron-double-down"
                                                 name="Fees"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#exampleModal"
