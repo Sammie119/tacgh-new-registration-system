@@ -21,8 +21,8 @@ class BatchImportTransactionTest extends TestCase
 
     private array $headers = [
         'title', 'first_name', 'surname', 'other_names', 'gender', 'date_of_birth',
-        'marital_status', 'nationality_id', 'phone_number', 'whatsapp_number', 'email', 'address',
-        'position_held', 'profession', 'residence_country_id', 'languages_spoken', 'need_accommodation',
+        'marital_status', 'nationality', 'phone_number', 'whatsapp_number', 'email', 'address',
+        'position_held', 'profession', 'residence_country', 'languages_spoken', 'need_accommodation',
         'emergency_contacts_name', 'emergency_contacts_relationship', 'emergency_contacts_phone_number',
         'attendance_type', 'disability', 'special_needs',
     ];
@@ -84,9 +84,9 @@ class BatchImportTransactionTest extends TestCase
         return [
             'title' => 'Mr', 'first_name' => 'John'.$suffix, 'surname' => 'Doe'.$suffix, 'other_names' => '',
             'gender' => 'Male', 'date_of_birth' => '1990-01-01', 'marital_status' => 'Single',
-            'nationality_id' => 'Ghana', 'phone_number' => '+23350000000'.$suffix, 'whatsapp_number' => '',
+            'nationality' => 'Ghana', 'phone_number' => '+23350000000'.$suffix, 'whatsapp_number' => '',
             'email' => 'john'.$suffix.'@example.com', 'address' => 'Address '.$suffix,
-            'position_held' => 'Member', 'profession' => 'Engineer', 'residence_country_id' => 'Ghana',
+            'position_held' => 'Member', 'profession' => 'Ascension Minister', 'residence_country' => 'Ghana',
             'languages_spoken' => 'English', 'need_accommodation' => '1',
             'emergency_contacts_name' => 'Jane Doe', 'emergency_contacts_relationship' => 'Sister',
             'emergency_contacts_phone_number' => '+23350000001'.$suffix, 'attendance_type' => 'In-Person',

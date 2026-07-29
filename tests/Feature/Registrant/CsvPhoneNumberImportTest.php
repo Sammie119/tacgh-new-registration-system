@@ -25,7 +25,7 @@ class CsvPhoneNumberImportTest extends TestCase
             'created_by' => 1, 'updated_by' => 1,
         ]);
 
-        $headers = 'title,first_name,surname,other_names,gender,date_of_birth,marital_status,nationality_id,phone_number,whatsapp_number,email,address,position_held,profession,residence_country_id,languages_spoken,need_accommodation,emergency_contacts_name,emergency_contacts_relationship,emergency_contacts_phone_number,attendance_type,disability,special_needs';
+        $headers = 'title,first_name,surname,other_names,gender,date_of_birth,marital_status,nationality,phone_number,whatsapp_number,email,address,position_held,profession,residence_country,languages_spoken,need_accommodation,emergency_contacts_name,emergency_contacts_relationship,emergency_contacts_phone_number,attendance_type,disability,special_needs';
         // A plain, unquoted CSV — no cell-type information at all, exactly
         // what PhpSpreadsheet's numeric auto-detection used to mangle.
         $row = 'Mr,John,Doe,,Male,1990-01-01,Single,Ghana,+233500000001,+233500000005,john@example.com,Address 1,Member,Engineer,Ghana,English,1,Jane Doe,Sister,+233500000002,In-Person,0,None';
@@ -65,7 +65,7 @@ class CsvPhoneNumberImportTest extends TestCase
             'created_by' => 1, 'updated_by' => 1,
         ]);
 
-        $headers = 'title,first_name,surname,other_names,gender,date_of_birth,marital_status,nationality_id,phone_number,whatsapp_number,email,address,position_held,profession,residence_country_id,languages_spoken,need_accommodation,emergency_contacts_name,emergency_contacts_relationship,emergency_contacts_phone_number,attendance_type,disability,special_needs';
+        $headers = 'title,first_name,surname,other_names,gender,date_of_birth,marital_status,nationality,phone_number,whatsapp_number,email,address,position_held,profession,residence_country,languages_spoken,need_accommodation,emergency_contacts_name,emergency_contacts_relationship,emergency_contacts_phone_number,attendance_type,disability,special_needs';
         $row = 'Mr,John,Doe,,Male,1990-01-01,Single,Ghana,0500000001,0500000005,john@example.com,Address 1,Member,Engineer,Ghana,English,1,Jane Doe,Sister,0500000002,In-Person,0,None';
         $csv = $headers."\n".$row."\n";
 

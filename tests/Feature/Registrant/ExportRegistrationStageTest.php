@@ -3,10 +3,14 @@
 namespace Tests\Feature\Registrant;
 
 use App\Exports\RegistrationStageExport;
+use App\Models\Admin\Dropdown;
 use App\Models\Admin\Event;
 use App\Models\RegistrantStage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Maatwebsite\Excel\Excel as ExcelWriterType;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\TestCase;
 
 class ExportRegistrationStageTest extends TestCase
@@ -53,9 +57,68 @@ class ExportRegistrationStageTest extends TestCase
             // Dropdown/country columns must be text labels (what the
             // import's LIKE-based lookup expects), not raw stored IDs.
             $this->assertFalse(is_numeric($row['gender']));
-            $this->assertFalse(is_numeric($row['nationality_id']));
+            $this->assertFalse(is_numeric($row['nationality']));
 
             return $export->collection()->count() === 1;
         });
+    }
+
+    public function test_headings_are_friendly_and_no_longer_include_the_dead_event_id_column(): void
+    {
+        $headings = (new RegistrationStageExport)->headings();
+
+        $this->assertNotContains('event_id', $headings);
+        $this->assertContains('Nationality', $headings);
+        $this->assertContains('Residence Country', $headings);
+        $this->assertNotContains('nationality_id', $headings);
+        $this->assertNotContains('residence_country_id', $headings);
+    }
+
+    public function test_the_example_professions_value_is_a_real_dropdown_option(): void
+    {
+        // Regression: the example row used to say "Engineer", which
+        // doesn't exist in the real Profession dropdown and silently
+        // resolved to 0 on import with no error.
+        $profession = Dropdown::create([
+            'lookup_code_id' => 10, 'full_name' => 'Ascension Minister',
+            'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+
+        $row = (new RegistrationStageExport)->collection()->first();
+
+        $this->assertSame($profession->full_name, $row['profession']);
+    }
+
+    public function test_dropdown_pickers_are_applied_to_the_expected_columns(): void
+    {
+        Dropdown::create(['lookup_code_id' => 22, 'full_name' => 'Mr.', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        Dropdown::create(['lookup_code_id' => 22, 'full_name' => 'Mrs.', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        Dropdown::create(['lookup_code_id' => 2, 'full_name' => 'Male', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        Dropdown::create(['lookup_code_id' => 2, 'full_name' => 'Female', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+
+        $bytes = Excel::raw(new RegistrationStageExport, ExcelWriterType::XLSX);
+        $tmpPath = tempnam(sys_get_temp_dir(), 'export_test').'.xlsx';
+        file_put_contents($tmpPath, $bytes);
+
+        $sheet = IOFactory::load($tmpPath)->getActiveSheet();
+        unlink($tmpPath);
+
+        // Title column (A) - list validation containing the real options.
+        $titleValidation = $sheet->getCell('A2')->getDataValidation();
+        $this->assertSame(DataValidation::TYPE_LIST, $titleValidation->getType());
+        $this->assertStringContainsString('Mr.', $titleValidation->getFormula1());
+        $this->assertStringContainsString('Mrs.', $titleValidation->getFormula1());
+
+        // Gender column (F).
+        $genderValidation = $sheet->getCell('F2')->getDataValidation();
+        $this->assertStringContainsString('Male', $genderValidation->getFormula1());
+        $this->assertStringContainsString('Female', $genderValidation->getFormula1());
+
+        // Need Accommodation column (Q) - the two literal values the
+        // import's boolean validation rule actually accepts.
+        $accommodationValidation = $sheet->getCell('Q2')->getDataValidation();
+        $this->assertSame(DataValidation::TYPE_LIST, $accommodationValidation->getType());
+        $this->assertStringContainsString('1', $accommodationValidation->getFormula1());
+        $this->assertStringContainsString('0', $accommodationValidation->getFormula1());
     }
 }

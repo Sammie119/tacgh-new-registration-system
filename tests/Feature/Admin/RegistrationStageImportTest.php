@@ -20,7 +20,7 @@ class RegistrationStageImportTest extends TestCase
             'surname' => 'Mensah',
             'other_names' => null,
             'marital_status' => 'Single',
-            'nationality_id' => 'Ghana',
+            'nationality' => 'Ghana',
             'whatsapp_number' => '+233541234567',
             'date_of_birth' => '1990-01-01',
             'gender' => 'Male',
@@ -29,7 +29,7 @@ class RegistrationStageImportTest extends TestCase
             'address' => 'Address',
             'position_held' => 'Member',
             'profession' => 'Engineer',
-            'residence_country_id' => 'Ghana',
+            'residence_country' => 'Ghana',
             'languages_spoken' => 'English',
             'need_accommodation' => 1,
             'emergency_contacts_name' => 'Kofi',
@@ -116,7 +116,7 @@ class RegistrationStageImportTest extends TestCase
         $import = new RegistrationStageImport(1, '20260101000000');
 
         $model = $import->model($this->baseRow([
-            'nationality_id' => "Ghana'; DROP TABLE countries; --",
+            'nationality' => "Ghana'; DROP TABLE countries; --",
         ]));
 
         $this->assertSame(0, $model->nationality_id);
