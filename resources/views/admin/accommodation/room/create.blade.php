@@ -51,7 +51,7 @@
                 <td style="text-align: center">{{ $i }}</td>
                 @foreach ($rooms->where('floor_no', $i)->sortBy('room_no') as $key => $value)
                     @php
-                        $assigned_roommates = get_total_room_occupants ($value->id, 1);//Change 5 to event_id..
+                        $assigned_roommates = get_total_room_occupants($value->id, get_logged_in_user_event_id());
                         $color = '';
 
                        if(($resident_status == 'Blocked') || ($block_status == 'Blocked') || ($value->assign == 0))
