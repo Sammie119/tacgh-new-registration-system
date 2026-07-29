@@ -147,4 +147,94 @@ class PaymentServiceTest extends TestCase
 
         $this->assertSame(5.0, (float) OnlinePayment::sum('amount_paid'));
     }
+
+    public function test_payment_receipt_correctly_attributes_separate_transactions_to_the_specific_registrant_they_were_for(): void
+    {
+        // Regression: two separate real Paystack transactions, each meant
+        // for a DIFFERENT specific registrant (a coordinator paying for
+        // one person at a time - the reported real-world usage), used to
+        // both get waterfalled onto whichever registrant was first in the
+        // batch, regardless of who the money was actually for.
+        $event = $this->createEvent();
+        $stage1 = $this->createStage($event, 'TOK1', 1);
+        $stage2 = $this->createStage($event, 'TOK2', 1);
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage1->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        Registrant::create(['registration_no' => 'REG-2', 'stage_id' => $stage2->id, 'event_id' => $event->id, 'total_fee' => 150]);
+
+        $batch = RegistrantStage::where('batch_no', 1)->get();
+        $response = ['message' => 'Approved', 'status' => 1];
+
+        // Transaction 1: coordinator pays exactly stage2's fee.
+        session(['batch_payment' => ['reg' => [
+            ['registrant_id' => $stage1->id, 'amount_paid' => 0],
+            ['registrant_id' => $stage2->id, 'amount_paid' => 150],
+        ]]]);
+        (new PaymentService)->paymentReceipt(['batch' => $batch], [
+            'channel' => 'card', 'id' => 'PSK-TXN-1', 'amount' => 150 * 100,
+            'transaction_date' => now()->toDateString(), 'paid_at' => now()->toDateString(),
+        ], $response);
+
+        // Transaction 2: coordinator now pays stage1's fee separately.
+        session(['batch_payment' => ['reg' => [
+            ['registrant_id' => $stage1->id, 'amount_paid' => 100],
+            ['registrant_id' => $stage2->id, 'amount_paid' => 0],
+        ]]]);
+        (new PaymentService)->paymentReceipt(['batch' => $batch], [
+            'channel' => 'card', 'id' => 'PSK-TXN-2', 'amount' => 100 * 100,
+            'transaction_date' => now()->toDateString(), 'paid_at' => now()->toDateString(),
+        ], $response);
+
+        $this->assertSame(100.0, (float) OnlinePayment::where('reg_id', $stage1->id)->sum('amount_paid'));
+        $this->assertSame(150.0, (float) OnlinePayment::where('reg_id', $stage2->id)->sum('amount_paid'));
+    }
+
+    public function test_payment_receipt_caps_a_claim_that_exceeds_the_real_confirmed_amount(): void
+    {
+        // Even with claim data present, a fabricated claim (paying 1 but
+        // claiming a much larger amount for a specific registrant) must
+        // never result in more being recorded than what was really paid.
+        $event = $this->createEvent();
+        $stage1 = $this->createStage($event, 'TOK1', 1);
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage1->id, 'event_id' => $event->id, 'total_fee' => 100]);
+
+        session(['batch_payment' => ['reg' => [
+            ['registrant_id' => $stage1->id, 'amount_paid' => 100],
+        ]]]);
+
+        (new PaymentService)->paymentReceipt([
+            'batch' => RegistrantStage::where('batch_no', 1)->get(),
+        ], [
+            'channel' => 'card', 'id' => 'PSK-TXN-3', 'amount' => 1 * 100,
+            'transaction_date' => now()->toDateString(), 'paid_at' => now()->toDateString(),
+        ], ['message' => 'Approved', 'status' => 1]);
+
+        $this->assertSame(1.0, (float) OnlinePayment::where('reg_id', $stage1->id)->sum('amount_paid'));
+    }
+
+    public function test_payment_receipt_falls_back_to_waterfall_when_claims_omit_a_registrant(): void
+    {
+        // Claims only cover stage1, but the real confirmed amount is
+        // enough to cover part of stage2 too - the leftover must still be
+        // recorded via the waterfall fallback rather than vanishing
+        // unattributed.
+        $event = $this->createEvent();
+        $stage1 = $this->createStage($event, 'TOK1', 1);
+        $stage2 = $this->createStage($event, 'TOK2', 1);
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage1->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        Registrant::create(['registration_no' => 'REG-2', 'stage_id' => $stage2->id, 'event_id' => $event->id, 'total_fee' => 150]);
+
+        session(['batch_payment' => ['reg' => [
+            ['registrant_id' => $stage1->id, 'amount_paid' => 100],
+        ]]]);
+
+        (new PaymentService)->paymentReceipt([
+            'batch' => RegistrantStage::where('batch_no', 1)->get(),
+        ], [
+            'channel' => 'card', 'id' => 'PSK-TXN-4', 'amount' => 130 * 100,
+            'transaction_date' => now()->toDateString(), 'paid_at' => now()->toDateString(),
+        ], ['message' => 'Approved', 'status' => 1]);
+
+        $this->assertSame(100.0, (float) OnlinePayment::where('reg_id', $stage1->id)->sum('amount_paid'));
+        $this->assertSame(30.0, (float) OnlinePayment::where('reg_id', $stage2->id)->sum('amount_paid'));
+    }
 }

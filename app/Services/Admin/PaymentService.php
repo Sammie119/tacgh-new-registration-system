@@ -71,15 +71,53 @@ class PaymentService
     public function paymentReceipt(array $data, $paymentDetails, $response)
     {
         if (isset($data['batch'])) {
-            // The per-registrant breakdown is computed here from the
-            // REAL confirmed Paystack amount, not trusted from the
-            // client-submitted session('batch_payment') data - otherwise a
-            // coordinator could pay a token amount while claiming an
-            // arbitrary, much larger amount was paid for each registrant,
-            // fabricating "fully paid" status and triggering room
-            // allocation for money that was never actually received.
             $remaining = $paymentDetails['amount'] / 100;
 
+            // Pass 1: honor the coordinator's claimed per-registrant split
+            // for this transaction (session('batch_payment')['reg'] - how
+            // they typed the amount into each row before submitting), each
+            // capped at what that registrant genuinely still owes AND at
+            // what's left of the real confirmed budget. This is what makes
+            // separate transactions - paying for one registrant at a time,
+            // the common real usage - land on the right person, while a
+            // claim that tries to exceed what was actually paid can still
+            // never draw down more than the real confirmed total.
+            $batchByStageId = collect($data['batch'])->keyBy(fn ($r) => (int) $r['id']);
+            $claims = collect(session('batch_payment')['reg'] ?? []);
+
+            foreach ($claims as $claim) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $registrantData = $batchByStageId->get((int) ($claim['registrant_id'] ?? 0));
+                if (! $registrantData) {
+                    continue;
+                }
+
+                $confirmed_registrant = Registrant::where('stage_id', $registrantData['id'])->first();
+                if (! $confirmed_registrant) {
+                    continue;
+                }
+
+                $allocated = min(
+                    $this->registrantOutstandingBalance($registrantData['id']),
+                    $remaining,
+                    max(0, (float) ($claim['amount_paid'] ?? 0))
+                );
+                if ($allocated <= 0) {
+                    continue;
+                }
+
+                $this->recordBatchPayment($registrantData, $confirmed_registrant, $paymentDetails, $response, $allocated);
+                $remaining -= $allocated;
+            }
+
+            // Pass 2: anything genuinely confirmed but still unattributed
+            // (claims under-total the real payment, omit a registrant
+            // entirely, or there's no claim data at all) is recorded via a
+            // waterfall across the rest of the batch, so confirmed money
+            // is never silently dropped or left unrecorded.
             foreach ($data['batch'] as $registrantData) {
                 if ($remaining <= 0) {
                     break;
@@ -90,29 +128,12 @@ class PaymentService
                     continue;
                 }
 
-                $owed = $this->registrantOutstandingBalance($registrantData['id']);
-                $allocated = min($owed, $remaining);
+                $allocated = min($this->registrantOutstandingBalance($registrantData['id']), $remaining);
                 if ($allocated <= 0) {
                     continue;
                 }
 
-                OnlinePayment::create([
-                    'reg_id' => $registrantData['id'],
-                    'payment_mode' => $paymentDetails['channel'],
-                    'transaction_no' => $paymentDetails['id'],
-                    'amount_to_pay' => $confirmed_registrant->total_fee,
-                    'amount_paid' => $allocated,
-                    'date_paid' => date('Y-m-d', strtotime($paymentDetails['transaction_date'])),
-                    'comment' => $response['message'],
-                    'approved' => 1,
-                    'approved_at' => date('Y-m-d', strtotime($paymentDetails['paid_at'])),
-                    'batch_no' => $registrantData['batch_no'],
-                    'event_total_fee' => $confirmed_registrant->total_fee,
-                    'payment_token' => $paymentDetails['id'],
-                    'payment_status' => $response['status'],
-                    'event_id' => $registrantData['event_id'],
-                ]);
-
+                $this->recordBatchPayment($registrantData, $confirmed_registrant, $paymentDetails, $response, $allocated);
                 $remaining -= $allocated;
             }
         } else {
@@ -133,5 +154,25 @@ class PaymentService
                 'event_id' => $data['registrant']['event_id'],
             ]);
         }
+    }
+
+    private function recordBatchPayment($registrantData, Registrant $confirmed_registrant, $paymentDetails, $response, float $amount): void
+    {
+        OnlinePayment::create([
+            'reg_id' => $registrantData['id'],
+            'payment_mode' => $paymentDetails['channel'],
+            'transaction_no' => $paymentDetails['id'],
+            'amount_to_pay' => $confirmed_registrant->total_fee,
+            'amount_paid' => $amount,
+            'date_paid' => date('Y-m-d', strtotime($paymentDetails['transaction_date'])),
+            'comment' => $response['message'],
+            'approved' => 1,
+            'approved_at' => date('Y-m-d', strtotime($paymentDetails['paid_at'])),
+            'batch_no' => $registrantData['batch_no'],
+            'event_total_fee' => $confirmed_registrant->total_fee,
+            'payment_token' => $paymentDetails['id'],
+            'payment_status' => $response['status'],
+            'event_id' => $registrantData['event_id'],
+        ]);
     }
 }

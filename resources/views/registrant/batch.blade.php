@@ -55,7 +55,7 @@
                                     <input type="hidden" name="reg[{{ $key }}][registrant_id]" value="{{ $registrant->id }}">
                                     <input type="number" class="form-control amount"
                                        value="{{ number_format($amount_paid, 2) }}"
-                                       @if($amount_paid > 0) readonly @endif
+                                       @if($amount_paid >= ($confirmed_registrant->total_fee ?? 0)) readonly @endif
                                        step="0.01"
                                        min="0"
                                        required
