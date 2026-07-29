@@ -22,6 +22,7 @@
                         <th>token</th>
                         <th>confirmed</th>
                         <th>fees</th>
+                        <th>Amount Paid</th>
                         <th>Amount</th>
                         <th>Room</th>
                         <th class="no-sort">Action</th>
@@ -50,7 +51,7 @@
                                 <td>{{ $registrant->token }}</td>
                                 <td>{{ $registrant->confirmed }}</td>
                                 <td>{{ number_format($confirmed_registrant->total_fee ?? 0, 2) }}</td>
-                                {{--                        <td>{{ number_format($amount_paid, 2) }}</td>--}}
+                                <td>{{ number_format($amount_paid, 2) }}</td>
                                 <td width="110px">
                                     <input type="hidden" name="reg[{{ $key }}][registrant_id]" value="{{ $registrant->id }}">
                                     <input type="number" class="form-control amount"
@@ -63,7 +64,7 @@
                                     >
                                 </td>
                                 <td>{{ get_room_number($confirmed_registrant->room_no ?? 0) }}</td>
-                                @if($amount_paid <= 0)
+                                @if($amount_paid < ($confirmed_registrant->total_fee ?? 0))
                                     <td style="width: 90px">
                                         <x-button
                                             type='button'
@@ -101,11 +102,10 @@
                         @endforelse
                         <tr>
                             <th colspan="9">TOTAL</th>
-                            <th>{{ number_format( $total_fee, 2) }}</th>
-                            @if($amount_paid > 0)
-                                <th>
-                                    {{ number_format($total_amount_paid, 2) }}
-                                </th>
+                            <th>{{ number_format($total_fee, 2) }}</th>
+                            <th>{{ number_format($total_amount_paid, 2) }}</th>
+                            @if($total_amount_paid >= $total_fee)
+                                <td></td>
                                 <td></td>
                                 <td></td>
                             @else

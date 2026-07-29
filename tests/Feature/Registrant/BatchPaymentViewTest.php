@@ -74,4 +74,101 @@ class BatchPaymentViewTest extends TestCase
         $response->assertOk();
         $response->assertSee('readonly', false);
     }
+
+    public function test_a_partially_paid_registrant_still_shows_edit_and_delete_buttons(): void
+    {
+        // Regression: Edit/Delete used to hide as soon as ANY payment
+        // landed (amount_paid <= 0 check), not once fully paid.
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 30, 'amount_to_pay' => 100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertSee('title="Edit"', false);
+        $response->assertSee('title="Delete"', false);
+    }
+
+    public function test_a_fully_paid_registrant_hides_edit_and_delete_buttons(): void
+    {
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 100, 'amount_to_pay' => 100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertDontSee('title="Edit"', false);
+        $response->assertDontSee('title="Delete"', false);
+    }
+
+    public function test_the_amount_paid_column_shows_the_real_amount_paid_so_far(): void
+    {
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 42.50, 'amount_to_pay' => 100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Amount Paid', '42.50']);
+    }
+
+    public function test_the_pay_button_still_shows_when_an_earlier_registrant_is_unpaid_even_if_the_last_one_is_fully_paid(): void
+    {
+        // Regression: the summary row used to check whichever $amount_paid
+        // value was left over from the LAST iteration of the registrant
+        // loop, not the batch's real aggregate status - so if the last
+        // registrant happened to be fully paid, the Pay button vanished
+        // even though earlier registrants still owed money.
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 200,
+        ]);
+        $unpaidStage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $unpaidStage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+
+        $paidStage = $this->createStage($event, 'TOK2');
+        Registrant::create(['registration_no' => 'REG-2', 'stage_id' => $paidStage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $paidStage->id, 'event_id' => $event->id, 'amount_paid' => 100, 'amount_to_pay' => 100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertSee('id="batchPaymentSubmitBtn"', false);
+    }
+
+    public function test_the_pay_button_is_hidden_once_the_whole_batch_is_fully_paid(): void
+    {
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 100, 'amount_to_pay' => 100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertDontSee('id="batchPaymentSubmitBtn"', false);
+    }
 }
