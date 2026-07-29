@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Models\Admin\Country;
 use App\Models\Admin\Dropdown;
 use App\Models\BatchLog;
 use App\Models\RegistrantStage;
@@ -20,12 +21,15 @@ class ReportService
         $data['nationality_counts'] = $stages->countBy('nationality_id');
         $data['residence_counts'] = $stages->countBy('residence_country_id');
 
-        $lookupIds = $data['gender_counts']->keys()
-            ->merge($data['nationality_counts']->keys())
+        $data['dropdown_names'] = Dropdown::whereIn('id', $data['gender_counts']->keys()->filter())->pluck('full_name', 'id');
+
+        // nationality_id / residence_country_id reference the countries
+        // table, not the generic dropdowns/lookups table used for gender etc.
+        $countryIds = $data['nationality_counts']->keys()
             ->merge($data['residence_counts']->keys())
             ->filter()
             ->unique();
-        $data['dropdown_names'] = Dropdown::whereIn('id', $lookupIds)->pluck('full_name', 'id');
+        $data['country_names'] = Country::whereIn('id', $countryIds)->pluck('name', 'id');
 
         $data['attendance_counts'] = $stages->countBy('attendance_type');
         $data['confirmed_counts'] = $stages->countBy('confirmed');

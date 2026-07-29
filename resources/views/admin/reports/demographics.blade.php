@@ -123,7 +123,7 @@
                                 <tbody>
                                 @forelse($nationality_counts as $nationalityId => $count)
                                     <tr>
-                                        <td>{{ $dropdown_names[$nationalityId] ?? 'Unknown' }}</td>
+                                        <td>{{ $country_names[$nationalityId] ?? 'Unknown' }}</td>
                                         <td>{{ $count }}</td>
                                     </tr>
                                 @empty
@@ -151,7 +151,7 @@
                                 <tbody>
                                 @forelse($residence_counts as $countryId => $count)
                                     <tr>
-                                        <td>{{ $dropdown_names[$countryId] ?? 'Unknown' }}</td>
+                                        <td>{{ $country_names[$countryId] ?? 'Unknown' }}</td>
                                         <td>{{ $count }}</td>
                                     </tr>
                                 @empty

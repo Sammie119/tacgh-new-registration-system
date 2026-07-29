@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\RolesEnum;
+use App\Models\Admin\Country;
 use App\Models\RegistrantStage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,6 +54,30 @@ class ReportDemographicsTest extends TestCase
         // Age brackets from the 3 registrants above: one under 18, one 18-30, one 51+.
         $response->assertSeeInOrder(['Under 18', '18-30', '31-50', '51+', 'Unknown']);
         $response->assertSeeInOrder(['1,', '1,', '0,', '1,', '0,']);
+    }
+
+    public function test_demographics_report_resolves_nationality_and_residence_against_the_countries_table(): void
+    {
+        // nationality_id/residence_country_id reference the countries table,
+        // not the generic dropdowns/lookups table used for gender - a stage
+        // whose title/gender happens to collide with an unrelated dropdown
+        // row must not leak that label into the nationality/residence columns.
+        $user = $this->reportUser();
+        $ghana = new Country;
+        $ghana->name = 'Ghana';
+        $ghana->code = 'GH';
+        $ghana->save();
+        $nigeria = new Country;
+        $nigeria->name = 'Nigeria';
+        $nigeria->code = 'NG';
+        $nigeria->save();
+        $this->createStage(1, ['nationality_id' => $ghana->id, 'residence_country_id' => $nigeria->id]);
+
+        $response = $this->actingAs($user)->get(route('demographics_report'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Nationality', 'Ghana']);
+        $response->assertSeeInOrder(['Country of Residence', 'Nigeria']);
     }
 
     public function test_demographics_report_excludes_other_events_registrants(): void
