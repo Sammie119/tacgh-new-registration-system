@@ -13,7 +13,7 @@ class ReportService
     public function demographics($eventId)
     {
         $stages = RegistrantStage::where('event_id', $eventId)
-            ->get(['gender', 'date_of_birth', 'nationality_id', 'residence_country_id', 'attendance_type', 'confirmed', 'profession', 'position_held']);
+            ->get(['gender', 'date_of_birth', 'nationality_id', 'residence_country_id', 'attendance_type', 'confirmed', 'profession', 'position_held', 'marital_status', 'languages_spoken']);
 
         $data['total'] = $stages->count();
 
@@ -22,12 +22,16 @@ class ReportService
         $data['residence_counts'] = $stages->countBy('residence_country_id');
         $data['profession_counts'] = $stages->countBy('profession');
         $data['position_counts'] = $stages->countBy('position_held');
+        $data['marital_status_counts'] = $stages->countBy('marital_status');
+        $data['language_counts'] = $stages->countBy('languages_spoken');
 
-        // gender, profession, and position_held are all genuine
-        // dropdowns/lookups rows (unlike nationality/residence, see below).
+        // gender, profession, position_held, and marital_status are all
+        // genuine dropdowns/lookups rows (unlike nationality/residence, see
+        // below). languages_spoken is a free-text field, grouped as-is.
         $dropdownIds = $data['gender_counts']->keys()
             ->merge($data['profession_counts']->keys())
             ->merge($data['position_counts']->keys())
+            ->merge($data['marital_status_counts']->keys())
             ->filter()
             ->unique();
         $data['dropdown_names'] = Dropdown::whereIn('id', $dropdownIds)->pluck('full_name', 'id');
