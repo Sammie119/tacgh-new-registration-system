@@ -95,17 +95,16 @@ class ReportDemographicsTest extends TestCase
         $response->assertSeeInOrder(['Position Held', 'Pastor']);
     }
 
-    public function test_demographics_report_shows_marital_status_and_languages_breakdowns(): void
+    public function test_demographics_report_shows_marital_status_breakdown(): void
     {
         $user = $this->reportUser();
         $married = Dropdown::create(['lookup_code_id' => 3, 'full_name' => 'Married', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
-        $this->createStage(1, ['marital_status' => $married->id, 'languages_spoken' => 'Twi']);
+        $this->createStage(1, ['marital_status' => $married->id]);
 
         $response = $this->actingAs($user)->get(route('demographics_report'));
 
         $response->assertOk();
         $response->assertSeeInOrder(['Marital Status', 'Married']);
-        $response->assertSeeInOrder(['Languages Spoken', 'Twi']);
     }
 
     public function test_demographics_report_excludes_other_events_registrants(): void

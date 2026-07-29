@@ -225,7 +225,7 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Marital Status</h5>
@@ -240,34 +240,6 @@
                                 @forelse($marital_status_counts as $maritalStatusId => $count)
                                     <tr>
                                         <td>{{ $dropdown_names[$maritalStatusId] ?? 'Unknown' }}</td>
-                                        <td>{{ $count }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="2">No Data Found</td>
-                                    </tr>
-                                @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Languages Spoken</h5>
-                            <table class="table">
-                                <thead>
-                                <tr>
-                                    <th>Language</th>
-                                    <th>Count</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @forelse($language_counts as $language => $count)
-                                    <tr>
-                                        <td>{{ $language ?: 'Unknown' }}</td>
                                         <td>{{ $count }}</td>
                                     </tr>
                                 @empty
