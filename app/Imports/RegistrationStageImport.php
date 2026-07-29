@@ -28,6 +28,24 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
      */
     private const TEXT_COLUMNS = ['phone_number', 'whatsapp_number', 'emergency_contacts_phone_number'];
 
+    /**
+     * lookup_code_id values for each dropdown-backed field, matching the
+     * Utils::getLookups() calls used to populate the registration form
+     * (see RegistrantService). Without this, getLookup()'s fuzzy full_name
+     * match can silently grab a row from an unrelated category (e.g. an
+     * imported "Student" profession matching "Regular Student", a
+     * Registration Type value, instead of the real Profession row).
+     */
+    private const LOOKUP_CODE_TITLE = 22;
+
+    private const LOOKUP_CODE_GENDER = 2;
+
+    private const LOOKUP_CODE_MARITAL_STATUS = 3;
+
+    private const LOOKUP_CODE_POSITION_HELD = 5;
+
+    private const LOOKUP_CODE_PROFESSION = 10;
+
     private $event_id;
 
     private $batch_no;
@@ -76,9 +94,9 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
         return date('Y-m-d', strtotime($date));
     }
 
-    private function getLookup($name): int
+    private function getLookup($name, int $lookupCodeId): int
     {
-        $id = Dropdown::where('full_name', 'LIKE', '%'.$name.'%')->first();
+        $id = Dropdown::where('lookup_code_id', $lookupCodeId)->where('full_name', 'LIKE', '%'.$name.'%')->first();
         if ($id != null) {
             return $id->id;
         }
@@ -101,21 +119,21 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
         $token = Utils::generateToken(6);
 
         return new RegistrantStage([
-            'title' => $this->getLookup($row['title']),
+            'title' => $this->getLookup($row['title'], self::LOOKUP_CODE_TITLE),
             'first_name' => $row['first_name'],
             'surname' => $row['surname'],
             'other_names' => $row['other_names'],
-            'marital_status' => $this->getLookup($row['marital_status']),
+            'marital_status' => $this->getLookup($row['marital_status'], self::LOOKUP_CODE_MARITAL_STATUS),
             'nationality_id' => $this->getCountry($row['nationality_id']),
             'whatsapp_number' => Utils::normalizeGhanaPhone($row['whatsapp_number']),
             'date_of_birth' => $this->dateConvertor($row['date_of_birth']),
-            'gender' => $this->getLookup($row['gender']),
+            'gender' => $this->getLookup($row['gender'], self::LOOKUP_CODE_GENDER),
             'phone_number' => Utils::normalizeGhanaPhone($row['phone_number']),
             'event_id' => $this->event_id,
             'email' => $row['email'],
             'address' => $row['address'],
-            'position_held' => $this->getLookup($row['position_held']),
-            'profession' => $this->getLookup($row['profession']),
+            'position_held' => $this->getLookup($row['position_held'], self::LOOKUP_CODE_POSITION_HELD),
+            'profession' => $this->getLookup($row['profession'], self::LOOKUP_CODE_PROFESSION),
             'residence_country_id' => $this->getCountry($row['residence_country_id']),
             'languages_spoken' => $row['languages_spoken'],
             'need_accommodation' => $row['need_accommodation'],
