@@ -467,10 +467,16 @@ class RegistrantService
             return back()->with('error', 'Batch was not found!!!');
         }
 
-        $batchLog->update([
-            'confirmed' => 'Yes',
-            'total_registration_fees' => $data['total_fee_to_pay'],
-        ]);
+        // The real amount owed must be computed server-side across every
+        // registrant actually in this batch, not trusted from the
+        // client-submitted total_fee_to_pay hidden field or the submitted
+        // reg[] list - either could be tampered or made incomplete (e.g.
+        // omitting registrants with a real fee) to make the batch look
+        // fully paid and reach the free room-allocation branch below
+        // without any payment ever happening.
+        $realTotalOwed = (new PaymentService)->batchOutstandingBalance($batchLog->id);
+
+        $batchLog->update(['total_registration_fees' => $realTotalOwed]);
 
         if ($data['total_amount_paid'] > 0) {
             $result = (new PaymentService)->makePayment($data);
@@ -480,7 +486,9 @@ class RegistrantService
             return redirect($response['data']['authorization_url']);
         }
 
-        if ($batchLog->total_registration_fees == 0) {
+        if ($realTotalOwed == 0) {
+            $batchLog->update(['confirmed' => 'Yes']);
+
             foreach ($data['reg'] as $registrant) {
                 $data2['registrant'] = RegistrantStage::where('id', $registrant['registrant_id'])->first();
                 $data2['confirmed_registrant'] = Registrant::where('stage_id', $registrant['registrant_id'])->first();
@@ -491,10 +499,11 @@ class RegistrantService
 
                 (new RoomAllocationPipe)->autoRoomAllocation($data2);
             }
+
+            return back()->with('success', 'Registration Confirmation Successful!!!');
         }
 
-        return back()->with('success', 'Registration Confirmation Successful!!!');
-
+        return back()->with('error', 'A payment is required to confirm this batch.');
     }
 
     public static function destroy($id)

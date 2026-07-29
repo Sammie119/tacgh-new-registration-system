@@ -49,7 +49,14 @@ class PaymentService
         return max(0, (float) $registrant->total_fee - $paid);
     }
 
-    private function batchOutstandingBalance($batchLogId): float
+    /**
+     * The real amount still owed across every registrant actually in this
+     * batch (via batch_no) - the only trustworthy source for that figure,
+     * since anything the client submits about a batch's total (a hidden
+     * form field, or which registrants are even included in the request)
+     * can be tampered or incomplete.
+     */
+    public function batchOutstandingBalance($batchLogId): float
     {
         $batchLog = BatchLog::find($batchLogId);
         if (! $batchLog) {
