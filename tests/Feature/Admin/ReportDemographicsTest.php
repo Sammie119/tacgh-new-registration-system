@@ -124,6 +124,30 @@ class ReportDemographicsTest extends TestCase
         $this->assertFalse($data['registration_type_counts']->has($student->id));
     }
 
+    public function test_demographics_report_excludes_non_profession_categories_from_the_profession_breakdown(): void
+    {
+        // Historical batch-import corruption also left Accommodation Type
+        // (lookup_code_id=9) and YesNo (lookup_code_id=1) rows sitting in
+        // `profession`. Neither belongs under Profession or Registration
+        // Type, so both must be excluded from both breakdowns entirely.
+        $user = $this->reportUser();
+        $student = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $accommodationType = Dropdown::create(['lookup_code_id' => 9, 'full_name' => 'Student Ministers', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $yesNo = Dropdown::create(['lookup_code_id' => 1, 'full_name' => 'Yes', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $this->createStage(1, ['profession' => $student->id]);
+        $this->createStage(2, ['profession' => $accommodationType->id]);
+        $this->createStage(3, ['profession' => $yesNo->id]);
+
+        $this->actingAs($user)->get(route('demographics_report'))->assertOk();
+
+        $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
+        $this->assertTrue($data['profession_counts']->has($student->id));
+        $this->assertFalse($data['profession_counts']->has($accommodationType->id));
+        $this->assertFalse($data['profession_counts']->has($yesNo->id));
+        $this->assertFalse($data['registration_type_counts']->has($accommodationType->id));
+        $this->assertFalse($data['registration_type_counts']->has($yesNo->id));
+    }
+
     public function test_demographics_report_shows_marital_status_breakdown(): void
     {
         $user = $this->reportUser();

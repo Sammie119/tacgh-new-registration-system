@@ -24,16 +24,21 @@ class ReportService
         $data['marital_status_counts'] = $stages->countBy('marital_status');
 
         // The registration form only ever writes lookup_code_id=10 (Profession)
-        // rows into `profession`, but the batch-import path resolves this field
-        // by a fuzzy full_name LIKE match with no lookup_code_id filter
-        // (RegistrationStageImport::getLookup()), so real data also contains
-        // lookup_code_id=8 (Registration Type) rows that leaked in via that
-        // bug. Split by each row's actual category rather than trusting the
-        // column - do not just countBy('profession') directly.
+        // rows into `profession`, but the batch-import path used to resolve
+        // this field by a fuzzy full_name LIKE match with no lookup_code_id
+        // filter (RegistrationStageImport::getLookup(), fixed going forward
+        // but not backfilled), so real data also contains stray rows from
+        // Registration Type (8), Accommodation Type (9), and YesNo (1). Only
+        // count a row under Profession/Registration Type if it actually
+        // belongs to that category - do not just countBy('profession')
+        // directly, and don't lump every non-8 value into Profession either.
         $professionIds = $stages->pluck('profession')->filter()->unique();
         $professionDropdowns = Dropdown::whereIn('id', $professionIds)->get(['id', 'lookup_code_id', 'full_name'])->keyBy('id');
 
-        [$registrationTypeStages, $professionStages] = $stages->partition(
+        $professionStages = $stages->filter(
+            fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 10
+        );
+        $registrationTypeStages = $stages->filter(
             fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 8
         );
         $data['profession_counts'] = $professionStages->countBy('profession');
