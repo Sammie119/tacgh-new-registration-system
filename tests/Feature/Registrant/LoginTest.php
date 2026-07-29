@@ -67,6 +67,42 @@ class LoginTest extends TestCase
         $response->assertRedirect(route('registrant_page'));
     }
 
+    public function test_registrant_can_login_with_the_local_format_of_their_phone_number(): void
+    {
+        // phone_number is normalized to +233XXXXXXXXX at registration time
+        // (Utils::normalizeGhanaPhone), so a registrant typing the local
+        // format they actually dialed with (0XXXXXXXXX) at login must still
+        // match, not just the stored international format.
+        $this->createRegistrantStage([
+            'token' => 'ABC123',
+            'phone_number' => '+233541234567',
+        ]);
+
+        $response = $this->post(route('registrant_login'), [
+            'email' => '0541234567',
+            'password' => 'ABC123',
+        ]);
+
+        $response->assertRedirect(route('registrant_page'));
+        $this->assertNotNull(session('registrant'));
+    }
+
+    public function test_batch_coordinator_can_login_with_the_local_format_of_their_phone_number(): void
+    {
+        \App\Models\BatchLog::create([
+            'batch_no' => 1, 'event_id' => 1, 'email' => 'coordinator@example.com',
+            'phone_number' => '+233541234567', 'token' => 'BTOK123', 'total_registration_fees' => 0,
+        ]);
+
+        $response = $this->post(route('registrant_login'), [
+            'email' => '0541234567',
+            'password' => 'BTOK123',
+        ]);
+
+        $response->assertRedirect(route('registrant_page_batch'));
+        $this->assertNotNull(session('registrant'));
+    }
+
     public function test_login_fails_with_a_valid_token_but_mismatched_identity(): void
     {
         $this->createRegistrantStage([

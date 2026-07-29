@@ -254,6 +254,13 @@ class RegistrantService
     public function registrantLogin(array $data)
     {
         $auth_key = $data['password'];
+        // The login identifier is matched with an exact-string comparison
+        // (Utils::check) against the stored phone_number, which is
+        // normalized to +233XXXXXXXXX at registration time - without this,
+        // typing the local format (0XXXXXXXXX) at login would never match.
+        // Safe to always run through here since email addresses pass
+        // through unchanged.
+        $data['email'] = Utils::normalizeGhanaPhone($data['email']);
         if (strlen($data['password']) <= 7) {
 
             $reg = RegistrantStage::where('token', $auth_key)->first();
