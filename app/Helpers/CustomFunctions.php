@@ -198,7 +198,7 @@ if (! function_exists('get_registration_type')) {
 if (! function_exists('get_total_room_occupants')) {
     function get_total_room_occupants($room_id, $event_id)
     {
-        return AssignedRoomEpisode::where(['event_id' => $event_id, 'room_id' => $room_id])->count();
+        return AssignedRoomEpisode::where(['event_id' => $event_id, 'room_id' => $room_id, 'active_flag' => 1])->count();
     }
 }
 

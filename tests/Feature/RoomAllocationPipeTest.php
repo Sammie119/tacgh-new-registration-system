@@ -164,6 +164,62 @@ class RoomAllocationPipeTest extends TestCase
         $this->assertSame($room->id, $registrant->fresh()->room_no);
     }
 
+    public function test_a_second_registrant_is_not_double_booked_into_an_already_full_room(): void
+    {
+        // Regression: the capacity check is now re-verified inside a locked
+        // transaction at assignment time, not just trusted from the initial
+        // query snapshot. This proves the re-check actually rejects a room
+        // that became full since that snapshot was taken (called
+        // sequentially here since PHPUnit can't simulate true concurrency,
+        // but it exercises the same "recount under lock, then decide" path).
+        Bus::fake();
+
+        $event = $this->createEvent();
+        $accommodationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Regular Room',
+            'fee_amount' => 50, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $room = $this->createRoom($event, ['type' => 'Regular', 'total_occupants' => 1]);
+        $first = $this->createRegistrant($event, $accommodationFee);
+
+        $result1 = (new RoomAllocationPipe)->autoRoomAllocation([
+            'registrant' => $first->stage->toArray(),
+            'confirmed_registrant' => $first,
+        ]);
+        $this->assertTrue($result1);
+        $this->assertSame($room->id, $first->fresh()->room_no);
+
+        // Second registrant: same event, same room the only candidate, but
+        // it's now full - must not be double-booked into it.
+        $registrationFee2 = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'registration_fee', 'description' => 'Standard',
+            'fee_amount' => 100, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $stage2 = RegistrantStage::create([
+            'title' => 1, 'first_name' => 'Kwame', 'surname' => 'Boateng', 'gender' => 3,
+            'date_of_birth' => now()->subYears(30)->toDateString(), 'marital_status' => 1, 'nationality_id' => 1,
+            'phone_number' => '+233541234599', 'whatsapp_number' => '+233541234599', 'email' => 'kwame@example.com',
+            'address' => 'Address', 'position_held' => 1, 'profession' => 1, 'residence_country_id' => 1,
+            'languages_spoken' => 'English', 'need_accommodation' => 1, 'emergency_contacts_name' => 'Contact',
+            'attendance_type' => 'In-Person', 'event_id' => $event->id, 'disability' => 0,
+            'confirmed' => 'Yes', 'token' => 'TOK2',
+        ]);
+        $second = Registrant::create([
+            'registration_no' => 'REG-2', 'stage_id' => $stage2->id, 'event_id' => $event->id,
+            'accommodation_type' => $accommodationFee->id, 'registration_type' => $registrationFee2->id,
+            'total_fee' => 0,
+        ]);
+
+        $result2 = (new RoomAllocationPipe)->autoRoomAllocation([
+            'registrant' => $second->stage->toArray(),
+            'confirmed_registrant' => $second,
+        ]);
+
+        $this->assertTrue($result2);
+        $this->assertNull($second->fresh()->room_no);
+        $this->assertDatabaseCount('assigned_room_episodes', 1);
+    }
+
     public function test_returns_false_gracefully_when_the_event_no_longer_exists(): void
     {
         Bus::fake();

@@ -16,7 +16,7 @@ class AssignRoomEpisodeService
             return back()->with('error', "Registration No. $data[registration_no] was not found!!!");
         }
 
-        $count = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id])->count();
+        $count = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id, 'active_flag' => 1])->count();
         if (event_registrant_age($registrant->stage_id) < 6) {
             return back()->with('error', "Registration No. $data[registration_no] is less than 6 years old!!!.");
         }
@@ -37,13 +37,18 @@ class AssignRoomEpisodeService
             return back()->with('error', 'Room was not found!!!');
         }
 
-        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
+        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id'], 'active_flag' => 1])->count();
 
         if ($total_assigns == $room->total_occupants) {
             return back()->with('error', 'Room '.get_room_number($data['room_id']).' is full!!!');
         }
 
-        $assigned = AssignedRoomEpisode::firstOrCreate([
+        // updateOrCreate, not firstOrCreate: the "already assigned" guard
+        // above only allows reaching here when no ACTIVE episode exists for
+        // this registrant+event, so any existing row matching room_id must
+        // be a stale inactive one - it needs to be reactivated (active_flag
+        // and checkin_date refreshed), not left untouched.
+        $assigned = AssignedRoomEpisode::updateOrCreate([
             'room_id' => $data['room_id'],
             'event_id' => $data['event_id'],
             'registrant_id' => $registrant->id,
@@ -68,7 +73,7 @@ class AssignRoomEpisodeService
             return back()->with('error', 'Room was not found!!!');
         }
 
-        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id']])->count();
+        $total_assigns = AssignedRoomEpisode::where(['room_id' => $data['room_id'], 'event_id' => $data['event_id'], 'active_flag' => 1])->count();
 
         if ($total_assigns == $room->total_occupants) {
             return back()->with('error', 'Room '.get_room_number($data['room_id']).' is full!!!');
@@ -79,7 +84,7 @@ class AssignRoomEpisodeService
             return back()->with('error', "Registration No. $data[registration_no] was not found!!!");
         }
 
-        $assigned_to = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id])->first();
+        $assigned_to = AssignedRoomEpisode::where(['event_id' => $data['event_id'], 'registrant_id' => $registrant->id, 'active_flag' => 1])->first();
 
         if (! $assigned_to) {
             return back()->with('error', "Registration No. $data[registration_no] has not been assigned to room yet!!!");
