@@ -32,6 +32,13 @@
             />
 
             <x-menu-main
+                title="Batch Room Allocation"
+                route="batch_room_allocation"
+                type="single"
+                icon="bi bi-door-open-fill"
+            />
+
+            <x-menu-main
                 title="Occupancy Report"
                 route="occupancy_report"
                 type="single"

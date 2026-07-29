@@ -67,6 +67,18 @@ class AccommodationController extends Controller
         return $this->accommodationService->occupancyReport($event->venue_id, $event->id);
     }
 
+    public function batchRoomAllocationIndex()
+    {
+        return $this->accommodationService->batchRoomAllocationIndex(get_logged_in_user_event_id());
+    }
+
+    public function assignRoomsForBatch(Request $request)
+    {
+        $request->validate(['batch_no' => 'required']);
+
+        return $this->accommodationService->assignRoomsForBatch($request->batch_no, get_logged_in_user_event_id());
+    }
+
     /**
      * Remove the specified resource from storage.
      */

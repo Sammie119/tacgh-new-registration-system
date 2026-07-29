@@ -7,7 +7,11 @@ use App\Models\Admin\AccommodationBlock;
 use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\AssignedRoomEpisode;
 use App\Models\Admin\EventVenue;
+use App\Models\Admin\OnlinePayment;
+use App\Models\BatchLog;
 use App\Models\Registrant;
+use App\Models\RegistrantStage;
+use App\Pipelines\Registration\RoomAllocationPipe;
 
 class AccommodationService
 {
@@ -275,5 +279,92 @@ class AccommodationService
         });
 
         return view('admin.accommodation.occupancy_report', $data);
+    }
+
+    public function batchRoomAllocationIndex($eventId)
+    {
+        $data['batches'] = BatchLog::where('event_id', $eventId)
+            ->orderByDesc('id')
+            ->paginate(50)->withQueryString();
+
+        $batchNos = $data['batches']->pluck('batch_no');
+
+        // Batch-resolve every count needed for the table in a handful of
+        // queries total, regardless of page size - no query per row.
+        $stages = RegistrantStage::whereIn('batch_no', $batchNos)
+            ->where('need_accommodation', 1)
+            ->get(['id', 'batch_no']);
+
+        $registrants = Registrant::whereIn('stage_id', $stages->pluck('id'))
+            ->get(['stage_id', 'room_no', 'total_fee'])->keyBy('stage_id');
+
+        $paidTotals = OnlinePayment::whereIn('reg_id', $stages->pluck('id'))
+            ->selectRaw('reg_id, SUM(amount_paid) as total_paid')
+            ->groupBy('reg_id')
+            ->pluck('total_paid', 'reg_id');
+
+        $data['needing_accommodation_counts'] = $stages->countBy('batch_no');
+
+        $data['eligible_counts'] = $stages->groupBy('batch_no')->map(
+            fn ($group) => $group->filter(function ($stage) use ($registrants, $paidTotals) {
+                $registrant = $registrants->get($stage->id);
+
+                return $registrant && empty($registrant->room_no)
+                    && ($paidTotals[$stage->id] ?? 0) >= $registrant->total_fee;
+            })->count()
+        );
+
+        return view('admin.accommodation.batch_room_allocation', $data);
+    }
+
+    public function assignRoomsForBatch($batchNo, $eventId)
+    {
+        $batchLog = BatchLog::where(['batch_no' => $batchNo, 'event_id' => $eventId])->first();
+        if (! $batchLog) {
+            return back()->with('error', 'Batch was not found for this event!!!');
+        }
+
+        // Only which batch to process comes from the client - every
+        // registrant's eligibility (paid, needs accommodation, no room
+        // yet) is re-derived here rather than trusted from anywhere else.
+        $stages = RegistrantStage::where('event_id', $eventId)
+            ->where('batch_no', $batchNo)
+            ->where('need_accommodation', 1)
+            ->get();
+
+        $registrants = Registrant::whereIn('stage_id', $stages->pluck('id'))->get()->keyBy('stage_id');
+
+        $paidTotals = OnlinePayment::whereIn('reg_id', $stages->pluck('id'))
+            ->selectRaw('reg_id, SUM(amount_paid) as total_paid')
+            ->groupBy('reg_id')
+            ->pluck('total_paid', 'reg_id');
+
+        $assigned = 0;
+        $skipped = 0;
+
+        foreach ($stages as $stage) {
+            $registrant = $registrants->get($stage->id);
+            if (! $registrant || ! empty($registrant->room_no)) {
+                continue;
+            }
+
+            if (($paidTotals[$stage->id] ?? 0) < $registrant->total_fee) {
+                continue;
+            }
+
+            (new RoomAllocationPipe)->autoRoomAllocation([
+                'registrant' => $stage,
+                'confirmed_registrant' => $registrant,
+            ]);
+
+            $registrant->refresh()->room_no ? $assigned++ : $skipped++;
+        }
+
+        $message = ($assigned || $skipped)
+            ? "Assigned rooms for {$assigned} registrant(s)."
+                .($skipped ? " {$skipped} had no available room." : '')
+            : 'No registrants in this batch are currently eligible for room assignment.';
+
+        return back()->with('success', $message);
     }
 }

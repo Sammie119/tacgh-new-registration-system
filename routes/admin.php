@@ -82,6 +82,8 @@ Route::middleware('auth')->group(function () {
 
                 Route::get('allocate_room', 'allocateRoomsSingle')->name('allocate_room');
                 Route::get('occupancy_report', 'occupancyReport')->name('occupancy_report');
+                Route::get('batch_room_allocation', 'batchRoomAllocationIndex')->name('batch_room_allocation');
+                Route::post('batch_room_allocation', 'assignRoomsForBatch')->name('batch_room_allocation.assign');
             });
 
             Route::controller(AccommodationBlockController::class)->group(function () {
