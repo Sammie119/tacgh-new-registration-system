@@ -14,45 +14,39 @@ class FinanceService
 {
     public function index($id, ?string $search = null)
     {
-        $query = OnlinePayment::with('registrant')
-            ->where('event_id', $id)
+        // One row per registrant, not per payment - a registrant who paid
+        // in several installments used to show up once per OnlinePayment
+        // row, each with the same name but only that row's own amount.
+        // approved is included via MAX() as a summary value: financialClearance()
+        // always updates every row for a reg_id together, so they're
+        // already uniform whenever this is read.
+        $totals = OnlinePayment::where('event_id', $id)
             ->where('amount_to_pay', '>', 0)
-            ->orderByDesc('id');
+            ->selectRaw('reg_id, MAX(id) as latest_payment_id, MAX(amount_to_pay) as amount_to_pay, SUM(amount_paid) as amount_paid, MAX(approved) as approved')
+            ->groupBy('reg_id')
+            ->get()
+            ->keyBy('reg_id');
+
+        $query = RegistrantStage::whereIn('id', $totals->keys())->orderByDesc('id');
 
         if (! empty($search)) {
-            $matchingStageIds = RegistrantStage::where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('surname', 'like', "%{$search}%")
-                    ->orWhere('other_names', 'like', "%{$search}%");
-            })->pluck('id');
-
-            $query->where(function ($q) use ($search, $matchingStageIds) {
-                $q->whereIn('reg_id', $matchingStageIds)
-                    ->orWhereHas('registrant', fn ($rq) => $rq->where('registration_no', 'like', "%{$search}%"));
+                    ->orWhere('other_names', 'like', "%{$search}%")
+                    ->orWhereHas('stage', fn ($rq) => $rq->where('registration_no', 'like', "%{$search}%"));
             });
         }
 
         $data['finances'] = $query->paginate(50)->withQueryString();
+        $data['totals'] = $totals;
         $data['search'] = $search;
 
-        $regIds = $data['finances']->pluck('reg_id')->filter()->unique();
+        $titleIds = $data['finances']->pluck('title')->filter()->unique();
+        $data['dropdown_names'] = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
 
-        $stages = RegistrantStage::whereIn('id', $regIds)->get(['id', 'title', 'first_name', 'other_names', 'surname']);
-        $titleIds = $stages->pluck('title')->filter()->unique();
-        $dropdownNames = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
-
-        $data['registrant_names'] = $stages->mapWithKeys(function ($stage) use ($dropdownNames) {
-            $name = trim(($dropdownNames[$stage->title] ?? '').' '.$stage->first_name.' '.$stage->other_names.' '.$stage->surname);
-
-            return [$stage->id => strtoupper($name)];
-        });
-
-        $data['amount_paid_totals'] = OnlinePayment::where('event_id', $id)
-            ->whereIn('reg_id', $regIds)
-            ->selectRaw('reg_id, SUM(amount_paid) as total_paid')
-            ->groupBy('reg_id')
-            ->get()
-            ->pluck('total_paid', 'reg_id');
+        $stageIds = $data['finances']->pluck('id');
+        $data['registration_numbers'] = Registrant::whereIn('stage_id', $stageIds)->pluck('registration_no', 'stage_id');
 
         return view('admin.finance.index', $data);
     }
@@ -96,19 +90,25 @@ class FinanceService
     public function financialClearance(array $data)
     {
         $payment = OnlinePayment::find($data['payment_id']);
+        // Only 1 (Disapproved) or 2 (Approved) are ever valid. Default to
+        // 2 (Approved) when not submitted at all, matching this action's
+        // sole prior behavior before the Disapproved option existed.
+        $requestedApproved = (int) ($data['approved'] ?? 2);
+        $approved = in_array($requestedApproved, [1, 2], true) ? $requestedApproved : 2;
+
         OnlinePayment::where([
             'reg_id' => $payment->reg_id,
             'event_id' => $payment->event_id,
         ])->update([
-            'approved' => 2,
+            'approved' => $approved,
             'comment' => $data['comment'],
         ]);
 
         activity('finance')
             ->causedBy(auth()->user())
             ->performedOn($payment)
-            ->withProperties(['reg_id' => $payment->reg_id, 'event_id' => $payment->event_id, 'comment' => $data['comment']])
-            ->log('Payment cleared');
+            ->withProperties(['reg_id' => $payment->reg_id, 'event_id' => $payment->event_id, 'comment' => $data['comment'], 'approved' => $approved])
+            ->log($approved === 2 ? 'Payment cleared' : 'Payment disapproved');
 
         return back()->with('success', 'Financial Clearance Successful!');
     }

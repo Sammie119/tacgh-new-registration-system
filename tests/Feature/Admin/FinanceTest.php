@@ -53,6 +53,63 @@ class FinanceTest extends TestCase
         ]);
     }
 
+    public function test_a_finance_user_can_disapprove_an_online_payment(): void
+    {
+        $user = $this->financeUser();
+
+        $payment = OnlinePayment::create([
+            'reg_id' => 1,
+            'event_id' => 1,
+            'payment_mode' => 'Paystack',
+            'transaction_no' => 'TXN-1',
+            'amount_to_pay' => 100,
+            'amount_paid' => 100,
+            'approved' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('financial_clearance'), [
+            'payment_id' => $payment->id,
+            'approved' => 1,
+            'comment' => 'Chargeback reported',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('online_payments', [
+            'id' => $payment->id,
+            'approved' => 1,
+            'comment' => 'Chargeback reported',
+        ]);
+        $this->assertDatabaseHas('activity_log', [
+            'log_name' => 'finance',
+            'description' => 'Payment disapproved',
+        ]);
+    }
+
+    public function test_financial_clearance_rejects_an_invalid_approved_value(): void
+    {
+        // Anything outside {1, 2} must not be trusted verbatim - falls
+        // back to the safe default (Approved) rather than storing garbage.
+        $user = $this->financeUser();
+
+        $payment = OnlinePayment::create([
+            'reg_id' => 1, 'event_id' => 1, 'payment_mode' => 'Paystack',
+            'transaction_no' => 'TXN-1', 'amount_to_pay' => 100, 'amount_paid' => 100, 'approved' => 0,
+        ]);
+
+        $this->actingAs($user)->post(route('financial_clearance'), [
+            'payment_id' => $payment->id,
+            'approved' => 999,
+            'comment' => 'Tampered value',
+        ]);
+
+        $this->assertDatabaseHas('online_payments', [
+            'id' => $payment->id,
+            'approved' => 2,
+        ]);
+    }
+
     public function test_a_user_without_the_finance_role_cannot_approve_a_payment(): void
     {
         $user = User::factory()->create(['event_id' => 1]);

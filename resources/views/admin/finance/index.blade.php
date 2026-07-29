@@ -64,55 +64,46 @@
                                     <th>Reg No.</th>
                                     <th>Total Fees</th>
                                     <th>Paid</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th class="no-sort">Action</th>
+                                    <th>Approved</th>
+                                    <th class="no-sort">Payments</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @forelse($finances as $key => $finance)
                                     @php
-                                        $amount_paid = $amount_paid_totals[$finance->reg_id] ?? 0;
+                                        $total = $totals[$finance->id] ?? null;
+                                        $amountToPay = $total->amount_to_pay ?? 0;
+                                        $amountPaid = $total->amount_paid ?? 0;
+                                        $approved = (int) ($total->approved ?? 1);
                                     @endphp
-                                    <tr class="event_{{ $finance->id }}">
+                                    <tr class="registrant_{{ $finance->id }}">
                                         <td style="width: 40px">{{ $finances->firstItem() + $key }}</td>
-                                        <td>{{ $registrant_names[$finance->reg_id] ?? null }}</td>
-                                        <td>{{ $finance->registrant->registration_no }}</td>
-                                        <td>{{ $finance->amount_to_pay }}</td>
-                                        <td>{{ $finance->amount_paid }}</td>
-                                        <td>{{ ($finance->payment_status) ? 'Successful' : 'Failed' }}</td>
-                                        <td>{{ $finance->date_paid }}</td>
-                                        <td style="width: 50px">
-                                            @if($amount_paid >= $finance->amount_to_pay)
-                                                <x-button
-                                                    type='button'
-                                                    class="btn-info btn-sm"
-                                                    icon="bi bi-chevron-double-down"
-                                                    name="Approve"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#exampleModal"
-                                                    data-bs-title="Clearance"
-                                                    data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
-                                                    data-bs-size=""
-                                                    title="Approve"
-                                                    style="padding: 6px 10px 6px 10px"
-                                                    disabled
-                                                />
-                                            @else
-                                                <x-button
-                                                    type='button'
-                                                    class="btn-info btn-sm"
-                                                    icon="bi bi-chevron-double-down"
-                                                    name="Approve"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#exampleModal"
-                                                    data-bs-title="Clearance"
-                                                    data-bs-url="/execute_form/view/financial_clearance/{{ $finance->id }}"
-                                                    data-bs-size=""
-                                                    title="Approve"
-                                                    style="padding: 6px 10px 6px 10px"
-                                                />
-                                            @endif
+                                        <td>{{ strtoupper(trim(($dropdown_names[$finance->title] ?? '').' '.$finance->first_name.' '.$finance->other_names.' '.$finance->surname)) }}</td>
+                                        <td>{{ $registration_numbers[$finance->id] ?? '' }}</td>
+                                        <td>{{ number_format($amountToPay, 2) }}</td>
+                                        <td>{{ number_format($amountPaid, 2) }}</td>
+                                        <td style="width: 150px">
+                                            <select class="form-select form-select-sm"
+                                                    data-payment-id="{{ $total->latest_payment_id ?? '' }}"
+                                                    onchange="openClearanceModal(this)">
+                                                <option value="1" @if($approved !== 2) selected @endif>Disapproved</option>
+                                                <option value="2" @if($approved === 2) selected @endif>Approved</option>
+                                            </select>
+                                        </td>
+                                        <td style="width: 110px">
+                                            <x-button
+                                                type='button'
+                                                class="btn-info btn-sm"
+                                                icon="bi bi-clock-history"
+                                                name="View"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#exampleModal"
+                                                data-bs-title="Payment History"
+                                                data-bs-url="/execute_form/view/payment_history/{{ $finance->id }}"
+                                                data-bs-size=""
+                                                title="View Payments"
+                                                style="padding: 6px 10px 6px 10px"
+                                            />
                                         </td>
                                     </tr>
                                 @empty
@@ -133,8 +124,25 @@
             </div>
         </section>
 
+        <!-- Hidden trigger the Approved select uses to open the same
+             clearance modal the old Approve button used, carrying which
+             value (Approved/Disapproved) was picked via the URL. -->
+        <button id="clearanceModalTrigger" type="button" style="display:none"
+                data-bs-toggle="modal" data-bs-target="#exampleModal"></button>
+
     </main><!-- End #main -->
 
     <x-modal />
+
+    <script>
+        function openClearanceModal(select) {
+            const paymentId = select.getAttribute('data-payment-id');
+            const approved = select.value;
+            const trigger = document.getElementById('clearanceModalTrigger');
+            trigger.setAttribute('data-bs-url', `/execute_form/view/financial_clearance/${paymentId}?approved=${approved}`);
+            trigger.setAttribute('data-bs-title', 'Clearance');
+            trigger.click();
+        }
+    </script>
 @endsection
 

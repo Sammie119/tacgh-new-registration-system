@@ -30,6 +30,7 @@ class FormViewService
         'generate_rooms' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
         'fees' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
         'financial_clearance' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
+        'payment_history' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
     ];
 
     public static function view($type, $id)
@@ -107,7 +108,21 @@ class FormViewService
                     'event_id' => $data['payment']->event_id,
                 ])->sum('amount_paid');
 
+                // Which value the select on the list page was changed to -
+                // only 1 (Disapproved) or 2 (Approved) are ever valid.
+                $data['approved_value'] = in_array((int) request()->query('approved'), [1, 2], true)
+                    ? (int) request()->query('approved')
+                    : 2;
+
                 return view('admin.finance.financial_clearance', $data);
+
+            case 'payment_history':
+                $data['registrant_name'] = event_registrant_name($id);
+                $data['payments'] = OnlinePayment::where(['reg_id' => $id, 'event_id' => get_logged_in_user_event_id()])
+                    ->orderByDesc('id')
+                    ->get();
+
+                return view('admin.finance.payment_history', $data);
 
             default:
                 return 'No Form Selected';

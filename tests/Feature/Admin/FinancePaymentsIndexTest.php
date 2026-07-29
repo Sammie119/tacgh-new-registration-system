@@ -138,4 +138,51 @@ class FinancePaymentsIndexTest extends TestCase
         $response->assertOk();
         $response->assertSee('PARTIALPAYER');
     }
+
+    public function test_a_registrant_with_multiple_payments_appears_once_with_the_summed_amount(): void
+    {
+        // Regression: a registrant paying in installments used to appear
+        // once per OnlinePayment row (same name repeated), each row only
+        // showing its own individual amount rather than the running total.
+        $user = $this->financeUser();
+        $payment = $this->createPayment(1, 'Installments');
+        $payment->update(['amount_to_pay' => 300, 'amount_paid' => 100]);
+        OnlinePayment::create([
+            'reg_id' => $payment->reg_id, 'event_id' => 1, 'amount_to_pay' => 300,
+            'amount_paid' => 150, 'approved' => 0, 'payment_status' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('payments'));
+
+        $response->assertOk();
+        $content = $response->getContent();
+        $this->assertSame(1, substr_count($content, 'INSTALLMENTS'), 'Expected the registrant to appear exactly once.');
+        // Summed: 100 + 150 = 250.00, not either individual row's amount.
+        $response->assertSee('250.00');
+        $response->assertDontSee('100.00');
+        $response->assertDontSee('150.00');
+    }
+
+    public function test_the_approved_select_shows_disapproved_by_default(): void
+    {
+        $user = $this->financeUser();
+        $this->createPayment(1, 'NotYetReviewed');
+
+        $response = $this->actingAs($user)->get(route('payments'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['<option value="1"  selected >Disapproved</option>', '<option value="2" >Approved</option>'], false);
+    }
+
+    public function test_the_approved_select_shows_approved_when_cleared(): void
+    {
+        $user = $this->financeUser();
+        $payment = $this->createPayment(1, 'Cleared');
+        $payment->update(['approved' => 2]);
+
+        $response = $this->actingAs($user)->get(route('payments'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['<option value="1" >Disapproved</option>', '<option value="2"  selected >Approved</option>'], false);
+    }
 }
