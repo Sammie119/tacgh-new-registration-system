@@ -155,6 +155,50 @@ class BatchPaymentViewTest extends TestCase
         $response->assertSee('id="batchPaymentSubmitBtn"', false);
     }
 
+    public function test_the_amount_input_defaults_to_the_remaining_balance_not_the_amount_already_paid(): void
+    {
+        // The "Amount Paid" column already shows what's been paid so far -
+        // the editable input should default to what's still OWED, so a
+        // coordinator can just accept the pre-filled value to pay the rest.
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 100,
+        ]);
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 30, 'amount_to_pay' => 100]);
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        $response->assertSee('value="70.00"', false);
+        $response->assertDontSee('value="30.00"', false);
+    }
+
+    public function test_the_total_input_defaults_to_the_remaining_batch_balance(): void
+    {
+        $event = $this->createEvent();
+        $batchLog = BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 200,
+        ]);
+        $stage1 = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage1->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        OnlinePayment::create(['reg_id' => $stage1->id, 'event_id' => $event->id, 'amount_paid' => 30, 'amount_to_pay' => 100]);
+
+        $stage2 = $this->createStage($event, 'TOK2');
+        Registrant::create(['registration_no' => 'REG-2', 'stage_id' => $stage2->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        // stage2 has paid nothing yet.
+
+        $response = $this->withSession(['registrant' => $batchLog])->get(route('registrant_page_batch'));
+
+        $response->assertOk();
+        // Owed: (100 - 30) + (100 - 0) = 170.00, not the 30.00 paid so far.
+        $response->assertSee('id="total"', false);
+        $response->assertSee('value="170.00"', false);
+    }
+
     public function test_the_pay_button_is_hidden_once_the_whole_batch_is_fully_paid(): void
     {
         $event = $this->createEvent();

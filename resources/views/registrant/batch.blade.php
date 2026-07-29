@@ -55,7 +55,7 @@
                                 <td width="110px">
                                     <input type="hidden" name="reg[{{ $key }}][registrant_id]" value="{{ $registrant->id }}">
                                     <input type="number" class="form-control amount"
-                                       value="{{ number_format($amount_paid, 2) }}"
+                                       value="{{ number_format(($confirmed_registrant->total_fee ?? 0) - $amount_paid, 2) }}"
                                        @if($amount_paid >= ($confirmed_registrant->total_fee ?? 0)) readonly @endif
                                        step="0.01"
                                        min="0"
@@ -114,7 +114,7 @@
                                     <input type="hidden" name="batch_id" value="{{ $get_data->id }}">
                                     <input type="hidden" name="batch" value="batch">
                                     <input type="number" class="form-control"
-                                           placeholder="{{ floatval($total_amount_paid) }}"
+                                           value="{{ number_format($total_fee - $total_amount_paid, 2) }}"
                                            step="0.01"
                                            min="0"
                                            required
@@ -251,6 +251,11 @@
 
     <script>
         function updateTotal() {
+            const totalInput = document.getElementById('total');
+            if (!totalInput) {
+                return;
+            }
+
             let total = 0;
 
             // Get all input fields with class "amount"
@@ -259,13 +264,18 @@
                 total += value;
             });
 
-            document.getElementById('total').value = total.toFixed(2);
+            totalInput.value = total.toFixed(2);
         }
 
         // Listen for typing or deletion in all amount fields
         document.querySelectorAll('.amount').forEach(input => {
             input.addEventListener('input', updateTotal);
         });
+
+        // Keep the total in sync with the per-row remaining-balance
+        // defaults from the moment the page loads, not just after the
+        // coordinator edits a row.
+        updateTotal();
 
         // Prevent a double-click from initiating two separate Paystack
         // payment sessions for the same batch.
