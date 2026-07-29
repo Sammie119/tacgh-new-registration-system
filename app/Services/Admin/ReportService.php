@@ -20,20 +20,38 @@ class ReportService
         $data['gender_counts'] = $stages->countBy('gender');
         $data['nationality_counts'] = $stages->countBy('nationality_id');
         $data['residence_counts'] = $stages->countBy('residence_country_id');
-        $data['profession_counts'] = $stages->countBy('profession');
         $data['position_counts'] = $stages->countBy('position_held');
         $data['marital_status_counts'] = $stages->countBy('marital_status');
 
-        // gender, profession, position_held, and marital_status are all
-        // genuine dropdowns/lookups rows (unlike nationality/residence, see
-        // below).
+        // The registration form only ever writes lookup_code_id=10 (Profession)
+        // rows into `profession`, but the batch-import path resolves this field
+        // by a fuzzy full_name LIKE match with no lookup_code_id filter
+        // (RegistrationStageImport::getLookup()), so real data also contains
+        // lookup_code_id=8 (Registration Type) rows that leaked in via that
+        // bug. Split by each row's actual category rather than trusting the
+        // column - do not just countBy('profession') directly.
+        $professionIds = $stages->pluck('profession')->filter()->unique();
+        $professionDropdowns = Dropdown::whereIn('id', $professionIds)->get(['id', 'lookup_code_id', 'full_name'])->keyBy('id');
+
+        [$registrationTypeStages, $professionStages] = $stages->partition(
+            fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 8
+        );
+        $data['profession_counts'] = $professionStages->countBy('profession');
+        $data['registration_type_counts'] = $registrationTypeStages->countBy('profession');
+
+        // gender, position_held, and marital_status are all genuine
+        // dropdowns/lookups rows (unlike nationality/residence, see below).
+        // profession/registration_type names are already fetched above in
+        // $professionDropdowns - reuse rather than querying Dropdown again.
         $dropdownIds = $data['gender_counts']->keys()
-            ->merge($data['profession_counts']->keys())
             ->merge($data['position_counts']->keys())
             ->merge($data['marital_status_counts']->keys())
             ->filter()
             ->unique();
-        $data['dropdown_names'] = Dropdown::whereIn('id', $dropdownIds)->pluck('full_name', 'id');
+        // union(), not merge() - merge() uses array_merge() semantics, which
+        // renumbers integer keys (dropdown IDs) instead of preserving them.
+        $data['dropdown_names'] = Dropdown::whereIn('id', $dropdownIds)->pluck('full_name', 'id')
+            ->union($professionDropdowns->pluck('full_name', 'id'));
 
         // nationality_id / residence_country_id reference the countries
         // table, not the generic dropdowns/lookups table used for gender etc.

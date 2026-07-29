@@ -198,6 +198,36 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-body">
+                            <h5 class="card-title">Registration Type</h5>
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Registration Type</th>
+                                    <th>Count</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($registration_type_counts as $typeId => $count)
+                                    <tr>
+                                        <td>{{ $dropdown_names[$typeId] ?? 'Unknown' }}</td>
+                                        <td>{{ $count }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2">No Data Found</td>
+                                    </tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
                             <h5 class="card-title">Position Held</h5>
                             <table class="table">
                                 <thead>
@@ -222,10 +252,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-lg-12">
+                <div class="col-lg-6">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Marital Status</h5>

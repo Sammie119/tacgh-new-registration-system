@@ -95,6 +95,35 @@ class ReportDemographicsTest extends TestCase
         $response->assertSeeInOrder(['Position Held', 'Pastor']);
     }
 
+    public function test_demographics_report_separates_profession_from_registration_type(): void
+    {
+        // The batch-import path (RegistrationStageImport::getLookup()) does an
+        // unscoped full_name LIKE match with no lookup_code_id filter, so real
+        // `profession` data contains a mix of genuine Profession
+        // (lookup_code_id=10) and Registration Type (lookup_code_id=8) rows.
+        // The report must split them by their real category, not trust the
+        // column.
+        $user = $this->reportUser();
+        $student = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $regularStudent = Dropdown::create(['lookup_code_id' => 8, 'full_name' => 'Regular Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $this->createStage(1, ['profession' => $student->id]);
+        $this->createStage(2, ['profession' => $regularStudent->id]);
+
+        $response = $this->actingAs($user)->get(route('demographics_report'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Profession', 'Student']);
+        $response->assertSeeInOrder(['Registration Type', 'Regular Student']);
+
+        // "Regular Student" (Registration Type) must not appear in the
+        // Profession table's row range, and vice versa.
+        $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
+        $this->assertTrue($data['profession_counts']->has($student->id));
+        $this->assertFalse($data['profession_counts']->has($regularStudent->id));
+        $this->assertTrue($data['registration_type_counts']->has($regularStudent->id));
+        $this->assertFalse($data['registration_type_counts']->has($student->id));
+    }
+
     public function test_demographics_report_shows_marital_status_breakdown(): void
     {
         $user = $this->reportUser();
