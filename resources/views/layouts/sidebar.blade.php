@@ -35,7 +35,7 @@
                 title="Occupancy Report"
                 route="occupancy_report"
                 type="single"
-                icon="bi bi-house-check"
+                icon="bi bi-house-fill"
             />
         @endif
 
