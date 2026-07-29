@@ -4,7 +4,9 @@ namespace App\Services\Admin;
 
 use App\Models\Admin\Country;
 use App\Models\Admin\Dropdown;
+use App\Models\Admin\EventFees;
 use App\Models\BatchLog;
+use App\Models\Registrant;
 use App\Models\RegistrantStage;
 use Carbon\Carbon;
 
@@ -28,25 +30,30 @@ class ReportService
         // this field by a fuzzy full_name LIKE match with no lookup_code_id
         // filter (RegistrationStageImport::getLookup(), fixed going forward
         // but not backfilled), so real data also contains stray rows from
-        // Registration Type (8), Accommodation Type (9), and YesNo (1). Only
-        // count a row under Profession/Registration Type if it actually
-        // belongs to that category - do not just countBy('profession')
-        // directly, and don't lump every non-8 value into Profession either.
+        // the "Registration Type" dropdown category (lookup_code_id=8) and
+        // others. Despite that category's internal name, its actual values
+        // ("Regular Student", "Special Acc - 1 in a room (with AC)", "Non
+        // Residential", etc.) are accommodation groupings, not registration
+        // fee types - labelled "Accommodation Type" below to match what the
+        // data actually represents. Only count a row under Profession/
+        // Accommodation Type if it actually belongs to that category - do
+        // not just countBy('profession') directly, and don't lump every
+        // non-8 value into Profession either.
         $professionIds = $stages->pluck('profession')->filter()->unique();
         $professionDropdowns = Dropdown::whereIn('id', $professionIds)->get(['id', 'lookup_code_id', 'full_name'])->keyBy('id');
 
         $professionStages = $stages->filter(
             fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 10
         );
-        $registrationTypeStages = $stages->filter(
+        $accommodationTypeStages = $stages->filter(
             fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 8
         );
         $data['profession_counts'] = $professionStages->countBy('profession');
-        $data['registration_type_counts'] = $registrationTypeStages->countBy('profession');
+        $data['accommodation_type_counts'] = $accommodationTypeStages->countBy('profession');
 
         // gender, position_held, and marital_status are all genuine
         // dropdowns/lookups rows (unlike nationality/residence, see below).
-        // profession/registration_type names are already fetched above in
+        // profession/accommodation-type names are already fetched above in
         // $professionDropdowns - reuse rather than querying Dropdown again.
         $dropdownIds = $data['gender_counts']->keys()
             ->merge($data['position_counts']->keys())
@@ -57,6 +64,15 @@ class ReportService
         // renumbers integer keys (dropdown IDs) instead of preserving them.
         $data['dropdown_names'] = Dropdown::whereIn('id', $dropdownIds)->pluck('full_name', 'id')
             ->union($professionDropdowns->pluck('full_name', 'id'));
+
+        // Registration Fee Type is a genuinely different thing from the
+        // above: it's which registration_fee EventFees package each
+        // Registrant actually selected (Registrant.registration_type),
+        // not anything derived from the profession column/dropdowns table.
+        $registrants = Registrant::where('event_id', $eventId)->get(['registration_type']);
+        $data['registration_fee_type_counts'] = $registrants->countBy('registration_type');
+        $feeTypeIds = $data['registration_fee_type_counts']->keys()->filter()->unique();
+        $data['fee_type_names'] = EventFees::whereIn('id', $feeTypeIds)->pluck('description', 'id');
 
         // nationality_id / residence_country_id reference the countries
         // table, not the generic dropdowns/lookups table used for gender etc.

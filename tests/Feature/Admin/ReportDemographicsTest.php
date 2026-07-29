@@ -5,6 +5,8 @@ namespace Tests\Feature\Admin;
 use App\Enums\RolesEnum;
 use App\Models\Admin\Country;
 use App\Models\Admin\Dropdown;
+use App\Models\Admin\EventFees;
+use App\Models\Registrant;
 use App\Models\RegistrantStage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -95,14 +97,15 @@ class ReportDemographicsTest extends TestCase
         $response->assertSeeInOrder(['Position Held', 'Pastor']);
     }
 
-    public function test_demographics_report_separates_profession_from_registration_type(): void
+    public function test_demographics_report_separates_profession_from_accommodation_type(): void
     {
         // The batch-import path (RegistrationStageImport::getLookup()) does an
         // unscoped full_name LIKE match with no lookup_code_id filter, so real
         // `profession` data contains a mix of genuine Profession
-        // (lookup_code_id=10) and Registration Type (lookup_code_id=8) rows.
-        // The report must split them by their real category, not trust the
-        // column.
+        // (lookup_code_id=10) and Accommodation Type (lookup_code_id=8,
+        // internally named "Registration Type" but its actual seeded values
+        // are accommodation groupings) rows. The report must split them by
+        // their real category, not trust the column.
         $user = $this->reportUser();
         $student = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
         $regularStudent = Dropdown::create(['lookup_code_id' => 8, 'full_name' => 'Regular Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
@@ -113,23 +116,25 @@ class ReportDemographicsTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeInOrder(['Profession', 'Student']);
-        $response->assertSeeInOrder(['Registration Type', 'Regular Student']);
+        $response->assertSeeInOrder(['Accommodation Type', 'Regular Student']);
 
-        // "Regular Student" (Registration Type) must not appear in the
+        // "Regular Student" (Accommodation Type) must not appear in the
         // Profession table's row range, and vice versa.
         $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
         $this->assertTrue($data['profession_counts']->has($student->id));
         $this->assertFalse($data['profession_counts']->has($regularStudent->id));
-        $this->assertTrue($data['registration_type_counts']->has($regularStudent->id));
-        $this->assertFalse($data['registration_type_counts']->has($student->id));
+        $this->assertTrue($data['accommodation_type_counts']->has($regularStudent->id));
+        $this->assertFalse($data['accommodation_type_counts']->has($student->id));
     }
 
     public function test_demographics_report_excludes_non_profession_categories_from_the_profession_breakdown(): void
     {
-        // Historical batch-import corruption also left Accommodation Type
-        // (lookup_code_id=9) and YesNo (lookup_code_id=1) rows sitting in
-        // `profession`. Neither belongs under Profession or Registration
-        // Type, so both must be excluded from both breakdowns entirely.
+        // Historical batch-import corruption also left Accomodation Type
+        // (lookup_code_id=9, a different, largely deprecated category from
+        // the lookup_code_id=8 one displayed as "Accommodation Type" above)
+        // and YesNo (lookup_code_id=1) rows sitting in `profession`. Neither
+        // belongs under Profession or Accommodation Type, so both must be
+        // excluded from both breakdowns entirely.
         $user = $this->reportUser();
         $student = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
         $accommodationType = Dropdown::create(['lookup_code_id' => 9, 'full_name' => 'Student Ministers', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
@@ -144,8 +149,44 @@ class ReportDemographicsTest extends TestCase
         $this->assertTrue($data['profession_counts']->has($student->id));
         $this->assertFalse($data['profession_counts']->has($accommodationType->id));
         $this->assertFalse($data['profession_counts']->has($yesNo->id));
-        $this->assertFalse($data['registration_type_counts']->has($accommodationType->id));
-        $this->assertFalse($data['registration_type_counts']->has($yesNo->id));
+        $this->assertFalse($data['accommodation_type_counts']->has($accommodationType->id));
+        $this->assertFalse($data['accommodation_type_counts']->has($yesNo->id));
+    }
+
+    public function test_demographics_report_shows_registration_fee_type_breakdown(): void
+    {
+        // Registration Fee Type is a genuinely separate data path from
+        // Accommodation Type above: it comes from Registrant.registration_type
+        // -> EventFees (fee_type='registration_fee'), not from the
+        // profession/dropdowns table at all.
+        $user = $this->reportUser();
+        $regularStudentFee = EventFees::create([
+            'event_id' => 1, 'fee_type' => 'registration_fee', 'description' => 'Regular Student',
+            'fee_amount' => 380, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $regularWorkerFee = EventFees::create([
+            'event_id' => 1, 'fee_type' => 'registration_fee', 'description' => 'Regular Worker',
+            'fee_amount' => 450, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $stage1 = $this->createStage(1);
+        $stage2 = $this->createStage(2);
+        Registrant::create([
+            'registration_no' => 'REG1', 'stage_id' => $stage1->id, 'event_id' => 1,
+            'registration_type' => $regularStudentFee->id, 'registration_fee' => 380, 'total_fee' => 380,
+        ]);
+        Registrant::create([
+            'registration_no' => 'REG2', 'stage_id' => $stage2->id, 'event_id' => 1,
+            'registration_type' => $regularWorkerFee->id, 'registration_fee' => 450, 'total_fee' => 450,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('demographics_report'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Registration Fee Type', 'Regular Student', 'Regular Worker']);
+
+        $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
+        $this->assertSame(1, $data['registration_fee_type_counts']->get($regularStudentFee->id));
+        $this->assertSame(1, $data['registration_fee_type_counts']->get($regularWorkerFee->id));
     }
 
     public function test_demographics_report_shows_marital_status_breakdown(): void
