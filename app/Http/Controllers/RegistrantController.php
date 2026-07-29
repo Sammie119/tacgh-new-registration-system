@@ -103,6 +103,12 @@ class RegistrantController extends Controller
 
     public function registrantMakePayment(Request $request)
     {
+        $request->validate([
+            'stage_id' => 'required|exists:registrants,stage_id',
+            'total_fee' => 'required|numeric|min:0.01',
+        ]);
+        $this->authorizeIndividualRegistrant($request->stage_id);
+
         $result = $this->paymentService->makePayment($request->all());
 
         $response = (new PayStackPayment)->initializeTransaction($result);

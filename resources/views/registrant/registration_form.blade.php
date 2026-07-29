@@ -350,7 +350,7 @@
 
                         <section class="section">
                             <div class="row">
-                                <form action="{{ route('registrant.batch') }}" method="post" onsubmit="return validatePhone2();" enctype="multipart/form-data">
+                                <form id="batchUploadForm" action="{{ route('registrant.batch') }}" method="post" onsubmit="return validatePhone2();" enctype="multipart/form-data">
                                     @csrf
                                     <div class="col-12">
                                         <div class="card">
@@ -431,6 +431,7 @@
                                             onclick="window.location.href='/'"
                                         />
                                         <x-button
+                                            id="batchUploadSubmitBtn"
                                             type='submit'
                                             class="btn-success rounded-pill"
                                             icon="bi bi-save2"
@@ -517,6 +518,15 @@
             else
                 document.getElementById('errorMsgg2').style.display = 'none';
         }
+
+        // Prevent a double-click/double-tap on a slow upload from importing
+        // the whole batch file twice - there's no server-side dedup on this
+        // action, so a resubmit creates fully duplicate registrants.
+        document.getElementById('batchUploadForm').addEventListener('submit', function (e) {
+            if (!e.defaultPrevented) {
+                document.getElementById('batchUploadSubmitBtn').disabled = true;
+            }
+        });
 
     </script>
 

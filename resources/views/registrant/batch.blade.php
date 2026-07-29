@@ -28,7 +28,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <form action="{{ route('batch_payment') }}" method="post">
+                    <form id="batchPaymentForm" action="{{ route('batch_payment') }}" method="post">
                         @csrf
                         <?php $total_fee = 0; $total_amount_paid = 0; ?>
                         @forelse($batch as $key => $registrant)
@@ -122,7 +122,7 @@
                                            id="total"
                                     >
                                 </td>
-                                <td><button class="btn btn-primary">Pay</button></td>
+                                <td><button id="batchPaymentSubmitBtn" class="btn btn-primary">Pay</button></td>
                             @endif
 
                         </tr>
@@ -266,5 +266,17 @@
         document.querySelectorAll('.amount').forEach(input => {
             input.addEventListener('input', updateTotal);
         });
+
+        // Prevent a double-click from initiating two separate Paystack
+        // payment sessions for the same batch.
+        const batchPaymentForm = document.getElementById('batchPaymentForm');
+        const batchPaymentSubmitBtn = document.getElementById('batchPaymentSubmitBtn');
+        if (batchPaymentForm && batchPaymentSubmitBtn) {
+            batchPaymentForm.addEventListener('submit', function (e) {
+                if (!e.defaultPrevented) {
+                    batchPaymentSubmitBtn.disabled = true;
+                }
+            });
+        }
     </script>
 @endsection

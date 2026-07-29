@@ -296,4 +296,31 @@ class IdorAuthorizationTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHas('success');
     }
+
+    // --- registrantMakePayment ---
+
+    public function test_make_payment_denied_without_a_session(): void
+    {
+        $event = $this->createEvent();
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+
+        $response = $this->post(route('make_payment'), ['stage_id' => $stage->id, 'total_fee' => 100]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_make_payment_denied_for_someone_elses_stage_id(): void
+    {
+        $event = $this->createEvent();
+        $stage = $this->createStage($event, 'TOK1');
+        Registrant::create(['registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id, 'total_fee' => 100]);
+        $otherStage = $this->createStage($event, 'TOK2');
+
+        session(['registrant' => $otherStage]);
+
+        $response = $this->post(route('make_payment'), ['stage_id' => $stage->id, 'total_fee' => 100]);
+
+        $response->assertForbidden();
+    }
 }

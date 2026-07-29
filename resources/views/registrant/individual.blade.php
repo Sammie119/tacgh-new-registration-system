@@ -652,13 +652,13 @@
                                                 <th></th>
                                             </tr>
                                             @if($confirmed_registrant->total_fee > $total)
-                                                <form action="{{ route('make_payment') }}" method="POST">
+                                                <form id="makePaymentForm" action="{{ route('make_payment') }}" method="POST">
                                                     @csrf
                                                     <input type="hidden" name="stage_id" value="{{ $registrant->id }}">
                                                     <tr>
                                                         <th colspan="2">Pay Remainder</th>
                                                         <th><input type="number" name="total_fee" value="{{ number_format($confirmed_registrant->total_fee - $total, 2) }}" class="form-control"/></th>
-                                                        <th><button class="btn btn-primary">Pay</button></th>
+                                                        <th><button id="makePaymentSubmitBtn" class="btn btn-primary">Pay</button></th>
                                                     </tr>
                                                 </form>
                                             @endif
@@ -713,6 +713,17 @@
                 document.getElementById('errorMsg2').style.display = 'none';
             else
                 document.getElementById('errorMsg3').style.display = 'none';
+        }
+
+        // Prevent a double-click from initiating two separate Paystack
+        // payment sessions for the same remaining balance.
+        const makePaymentForm = document.getElementById('makePaymentForm');
+        if (makePaymentForm) {
+            makePaymentForm.addEventListener('submit', function (e) {
+                if (!e.defaultPrevented) {
+                    document.getElementById('makePaymentSubmitBtn').disabled = true;
+                }
+            });
         }
 
     </script>
