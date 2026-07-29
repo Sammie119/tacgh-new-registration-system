@@ -100,7 +100,7 @@
                                                 data-bs-target="#exampleModal"
                                                 data-bs-title="Payment History"
                                                 data-bs-url="/execute_form/view/payment_history/{{ $finance->id }}"
-                                                data-bs-size=""
+                                                data-bs-size="modal-xl"
                                                 title="View Payments"
                                                 style="padding: 6px 10px 6px 10px"
                                             />
