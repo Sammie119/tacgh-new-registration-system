@@ -10,7 +10,6 @@ class RegistrantPipe
 {
     public function handle(array $data, \Closure $next)
     {
-        $amount_to_pay = $data['amount_to_pay'];
         $ref_date = date('y');
         $event = get_event($data['event_id']);
         abort_if(! $event, 404, 'Event not found.');
@@ -50,8 +49,10 @@ class RegistrantPipe
             ], $fees));
         });
 
-        $registrant->total_fee = floatval($amount_to_pay);
-
+        // total_fee here is whatever was just persisted above (server-
+        // computed from the selected fee IDs) - PaymentPipe/makePayment()
+        // re-derives the amount to charge from the DB anyway, so this must
+        // not be overwritten with the client-submitted amount_to_pay field.
         return $next($registrant->toArray());
     }
 }
