@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\RolesEnum;
 use App\Models\Admin\Country;
+use App\Models\Admin\Dropdown;
 use App\Models\RegistrantStage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -78,6 +79,20 @@ class ReportDemographicsTest extends TestCase
         $response->assertOk();
         $response->assertSeeInOrder(['Nationality', 'Ghana']);
         $response->assertSeeInOrder(['Country of Residence', 'Nigeria']);
+    }
+
+    public function test_demographics_report_shows_profession_and_position_held_breakdowns(): void
+    {
+        $user = $this->reportUser();
+        $engineer = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Engineer', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $pastor = Dropdown::create(['lookup_code_id' => 5, 'full_name' => 'Pastor', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $this->createStage(1, ['profession' => $engineer->id, 'position_held' => $pastor->id]);
+
+        $response = $this->actingAs($user)->get(route('demographics_report'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Profession', 'Engineer']);
+        $response->assertSeeInOrder(['Position Held', 'Pastor']);
     }
 
     public function test_demographics_report_excludes_other_events_registrants(): void

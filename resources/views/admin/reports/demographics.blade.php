@@ -167,6 +167,64 @@
             </div>
 
             <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Profession</h5>
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Profession</th>
+                                    <th>Count</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($profession_counts as $professionId => $count)
+                                    <tr>
+                                        <td>{{ $dropdown_names[$professionId] ?? 'Unknown' }}</td>
+                                        <td>{{ $count }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2">No Data Found</td>
+                                    </tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Position Held</h5>
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Position Held</th>
+                                    <th>Count</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($position_counts as $positionId => $count)
+                                    <tr>
+                                        <td>{{ $dropdown_names[$positionId] ?? 'Unknown' }}</td>
+                                        <td>{{ $count }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2">No Data Found</td>
+                                    </tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">

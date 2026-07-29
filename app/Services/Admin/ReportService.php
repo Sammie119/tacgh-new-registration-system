@@ -13,15 +13,24 @@ class ReportService
     public function demographics($eventId)
     {
         $stages = RegistrantStage::where('event_id', $eventId)
-            ->get(['gender', 'date_of_birth', 'nationality_id', 'residence_country_id', 'attendance_type', 'confirmed']);
+            ->get(['gender', 'date_of_birth', 'nationality_id', 'residence_country_id', 'attendance_type', 'confirmed', 'profession', 'position_held']);
 
         $data['total'] = $stages->count();
 
         $data['gender_counts'] = $stages->countBy('gender');
         $data['nationality_counts'] = $stages->countBy('nationality_id');
         $data['residence_counts'] = $stages->countBy('residence_country_id');
+        $data['profession_counts'] = $stages->countBy('profession');
+        $data['position_counts'] = $stages->countBy('position_held');
 
-        $data['dropdown_names'] = Dropdown::whereIn('id', $data['gender_counts']->keys()->filter())->pluck('full_name', 'id');
+        // gender, profession, and position_held are all genuine
+        // dropdowns/lookups rows (unlike nationality/residence, see below).
+        $dropdownIds = $data['gender_counts']->keys()
+            ->merge($data['profession_counts']->keys())
+            ->merge($data['position_counts']->keys())
+            ->filter()
+            ->unique();
+        $data['dropdown_names'] = Dropdown::whereIn('id', $dropdownIds)->pluck('full_name', 'id');
 
         // nationality_id / residence_country_id reference the countries
         // table, not the generic dropdowns/lookups table used for gender etc.
