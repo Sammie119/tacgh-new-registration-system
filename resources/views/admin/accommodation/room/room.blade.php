@@ -146,8 +146,9 @@
                                             <label for="inputText" class="col-4 col-form-label text-end">Gender</label>
                                             <div class="col-8">
                                                 <select name="gender" class="form-control">
-                                                    <option @if($room->assign == "M")  selected @endif value="M">Male</option>
-                                                    <option @if($room->assign == "F") selected @endif value="F">Female</option>
+                                                    <option @if($room->gender == "M") selected @endif value="M">Male</option>
+                                                    <option @if($room->gender == "F") selected @endif value="F">Female</option>
+                                                    <option @if($room->gender == "A") selected @endif value="A">Mixed</option>
                                                 </select>
                                             </div>
                                         </div>
