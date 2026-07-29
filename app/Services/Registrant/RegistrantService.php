@@ -24,6 +24,8 @@ use App\Pipelines\Registration\PaymentPipe;
 use App\Pipelines\Registration\RegistrantPipe;
 use App\Pipelines\Registration\RoomAllocationPipe;
 use App\Services\Admin\PaymentService;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Pipeline;
 use Maatwebsite\Excel\Facades\Excel;
@@ -88,7 +90,7 @@ class RegistrantService
 
     public function registrantRegistration(array $data)
     {
-        $token = Utils::generateToken(6);
+        $token = Utils::generateUniqueToken(RegistrantStage::class, 6);
 
         $data['phone_number'] = Utils::normalizeGhanaPhone($data['phone_number']);
         $data['whatsapp_number'] = Utils::normalizeGhanaPhone($data['whatsapp_number']);
@@ -211,7 +213,7 @@ class RegistrantService
     {
         $event_id = $request['event_id'];
         $batch_no = date('YmdHis');
-        $token = Utils::generateToken();
+        $token = Utils::generateUniqueToken(BatchLog::class);
 
         try {
             $results = DB::transaction(function () use ($request, $event_id, $batch_no, $token) {
@@ -315,19 +317,32 @@ class RegistrantService
                 if ($response['status'] && $response['data']['status'] === 'success') {
                     $paymentDetails = $response['data'];
 
-                    $count = OnlinePayment::where('payment_token', $paymentDetails['id'])->count();
+                    // A webhook retry, a page refresh, or a re-visited
+                    // callback URL can all deliver this same payment_token
+                    // twice in close succession. Without this lock, two
+                    // requests could both see count === 0 and both record
+                    // the payment, double-crediting amount_paid.
+                    try {
+                        Cache::lock('payment-token:'.$paymentDetails['id'], 10)->block(5, function () use ($data, $paymentDetails, $response) {
+                            $count = OnlinePayment::where('payment_token', $paymentDetails['id'])->count();
 
-                    if ($count === 0) {
+                            if ($count === 0) {
 
-                        (new PaymentService)->paymentReceipt($data, $paymentDetails, $response);
+                                (new PaymentService)->paymentReceipt($data, $paymentDetails, $response);
 
-                        $total_payment_made = OnlinePayment::where('reg_id', $data['registrant']['id'])->sum('amount_paid');
+                                $total_payment_made = OnlinePayment::where('reg_id', $data['registrant']['id'])->sum('amount_paid');
 
-                        if ($total_payment_made >= $data['confirmed_registrant']->total_fee) {
-                            // Room Allocation Function Here.........
-                            (new RoomAllocationPipe)->autoRoomAllocation($data);
+                                if ($total_payment_made >= $data['confirmed_registrant']->total_fee) {
+                                    // Room Allocation Function Here.........
+                                    (new RoomAllocationPipe)->autoRoomAllocation($data);
 
-                        }
+                                }
+                            }
+                        });
+                    } catch (LockTimeoutException) {
+                        // Another request is already recording this exact
+                        // payment - safe to skip, the fetch below picks up
+                        // whatever that request wrote.
                     }
 
                     $data['confirmed_registrant'] = Registrant::where('stage_id', $data['registrant']['id'])->first();
@@ -353,27 +368,37 @@ class RegistrantService
                 if ($response['status'] && $response['data']['status'] === 'success') {
                     $paymentDetails = $response['data'];
 
-                    $count = OnlinePayment::where('payment_token', $paymentDetails['id'])->count();
+                    // See individualLogin() for why this lock is needed -
+                    // same payment_token idempotency race, here across a
+                    // whole batch of registrants sharing one transaction.
+                    try {
+                        Cache::lock('payment-token:'.$paymentDetails['id'], 30)->block(5, function () use ($data, $paymentDetails, $response) {
+                            $count = OnlinePayment::where('payment_token', $paymentDetails['id'])->count();
 
-                    if ($count === 0) {
+                            if ($count === 0) {
 
-                        (new PaymentService)->paymentReceipt($data, $paymentDetails, $response);
+                                (new PaymentService)->paymentReceipt($data, $paymentDetails, $response);
 
-                        $batch_payment = session('batch_payment')['reg'];
+                                $batch_payment = session('batch_payment')['reg'];
 
-                        foreach ($batch_payment as $payment) {
-                            $data2['confirmed_registrant'] = Registrant::where('stage_id', $payment['registrant_id'])->first();
-                            $data2['registrant'] = RegistrantStage::find($payment['registrant_id']);
+                                foreach ($batch_payment as $payment) {
+                                    $data2['confirmed_registrant'] = Registrant::where('stage_id', $payment['registrant_id'])->first();
+                                    $data2['registrant'] = RegistrantStage::find($payment['registrant_id']);
 
-                            $total_payment_made = OnlinePayment::where('reg_id', $payment['registrant_id'])->sum('amount_paid');
+                                    $total_payment_made = OnlinePayment::where('reg_id', $payment['registrant_id'])->sum('amount_paid');
 
-                            if ($total_payment_made >= $data2['confirmed_registrant']->total_fee) {
-                                // Room Allocation Function Here.........
-                                (new RoomAllocationPipe)->autoRoomAllocation($data2);
+                                    if ($total_payment_made >= $data2['confirmed_registrant']->total_fee) {
+                                        // Room Allocation Function Here.........
+                                        (new RoomAllocationPipe)->autoRoomAllocation($data2);
 
+                                    }
+                                }
+                                //                         $amount_paid = collect($batch_payment)->where('registrant_id', $data['id'])->first();
                             }
-                        }
-                        //                         $amount_paid = collect($batch_payment)->where('registrant_id', $data['id'])->first();
+                        });
+                    } catch (LockTimeoutException) {
+                        // Another request is already recording this exact
+                        // payment - safe to skip.
                     }
                 }
             }

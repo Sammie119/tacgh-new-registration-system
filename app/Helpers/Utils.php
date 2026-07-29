@@ -64,6 +64,26 @@ class Utils
         return $serial;
     }
 
+    /**
+     * generateToken() has no collision handling and neither the
+     * registrants_stage nor batch_logs token columns had a uniqueness
+     * check at the DB level - regenerate until a free token is found so
+     * two registrants can never silently end up with the same login token.
+     * withTrashed() because the DB-level unique index (which is the real
+     * backstop) doesn't exempt soft-deleted rows either.
+     */
+    public static function generateUniqueToken(string $modelClass, int $size = 10, int $maxAttempts = 10): string
+    {
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $token = self::generateToken($size);
+            if (! $modelClass::withTrashed()->where('token', $token)->exists()) {
+                return $token;
+            }
+        }
+
+        throw new \RuntimeException("Unable to generate a unique token for {$modelClass} after {$maxAttempts} attempts.");
+    }
+
     public static function check($key, $item): bool
     {
         if ($key == $item) {

@@ -116,7 +116,7 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
 
     public function model(array $row)
     {
-        $token = Utils::generateToken(6);
+        $token = Utils::generateUniqueToken(RegistrantStage::class, 6);
 
         return new RegistrantStage([
             'title' => $this->getLookup($row['title'], self::LOOKUP_CODE_TITLE),

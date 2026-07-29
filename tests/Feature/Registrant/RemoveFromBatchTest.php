@@ -41,7 +41,7 @@ class RemoveFromBatchTest extends TestCase
             'languages_spoken' => 'English', 'need_accommodation' => 1,
             'emergency_contacts_name' => 'Contact', 'attendance_type' => 'In-Person',
             'event_id' => $event->id, 'disability' => 0, 'confirmed' => 'Yes',
-            'token' => 'TOK1', 'batch_no' => $batchNo,
+            'token' => 'TOK'.$batchNo, 'batch_no' => $batchNo,
         ]);
     }
 
