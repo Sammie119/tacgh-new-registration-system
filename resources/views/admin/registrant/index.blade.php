@@ -67,7 +67,7 @@
                                                data-bs-target="#exampleModal"
                                                data-bs-title="Registrant Details"
                                                data-bs-url="/execute_form/view/registrant_details/{{ $registrant->id }}"
-                                               data-bs-size="modal-lg"
+                                               data-bs-size="modal-xl"
                                                title="View Details"
                                             >{{ $registrant_name }}</a>
                                         </td>
