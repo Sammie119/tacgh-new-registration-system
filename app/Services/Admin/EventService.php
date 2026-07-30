@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Helpers\Utils;
 use App\Models\Admin\Event;
+use App\Models\Admin\EventVenue;
 use App\Models\User;
 
 class EventService
@@ -11,6 +12,7 @@ class EventService
     public function index()
     {
         $data['events'] = Event::orderByDesc('id')->get();
+        $data['venue_names'] = EventVenue::whereIn('id', $data['events']->pluck('venue_id'))->pluck('name', 'id');
 
         return view('admin.event.index', $data);
     }

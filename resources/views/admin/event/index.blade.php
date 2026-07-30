@@ -38,8 +38,9 @@
                                     <th>Event Name</th>
                                     <th>Start Date</th>
                                     <th>End Date</th>
+                                    <th>Venue</th>
                                     <th>Status</th>
-                                    <th class="no-sort">Action</th>
+                                    <th class="no-sort text-end">Action</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -57,8 +58,9 @@
                                         </td>
                                         <td>{{ $event->start_date }}</td>
                                         <td>{{ $event->end_date }}</td>
+                                        <td>{{ $venue_names[$event->venue_id] ?? null }}</td>
                                         <td>{{ $event->status }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="text-nowrap text-end">
                                             @if((int) $event->id === (int) Auth::user()->event_id)
                                                 <span class="badge bg-success" title="This is your currently active event">Active</span>
                                             @else
