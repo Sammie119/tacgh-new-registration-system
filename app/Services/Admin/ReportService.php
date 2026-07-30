@@ -15,7 +15,7 @@ class ReportService
     public function demographics($eventId)
     {
         $stages = RegistrantStage::where('event_id', $eventId)
-            ->get(['gender', 'date_of_birth', 'nationality_id', 'residence_country_id', 'attendance_type', 'confirmed', 'profession', 'position_held', 'marital_status']);
+            ->get(['id', 'gender', 'date_of_birth', 'nationality_id', 'residence_country_id', 'attendance_type', 'confirmed', 'profession', 'position_held', 'marital_status']);
 
         $data['total'] = $stages->count();
 
@@ -61,7 +61,13 @@ class ReportService
         // not from anything derived from the profession column/dropdowns
         // table - a Dropdown category happens to share the internal name
         // "Registration Type" but its content doesn't reflect real selections.
-        $registrants = Registrant::where('event_id', $eventId)->get(['registration_type', 'accommodation_type']);
+        // Scope to stage_ids that genuinely belong to this event's stages,
+        // not just event_id, so a Registrant row left orphaned by a stage
+        // that was hard-deleted outside the normal removal flow doesn't
+        // inflate these counts past the real Total Registrants figure.
+        $registrants = Registrant::where('event_id', $eventId)
+            ->whereIn('stage_id', $stages->pluck('id'))
+            ->get(['registration_type', 'accommodation_type']);
         $data['registration_fee_type_counts'] = $registrants->countBy('registration_type');
         $data['accommodation_type_counts'] = $registrants->countBy('accommodation_type');
         $feeTypeIds = $data['registration_fee_type_counts']->keys()

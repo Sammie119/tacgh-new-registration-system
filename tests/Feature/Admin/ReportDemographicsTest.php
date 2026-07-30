@@ -199,6 +199,41 @@ class ReportDemographicsTest extends TestCase
         $this->assertSame(1, $data['accommodation_type_counts']->get($noAcRoom->id));
     }
 
+    public function test_demographics_report_excludes_registrants_whose_stage_no_longer_exists(): void
+    {
+        // A Registrant row can be left orphaned if its RegistrantStage is
+        // ever hard-deleted outside the normal removal flow (which soft-
+        // deletes both together) - such a row must not inflate the
+        // Accommodation Type / Registration Fee Type counts past the real
+        // Total Registrants figure.
+        $user = $this->reportUser();
+        $regFee = EventFees::create([
+            'event_id' => 1, 'fee_type' => 'registration_fee', 'description' => 'Regular Student',
+            'fee_amount' => 380, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $accFee = EventFees::create([
+            'event_id' => 1, 'fee_type' => 'accommodation', 'description' => 'Standard Room',
+            'fee_amount' => 500, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $stage = $this->createStage(1);
+        Registrant::create([
+            'registration_no' => 'REG1', 'stage_id' => $stage->id, 'event_id' => 1,
+            'registration_type' => $regFee->id, 'accommodation_type' => $accFee->id, 'total_fee' => 880,
+        ]);
+        Registrant::create([
+            'registration_no' => 'ORPHAN', 'stage_id' => 999999, 'event_id' => 1,
+            'registration_type' => $regFee->id, 'accommodation_type' => $accFee->id, 'total_fee' => 880,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('demographics_report'));
+
+        $response->assertOk();
+        $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
+        $this->assertSame(1, $data['total']);
+        $this->assertSame(1, $data['registration_fee_type_counts']->get($regFee->id));
+        $this->assertSame(1, $data['accommodation_type_counts']->get($accFee->id));
+    }
+
     public function test_demographics_report_shows_marital_status_breakdown(): void
     {
         $user = $this->reportUser();
