@@ -61,7 +61,16 @@
 
                                     <tr class="venue_{{ $registrant->id }}">
                                         <td style="width: 50px">{{ $registrants->firstItem() + $key }}</td>
-                                        <td>{{ $registrant_name }}</td>
+                                        <td>
+                                            <a href="#"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#exampleModal"
+                                               data-bs-title="Registrant Details"
+                                               data-bs-url="/execute_form/view/registrant_details/{{ $registrant->id }}"
+                                               data-bs-size="modal-lg"
+                                               title="View Details"
+                                            >{{ $registrant_name }}</a>
+                                        </td>
                                         <td>{{ $confirmed_registrant->registration_no ?? 'NULL' }}</td>
                                         <td>{{ $dropdown_names[$registrant->gender] ?? null }}</td>
                                         <td>{{ $registrant->phone_number }}</td>
@@ -72,19 +81,7 @@
                                         <td>
                                             <x-button
                                                 type='button'
-                                                class="btn-icon btn-info btn-sm"
-                                                icon="bi bi-eye-fill"
-                                                name=""
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#exampleModal"
-                                                data-bs-title="Registrant Details"
-                                                data-bs-url="/execute_form/view/registrant_details/{{ $registrant->id }}"
-                                                data-bs-size="modal-lg"
-                                                title="View Details"
-                                            /> <br>
-                                            <x-button
-                                                type='button'
-                                                class="btn-icon btn-primary btn-sm mt-1"
+                                                class="btn-icon btn-primary btn-sm"
                                                 icon="bi bi-hand-thumbs-up-fill"
                                                 name=""
                                                 data-bs-toggle="modal"
