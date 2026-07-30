@@ -72,7 +72,19 @@
                                         <td>
                                             <x-button
                                                 type='button'
-                                                class="btn-icon btn-primary btn-sm"
+                                                class="btn-icon btn-info btn-sm"
+                                                icon="bi bi-eye-fill"
+                                                name=""
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#exampleModal"
+                                                data-bs-title="Registrant Details"
+                                                data-bs-url="/execute_form/view/registrant_details/{{ $registrant->id }}"
+                                                data-bs-size="modal-lg"
+                                                title="View Details"
+                                            /> <br>
+                                            <x-button
+                                                type='button'
+                                                class="btn-icon btn-primary btn-sm mt-1"
                                                 icon="bi bi-hand-thumbs-up-fill"
                                                 name=""
                                                 data-bs-toggle="modal"

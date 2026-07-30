@@ -10,6 +10,8 @@ use App\Models\Admin\AssignPermissionToRole;
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\EventFees;
 use App\Models\Admin\OnlinePayment;
+use App\Models\Registrant;
+use App\Models\RegistrantStage;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -31,6 +33,7 @@ class FormViewService
         'fees' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
         'financial_clearance' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'payment_history' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
+        'registrant_details' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
     ];
 
     public static function view($type, $id)
@@ -123,6 +126,22 @@ class FormViewService
                     ->get();
 
                 return view('admin.finance.payment_history', $data);
+
+            case 'registrant_details':
+                $data['registrant'] = RegistrantStage::find($id);
+                abort_if(! $data['registrant'], 404, 'Registrant not found.');
+
+                $data['confirmed_registrant'] = Registrant::where('stage_id', $id)->first();
+                $data['payments'] = OnlinePayment::where(['reg_id' => $id, 'event_id' => $data['registrant']->event_id])
+                    ->orderByDesc('id')
+                    ->get();
+
+                $feeTypeIds = collect([$data['confirmed_registrant']?->accommodation_type, $data['confirmed_registrant']?->registration_type])
+                    ->filter()
+                    ->unique();
+                $data['fee_type_names'] = EventFees::whereIn('id', $feeTypeIds)->pluck('description', 'id');
+
+                return view('admin.registrant.details', $data);
 
             default:
                 return 'No Form Selected';
