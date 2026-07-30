@@ -35,29 +35,30 @@
                             <table class="table datatable">
                                 <thead>
                                 <tr>
-                                    <th class="no-sort">#</th>
                                     <th>Event Name</th>
-                                    <th>Prefix</th>
                                     <th>Start Date</th>
                                     <th>End Date</th>
-                                    <th>Venue</th>
-                                    <th>Payment?</th>
                                     <th>Status</th>
                                     <th class="no-sort">Action</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($events as $key => $event)
+                                @forelse($events as $event)
                                     <tr class="event_{{ $event->id }}">
-                                        <td style="width: 40px">{{ ++$key }}</td>
-                                        <td>{{ $event->name }}</td>
-                                        <td>{{ $event->code_prefix }}</td>
+                                        <td>
+                                            <a href="#"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#exampleModal"
+                                               data-bs-title="Event Details"
+                                               data-bs-url="/execute_form/view/event_details/{{ $event->id }}"
+                                               data-bs-size="modal-lg"
+                                               title="View Details"
+                                            >{{ $event->name }}</a>
+                                        </td>
                                         <td>{{ $event->start_date }}</td>
                                         <td>{{ $event->end_date }}</td>
-                                        <td>{{ \App\Models\Admin\EventVenue::find($event->venue_id)?->name }}</td>
-                                        <td>{{ $event->is_payment_required }}</td>
                                         <td>{{ $event->status }}</td>
-                                        <td style="width: 150px">
+                                        <td class="text-nowrap">
                                             @if((int) $event->id === (int) Auth::user()->event_id)
                                                 <span class="badge bg-success" title="This is your currently active event">Active</span>
                                             @else

@@ -8,7 +8,9 @@ use App\Models\Admin\AccommodationBlock;
 use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\AssignPermissionToRole;
 use App\Models\Admin\Dropdown;
+use App\Models\Admin\Event;
 use App\Models\Admin\EventFees;
+use App\Models\Admin\EventVenue;
 use App\Models\Admin\OnlinePayment;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
@@ -34,6 +36,7 @@ class FormViewService
         'financial_clearance' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'payment_history' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'registrant_details' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
+        'event_details' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
     ];
 
     public static function view($type, $id)
@@ -142,6 +145,14 @@ class FormViewService
                 $data['fee_type_names'] = EventFees::whereIn('id', $feeTypeIds)->pluck('description', 'id');
 
                 return view('admin.registrant.details', $data);
+
+            case 'event_details':
+                $data['event'] = Event::find($id);
+                abort_if(! $data['event'], 404, 'Event not found.');
+
+                $data['venue'] = EventVenue::find($data['event']->venue_id);
+
+                return view('admin.event.details', $data);
 
             default:
                 return 'No Form Selected';
