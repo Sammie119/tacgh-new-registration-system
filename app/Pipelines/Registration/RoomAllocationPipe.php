@@ -36,7 +36,6 @@ class RoomAllocationPipe
         // Get Accommodation type of Room
         $accommodation_type = $data['confirmed_registrant']->accommodation_type;
         $acc_type = EventFees::find($accommodation_type)?->description ?? '';
-        $subString = 'Regular';
 
         $residences = Accommodation::where('venue_id', '=', $event['venue_id'])
             ->where(function ($query) use ($gender) {
@@ -65,11 +64,21 @@ class RoomAllocationPipe
             ->whereIn('block_id', $blocks)
             ->where('assign', 1);
 
-        if (str_contains($acc_type, $subString)) {
-            $unfull = $unfull->where('type', 'Regular');
+        // Route to a Special-type room only if one genuinely exists matching
+        // this accommodation description - a literal "Regular" substring
+        // check here used to require every plain accommodation option to be
+        // named with that exact word, so any event whose accommodation fees
+        // are phrased differently (e.g. "Accommodation", "2 in a room with
+        // AC") got routed to Special rooms that don't exist, guaranteeing
+        // zero matches for every registrant.
+        $specialAccId = Dropdown::where('full_name', $acc_type)->value('id');
+        $hasMatchingSpecialRoom = $specialAccId
+            && (clone $unfull)->where('type', 'Special')->where('special_acc', $specialAccId)->exists();
+
+        if ($hasMatchingSpecialRoom) {
+            $unfull = $unfull->where('type', 'Special')->where('special_acc', $specialAccId);
         } else {
-            $special_acc = Dropdown::where('full_name', $acc_type)->first()?->id ?? 0;
-            $unfull = $unfull->where('type', 'Special')->where('special_acc', $special_acc);
+            $unfull = $unfull->where('type', 'Regular');
         }
 
         $unfull = $unfull->orderBy('id', 'ASC')

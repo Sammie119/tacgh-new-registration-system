@@ -115,8 +115,8 @@ class RoomAllocationPipeTest extends TestCase
         Bus::fake();
 
         $event = $this->createEvent();
-        // "Deluxe Suite" has no "Regular" substring and no matching Dropdown
-        // row — this used to crash with "Attempt to read property id on null".
+        // "Deluxe Suite" has no matching Dropdown row - this used to crash
+        // with "Attempt to read property id on null".
         $accommodationFee = EventFees::create([
             'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Deluxe Suite',
             'fee_amount' => 80, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
@@ -129,10 +129,44 @@ class RoomAllocationPipeTest extends TestCase
             'confirmed_registrant' => $registrant,
         ]);
 
-        // No crash, and no room assigned since nothing matches special_acc = 0.
+        // No crash. No room assigned: with no resolvable Dropdown match it
+        // falls back to Regular, and the only room here is Special.
         $this->assertTrue($result);
         $this->assertDatabaseCount('assigned_room_episodes', 0);
         $this->assertNull($registrant->fresh()->room_no);
+    }
+
+    public function test_a_plain_accommodation_description_with_no_special_rooms_configured_still_matches_regular(): void
+    {
+        // Regression: a real event whose accommodation option is plainly
+        // named (e.g. "Accommodation", "2 in a room with AC" - no "Regular"
+        // substring) and which has zero Special-type rooms configured must
+        // still be routed to Regular rooms, not silently fail every
+        // allocation by being routed into an empty Special-room pool. This
+        // also covers the case where a Dropdown row happens to share the
+        // exact same name (e.g. a leftover from a deprecated category) but
+        // no matching Special room actually exists for it.
+        Bus::fake();
+
+        $event = $this->createEvent();
+        $accommodationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Accommodation',
+            'fee_amount' => 50, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        Dropdown::create([
+            'lookup_code_id' => 9, 'full_name' => 'Accommodation', 'active_flag' => 1,
+            'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $room = $this->createRoom($event, ['type' => 'Regular']);
+        $registrant = $this->createRegistrant($event, $accommodationFee);
+
+        $result = (new RoomAllocationPipe)->autoRoomAllocation([
+            'registrant' => $registrant->stage->toArray(),
+            'confirmed_registrant' => $registrant,
+        ]);
+
+        $this->assertTrue($result);
+        $this->assertSame($room->id, $registrant->fresh()->room_no);
     }
 
     public function test_special_accommodation_with_a_matching_dropdown_is_allocated_correctly(): void
