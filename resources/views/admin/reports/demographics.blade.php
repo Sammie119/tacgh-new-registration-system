@@ -42,7 +42,7 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Gender</h5>
@@ -74,8 +74,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-lg-6">
+            <div class="row">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Age Brackets</h5>
@@ -109,7 +111,7 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Nationality</h5>
@@ -136,8 +138,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-lg-6">
+            <div class="row">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Country of Residence</h5>
@@ -167,7 +171,7 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Profession</h5>
@@ -194,8 +198,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-lg-6">
+            <div class="row">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Accommodation Type</h5>
@@ -255,7 +261,7 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Position Held</h5>
@@ -282,8 +288,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-lg-6">
+            <div class="row">
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Marital Status</h5>
