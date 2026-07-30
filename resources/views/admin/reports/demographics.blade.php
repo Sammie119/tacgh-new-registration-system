@@ -14,7 +14,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Total Registrants</h5>
                             <div class="d-flex align-items-center">
-                                <h6>{{ $total }}</h6>
+                                <h6 class="fs-1 fw-bold mb-0">{{ $total }}</h6>
                             </div>
                         </div>
                     </div>
@@ -24,7 +24,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Confirmed</h5>
                             <div class="d-flex align-items-center">
-                                <h6>{{ $confirmed_counts['Yes'] ?? 0 }}</h6>
+                                <h6 class="fs-1 fw-bold mb-0">{{ $confirmed_counts['Yes'] ?? 0 }}</h6>
                             </div>
                         </div>
                     </div>
@@ -34,7 +34,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Pending</h5>
                             <div class="d-flex align-items-center">
-                                <h6>{{ $confirmed_counts['No'] ?? 0 }}</h6>
+                                <h6 class="fs-1 fw-bold mb-0">{{ $confirmed_counts['No'] ?? 0 }}</h6>
                             </div>
                         </div>
                     </div>
