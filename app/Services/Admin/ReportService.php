@@ -30,31 +30,21 @@ class ReportService
         // this field by a fuzzy full_name LIKE match with no lookup_code_id
         // filter (RegistrationStageImport::getLookup(), fixed going forward
         // but not backfilled), so real data also contains stray rows from
-        // the "Registration Type" dropdown category (lookup_code_id=8) and
-        // others. Despite that category's internal name, its actual values
-        // ("Regular Student", "Special Acc - 1 in a room (with AC)", "Non
-        // Residential", etc.) are accommodation groupings, not registration
-        // fee types - labelled "Accommodation Type" below to match what the
-        // data actually represents. Only count a row under Profession/
-        // Accommodation Type if it actually belongs to that category - do
-        // not just countBy('profession') directly, and don't lump every
-        // non-8 value into Profession either.
+        // other dropdown categories. Only count a row under Profession if it
+        // actually belongs to that category - do not just countBy('profession')
+        // directly.
         $professionIds = $stages->pluck('profession')->filter()->unique();
         $professionDropdowns = Dropdown::whereIn('id', $professionIds)->get(['id', 'lookup_code_id', 'full_name'])->keyBy('id');
 
         $professionStages = $stages->filter(
             fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 10
         );
-        $accommodationTypeStages = $stages->filter(
-            fn ($stage) => (int) ($professionDropdowns->get($stage->profession)?->lookup_code_id) === 8
-        );
         $data['profession_counts'] = $professionStages->countBy('profession');
-        $data['accommodation_type_counts'] = $accommodationTypeStages->countBy('profession');
 
         // gender, position_held, and marital_status are all genuine
         // dropdowns/lookups rows (unlike nationality/residence, see below).
-        // profession/accommodation-type names are already fetched above in
-        // $professionDropdowns - reuse rather than querying Dropdown again.
+        // profession names are already fetched above in $professionDropdowns
+        // - reuse rather than querying Dropdown again.
         $dropdownIds = $data['gender_counts']->keys()
             ->merge($data['position_counts']->keys())
             ->merge($data['marital_status_counts']->keys())
@@ -65,13 +55,19 @@ class ReportService
         $data['dropdown_names'] = Dropdown::whereIn('id', $dropdownIds)->pluck('full_name', 'id')
             ->union($professionDropdowns->pluck('full_name', 'id'));
 
-        // Registration Fee Type is a genuinely different thing from the
-        // above: it's which registration_fee EventFees package each
-        // Registrant actually selected (Registrant.registration_type),
-        // not anything derived from the profession column/dropdowns table.
-        $registrants = Registrant::where('event_id', $eventId)->get(['registration_type']);
+        // Accommodation Type and Registration Fee Type both come from which
+        // EventFees package each Registrant actually selected
+        // (Registrant.accommodation_type / Registrant.registration_type),
+        // not from anything derived from the profession column/dropdowns
+        // table - a Dropdown category happens to share the internal name
+        // "Registration Type" but its content doesn't reflect real selections.
+        $registrants = Registrant::where('event_id', $eventId)->get(['registration_type', 'accommodation_type']);
         $data['registration_fee_type_counts'] = $registrants->countBy('registration_type');
-        $feeTypeIds = $data['registration_fee_type_counts']->keys()->filter()->unique();
+        $data['accommodation_type_counts'] = $registrants->countBy('accommodation_type');
+        $feeTypeIds = $data['registration_fee_type_counts']->keys()
+            ->merge($data['accommodation_type_counts']->keys())
+            ->filter()
+            ->unique();
         $data['fee_type_names'] = EventFees::whereIn('id', $feeTypeIds)->pluck('description', 'id');
 
         // nationality_id / residence_country_id reference the countries

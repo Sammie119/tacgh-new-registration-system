@@ -209,7 +209,7 @@
                                 <tbody>
                                 @forelse($accommodation_type_counts as $typeId => $count)
                                     <tr>
-                                        <td>{{ $dropdown_names[$typeId] ?? 'Unknown' }}</td>
+                                        <td>{{ $fee_type_names[$typeId] ?? 'Unknown' }}</td>
                                         <td>{{ $count }}</td>
                                     </tr>
                                 @empty

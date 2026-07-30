@@ -97,67 +97,41 @@ class ReportDemographicsTest extends TestCase
         $response->assertSeeInOrder(['Position Held', 'Pastor']);
     }
 
-    public function test_demographics_report_separates_profession_from_accommodation_type(): void
+    public function test_demographics_report_only_counts_genuine_profession_rows(): void
     {
         // The batch-import path (RegistrationStageImport::getLookup()) does an
         // unscoped full_name LIKE match with no lookup_code_id filter, so real
-        // `profession` data contains a mix of genuine Profession
-        // (lookup_code_id=10) and Accommodation Type (lookup_code_id=8,
-        // internally named "Registration Type" but its actual seeded values
-        // are accommodation groupings) rows. The report must split them by
-        // their real category, not trust the column.
+        // `profession` data also contains stray rows from unrelated dropdown
+        // categories (e.g. lookup_code_id=8 "Registration Type", 9
+        // "Accomodation Type", 1 "YesNo"). None of those belong under
+        // Profession, so the report must filter by real category rather than
+        // trust the column.
         $user = $this->reportUser();
         $student = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
         $regularStudent = Dropdown::create(['lookup_code_id' => 8, 'full_name' => 'Regular Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $accommodationType = Dropdown::create(['lookup_code_id' => 9, 'full_name' => 'Student Ministers', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+        $yesNo = Dropdown::create(['lookup_code_id' => 1, 'full_name' => 'Yes', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
         $this->createStage(1, ['profession' => $student->id]);
         $this->createStage(2, ['profession' => $regularStudent->id]);
+        $this->createStage(3, ['profession' => $accommodationType->id]);
+        $this->createStage(4, ['profession' => $yesNo->id]);
 
         $response = $this->actingAs($user)->get(route('demographics_report'));
 
         $response->assertOk();
         $response->assertSeeInOrder(['Profession', 'Student']);
-        $response->assertSeeInOrder(['Accommodation Type', 'Regular Student']);
 
-        // "Regular Student" (Accommodation Type) must not appear in the
-        // Profession table's row range, and vice versa.
         $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
         $this->assertTrue($data['profession_counts']->has($student->id));
         $this->assertFalse($data['profession_counts']->has($regularStudent->id));
-        $this->assertTrue($data['accommodation_type_counts']->has($regularStudent->id));
-        $this->assertFalse($data['accommodation_type_counts']->has($student->id));
-    }
-
-    public function test_demographics_report_excludes_non_profession_categories_from_the_profession_breakdown(): void
-    {
-        // Historical batch-import corruption also left Accomodation Type
-        // (lookup_code_id=9, a different, largely deprecated category from
-        // the lookup_code_id=8 one displayed as "Accommodation Type" above)
-        // and YesNo (lookup_code_id=1) rows sitting in `profession`. Neither
-        // belongs under Profession or Accommodation Type, so both must be
-        // excluded from both breakdowns entirely.
-        $user = $this->reportUser();
-        $student = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
-        $accommodationType = Dropdown::create(['lookup_code_id' => 9, 'full_name' => 'Student Ministers', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
-        $yesNo = Dropdown::create(['lookup_code_id' => 1, 'full_name' => 'Yes', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
-        $this->createStage(1, ['profession' => $student->id]);
-        $this->createStage(2, ['profession' => $accommodationType->id]);
-        $this->createStage(3, ['profession' => $yesNo->id]);
-
-        $this->actingAs($user)->get(route('demographics_report'))->assertOk();
-
-        $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
-        $this->assertTrue($data['profession_counts']->has($student->id));
         $this->assertFalse($data['profession_counts']->has($accommodationType->id));
         $this->assertFalse($data['profession_counts']->has($yesNo->id));
-        $this->assertFalse($data['accommodation_type_counts']->has($accommodationType->id));
-        $this->assertFalse($data['accommodation_type_counts']->has($yesNo->id));
     }
 
     public function test_demographics_report_shows_registration_fee_type_breakdown(): void
     {
-        // Registration Fee Type is a genuinely separate data path from
-        // Accommodation Type above: it comes from Registrant.registration_type
-        // -> EventFees (fee_type='registration_fee'), not from the
+        // Registration Fee Type comes from Registrant.registration_type ->
+        // EventFees (fee_type='registration_fee'), not from the
         // profession/dropdowns table at all.
         $user = $this->reportUser();
         $regularStudentFee = EventFees::create([
@@ -187,6 +161,42 @@ class ReportDemographicsTest extends TestCase
         $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
         $this->assertSame(1, $data['registration_fee_type_counts']->get($regularStudentFee->id));
         $this->assertSame(1, $data['registration_fee_type_counts']->get($regularWorkerFee->id));
+    }
+
+    public function test_demographics_report_shows_accommodation_type_breakdown(): void
+    {
+        // Accommodation Type comes from Registrant.accommodation_type ->
+        // EventFees (fee_type='accommodation') - a genuinely different data
+        // path from Registration Fee Type above, even though both are
+        // EventFees rows.
+        $user = $this->reportUser();
+        $acWithRoom = EventFees::create([
+            'event_id' => 1, 'fee_type' => 'accommodation', 'description' => '2 in a room with AC',
+            'fee_amount' => 1000, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $noAcRoom = EventFees::create([
+            'event_id' => 1, 'fee_type' => 'accommodation', 'description' => '1 in a room without AC',
+            'fee_amount' => 2000, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $stage1 = $this->createStage(1);
+        $stage2 = $this->createStage(2);
+        Registrant::create([
+            'registration_no' => 'REG1', 'stage_id' => $stage1->id, 'event_id' => 1,
+            'accommodation_type' => $acWithRoom->id, 'accommodation_fee' => 1000, 'total_fee' => 1000,
+        ]);
+        Registrant::create([
+            'registration_no' => 'REG2', 'stage_id' => $stage2->id, 'event_id' => 1,
+            'accommodation_type' => $noAcRoom->id, 'accommodation_fee' => 2000, 'total_fee' => 2000,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('demographics_report'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Accommodation Type', '2 in a room with AC', '1 in a room without AC']);
+
+        $data = app(\App\Services\Admin\ReportService::class)->demographics(1)->getData();
+        $this->assertSame(1, $data['accommodation_type_counts']->get($acWithRoom->id));
+        $this->assertSame(1, $data['accommodation_type_counts']->get($noAcRoom->id));
     }
 
     public function test_demographics_report_shows_marital_status_breakdown(): void
