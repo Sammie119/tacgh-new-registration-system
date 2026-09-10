@@ -19,6 +19,7 @@ return [
         'secret_key' => env('PAYSTACK_SECRET_KEY'),
         'public_key' => env('PAYSTACK_PUBLIC_KEY'),
         'payment_url' => env('PAYSTACK_PAYMENT_URL'),
+        'subaccount_code' => env('PAYSTACK_SUBACCOUNT_CODE'),
     ],
 
     'mailgun' => [

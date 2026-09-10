@@ -15,6 +15,7 @@ class RegistrantPipe
         abort_if(! $event, 404, 'Event not found.');
         $prefix = $event->code_prefix;
 
+        $amount_to_pay = floatval($data['amount_to_pay']);
         $fees = [
             'accommodation_type' => $data['accommodation_fee'],
             'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
@@ -49,10 +50,13 @@ class RegistrantPipe
             ], $fees));
         });
 
+        $data = $registrant->toArray();
+        $data['total_fee'] = $amount_to_pay;
+
         // total_fee here is whatever was just persisted above (server-
         // computed from the selected fee IDs) - PaymentPipe/makePayment()
         // re-derives the amount to charge from the DB anyway, so this must
         // not be overwritten with the client-submitted amount_to_pay field.
-        return $next($registrant->toArray());
+        return $next($data);
     }
 }

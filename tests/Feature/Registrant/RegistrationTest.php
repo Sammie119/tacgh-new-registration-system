@@ -42,6 +42,7 @@ class RegistrationTest extends TestCase
             'event_id' => $event->id,
             'disability' => 0,
             'special_needs' => 'None',
+            'is_student' => 0,
         ], $overrides);
     }
 
@@ -109,16 +110,19 @@ class RegistrationTest extends TestCase
         Bus::assertNotDispatched(SmsNotificationJob::class);
     }
 
-    public function test_registration_requires_a_valid_event_id(): void
+    public function test_registration_fails_gracefully_when_there_is_no_active_event(): void
     {
+        // event_id is no longer a form field - registrantRegistration()
+        // auto-resolves the single active/not-completed event itself, so
+        // the safety net to test now is "no such event exists" rather
+        // than "an invalid event_id was submitted".
         Bus::fake();
 
-        $response = $this->post(route('registrant.store'), $this->validPayload([
-            'event' => $this->createEvent(),
-            'event_id' => 999999,
-        ]));
+        $event = $this->createEvent(['active_flag' => 0]);
 
-        $response->assertSessionHasErrors('event_id');
+        $response = $this->post(route('registrant.store'), $this->validPayload(['event' => $event]));
+
+        $response->assertSessionHas('error');
         $this->assertDatabaseCount('registrants_stage', 0);
     }
 
@@ -165,10 +169,13 @@ class RegistrationTest extends TestCase
         $event = $this->createEvent();
         $payload = $this->validPayload(['event' => $event]);
 
+        // address is no longer a form field (always defaulted server-side),
+        // so a still-live field is used here to prove the second submission
+        // updates the existing row rather than being silently dropped.
         $this->post(route('registrant.store'), $payload);
-        $this->post(route('registrant.store'), array_merge($payload, ['address' => 'A new address']));
+        $this->post(route('registrant.store'), array_merge($payload, ['languages_spoken' => 'French']));
 
         $this->assertDatabaseCount('registrants_stage', 1);
-        $this->assertDatabaseHas('registrants_stage', ['address' => 'A new address']);
+        $this->assertDatabaseHas('registrants_stage', ['languages_spoken' => 'French']);
     }
 }

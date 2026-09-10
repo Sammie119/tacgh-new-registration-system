@@ -49,10 +49,8 @@ class ExportRegistrationStageTest extends TestCase
 
             $this->assertSame('John', $row['first_name']);
             $this->assertSame('Doe', $row['surname']);
-            $this->assertSame('john.doe@example.com', $row['email']);
             $this->assertStringNotContainsString('Confidential', $row['first_name']);
             $this->assertStringNotContainsString('Confidential', $row['surname']);
-            $this->assertStringNotContainsString('real.person.pii', $row['email']);
 
             // Dropdown/country columns must be text labels (what the
             // import's LIKE-based lookup expects), not raw stored IDs.
@@ -109,16 +107,16 @@ class ExportRegistrationStageTest extends TestCase
         $this->assertStringContainsString('Mr.', $titleValidation->getFormula1());
         $this->assertStringContainsString('Mrs.', $titleValidation->getFormula1());
 
-        // Gender column (F).
-        $genderValidation = $sheet->getCell('F2')->getDataValidation();
+        // Gender column (E).
+        $genderValidation = $sheet->getCell('E2')->getDataValidation();
         $this->assertStringContainsString('Male', $genderValidation->getFormula1());
         $this->assertStringContainsString('Female', $genderValidation->getFormula1());
 
-        // Need Accommodation column (Q) - the two literal values the
+        // Need Accommodation column (M) - the two literal values the
         // import's boolean validation rule actually accepts.
-        $accommodationValidation = $sheet->getCell('Q2')->getDataValidation();
+        $accommodationValidation = $sheet->getCell('M2')->getDataValidation();
         $this->assertSame(DataValidation::TYPE_LIST, $accommodationValidation->getType());
-        $this->assertStringContainsString('1', $accommodationValidation->getFormula1());
-        $this->assertStringContainsString('0', $accommodationValidation->getFormula1());
+        $this->assertStringContainsString('Yes', $accommodationValidation->getFormula1());
+        $this->assertStringContainsString('No', $accommodationValidation->getFormula1());
     }
 }

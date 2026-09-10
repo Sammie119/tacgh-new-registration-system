@@ -6,6 +6,7 @@ use App\Helpers\Utils;
 use App\Models\Admin\Country;
 use App\Models\Admin\Dropdown;
 use App\Models\RegistrantStage;
+use DateTime;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
@@ -26,7 +27,7 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
      * the column happens to be formatted as text in the source file, so
      * this is enforced here instead of relying on that.
      */
-    private const TEXT_COLUMNS = ['phone_number', 'whatsapp_number', 'emergency_contacts_phone_number'];
+    private const TEXT_COLUMNS = ['phone_number'];
 
     /**
      * lookup_code_id values for each dropdown-backed field, matching the
@@ -50,16 +51,31 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
 
     private $batch_no;
 
+    private $email;
+
+    private $is_student;
+
+    private $institution_name;
+
     /**
      * Column letter => slugified heading name, captured from row 1 as it's
      * read, so bindValue() can tell which column it's currently binding.
      */
     private array $headingColumns = [];
 
-    public function __construct($event_id, $batch_no)
+    /**
+     * Is Student/Institution Name are collected once from the batch
+     * coordinator (Batch Information card) rather than per registrant -
+     * every row imported from this file gets the same values, same as
+     * $email above.
+     */
+    public function __construct($event_id, $batch_no, $email, $is_student = false, $institution_name = null)
     {
         $this->event_id = $event_id;
         $this->batch_no = $batch_no;
+        $this->email = $email;
+        $this->is_student = $is_student;
+        $this->institution_name = $institution_name;
     }
 
     public function bindValue(Cell $cell, $value)
@@ -82,13 +98,25 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
     }
 
     /**
-     * @param  array  $row
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * Converts the template's Date of Birth entry to Y-m-d for storage.
+     * Explicitly parses d/m/Y (the format the template now instructs) and
+     * the old Y-m-d, rather than relying on strtotime(), which reads a
+     * slash-separated date the "American" way (m/d/Y) and would silently
+     * swap day and month for a value like 03/04/1990.
      */
     private function dateConvertor($date): string
     {
         if (is_int($date)) {
             return date('Y-m-d', $date);
+        }
+
+        $date = trim((string) $date);
+
+        foreach (['d/m/Y', 'Y-m-d'] as $format) {
+            $parsed = DateTime::createFromFormat($format, $date);
+            if ($parsed !== false && $parsed->format($format) === $date) {
+                return $parsed->format('Y-m-d');
+            }
         }
 
         return date('Y-m-d', strtotime($date));
@@ -114,6 +142,28 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
         return 0;
     }
 
+    /**
+     * Casts the template's Yes/No picker (case-insensitive) back to the
+     * 1/0 stored on need_accommodation/disability. Also accepts the old
+     * 1/0 values so a batch started on a previously-downloaded template
+     * still imports correctly.
+     */
+    private function toBoolean($value): int
+    {
+        return in_array(strtolower(trim((string) $value)), ['yes', '1'], true) ? 1 : 0;
+    }
+
+    /**
+     * WhatsApp Number, Email, Address, Other Names, and the Emergency
+     * Contact/Attendance Type columns are no longer collected on the
+     * batch template - they're re-collected (and overwrite these) on the
+     * batch confirmation screen. email/address/emergency_contacts_name
+     * are NOT NULL with no DB default, so they need an explicit
+     * placeholder; the rest are nullable or have their own DB default
+     * and are simply omitted here. Email, Is Student and Institution Name
+     * are collected once from the batch coordinator and stamped onto
+     * every row (see the constructor).
+     */
     public function model(array $row)
     {
         $token = Utils::generateUniqueToken(RegistrantStage::class, 6);
@@ -122,27 +172,25 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
             'title' => $this->getLookup($row['title'], self::LOOKUP_CODE_TITLE),
             'first_name' => $row['first_name'],
             'surname' => $row['surname'],
-            'other_names' => $row['other_names'],
             'marital_status' => $this->getLookup($row['marital_status'], self::LOOKUP_CODE_MARITAL_STATUS),
             'nationality_id' => $this->getCountry($row['nationality']),
-            'whatsapp_number' => Utils::normalizeGhanaPhone($row['whatsapp_number']),
+            'whatsapp_number' => Utils::normalizeGhanaPhone($row['phone_number']),
             'date_of_birth' => $this->dateConvertor($row['date_of_birth']),
             'gender' => $this->getLookup($row['gender'], self::LOOKUP_CODE_GENDER),
             'phone_number' => Utils::normalizeGhanaPhone($row['phone_number']),
             'event_id' => $this->event_id,
-            'email' => $row['email'],
-            'address' => $row['address'],
+            'email' => $this->email,
+            'address' => 'N/A',
             'position_held' => $this->getLookup($row['position_held'], self::LOOKUP_CODE_POSITION_HELD),
             'profession' => $this->getLookup($row['profession'], self::LOOKUP_CODE_PROFESSION),
             'residence_country_id' => $this->getCountry($row['residence_country']),
             'languages_spoken' => $row['languages_spoken'],
-            'need_accommodation' => $row['need_accommodation'],
-            'emergency_contacts_name' => $row['emergency_contacts_name'],
-            'emergency_contacts_relationship' => $row['emergency_contacts_relationship'],
-            'emergency_contacts_phone_number' => Utils::normalizeGhanaPhone($row['emergency_contacts_phone_number']),
-            'attendance_type' => $row['attendance_type'],
-            'disability' => $row['disability'],
+            'need_accommodation' => $this->toBoolean($row['need_accommodation']),
+            'emergency_contacts_name' => 'N/A',
+            'disability' => $this->toBoolean($row['disability']),
             'special_needs' => $row['special_needs'],
+            'is_student' => $this->is_student ? 1 : 0,
+            'institution_name' => $this->is_student ? $this->institution_name : null,
             'token' => $token,
             'batch_no' => $this->batch_no,
         ]);
@@ -159,25 +207,17 @@ class RegistrationStageImport extends DefaultValueBinder implements ToModel, Wit
             'title' => 'required',
             'first_name' => 'required',
             'surname' => 'required',
-            'other_names' => 'nullable',
             'gender' => 'required',
-            'date_of_birth' => 'required|date',
+            'date_of_birth' => 'required|date_format:d/m/Y,Y-m-d',
             'marital_status' => 'required',
             'nationality' => 'required',
             'phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
-            'whatsapp_number' => ['nullable', 'regex:'.Utils::GHANA_PHONE_REGEX],
-            'email' => 'required|email',
-            'address' => 'required',
             'position_held' => 'required',
             'profession' => 'required',
             'residence_country' => 'required',
             'languages_spoken' => 'required',
-            'need_accommodation' => 'required|boolean',
-            'emergency_contacts_name' => 'required',
-            'emergency_contacts_relationship' => 'required',
-            'emergency_contacts_phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
-            'attendance_type' => 'required|in:In-Person,Online',
-            'disability' => 'required|boolean',
+            'need_accommodation' => ['required', 'regex:/^(yes|no|1|0)$/i'],
+            'disability' => ['required', 'regex:/^(yes|no|1|0)$/i'],
             'special_needs' => 'required',
         ];
     }

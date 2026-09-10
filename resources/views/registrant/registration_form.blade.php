@@ -37,14 +37,14 @@
 
                         <section class="section">
                             <div class="row">
-                                <form action="{{ route('registrant.store') }}" method="post" onsubmit="return validatePhone();">
+                                <form id="individualRegistrationForm" action="{{ route('registrant.store') }}" method="post" onsubmit="return validatePhone();">
                                     @csrf
                                     <div class="col-12">
                                         <div class="card">
                                             <div class="card-body">
                                                 <h5 class="card-title">Personal Information</h5>
                                                 <div class="row g-3">
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-4">
                                                         <x-input-select
                                                             :options="$title"
                                                             :selected="0"
@@ -54,7 +54,7 @@
                                                             label="Title"
                                                         />
                                                     </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-4">
                                                         <x-input-text
                                                             type="text"
                                                             name="first_name"
@@ -63,16 +63,7 @@
                                                             value=""
                                                         />
                                                     </div>
-                                                    <div class="col-md-3">
-                                                        <x-input-text
-                                                            type="text"
-                                                            name="other_names"
-                                                            required=""
-                                                            label="Other Names"
-                                                            value=""
-                                                        />
-                                                    </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-4">
                                                         <x-input-text
                                                             type="text"
                                                             name="surname"
@@ -138,22 +129,7 @@
                                                             Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
                                                     </div>
-                                                    <div class="col-md-3">
-                                                        <x-input-text
-                                                            type="tel"
-                                                            name="whatsapp_number"
-                                                            required=""
-                                                            label="WhatsApp Number"
-                                                            value=""
-                                                            placeholder="0248000000"
-                                                            class="phoneInput"
-                                                            oninput="clearError(2)"
-                                                        />
-                                                        <div class="error-message" id="errorMsg2">
-                                                            Please enter a valid Ghanaian phone number (e.g., 0248000000).
-                                                        </div><br>
-                                                    </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-6">
                                                         <x-input-text
                                                             type="email"
                                                             name="email"
@@ -173,13 +149,23 @@
                                                             label="Need Accommodation"
                                                         />
                                                     </div>
-
-                                                    <div class="col-md-12">
+                                                    <div class="col-md-3">
+                                                        <x-input-select
+                                                            :options="['Yes', 'No']"
+                                                            :selected="3"
+                                                            name="is_student"
+                                                            :type="1"
+                                                            :values="[1, 0]"
+                                                            required="true"
+                                                            label="Is Student"
+                                                            onchange="toggleInstitutionName(this)"
+                                                        />
+                                                    </div>
+                                                    <div class="col-md-9" id="institutionNameWrapper" style="display:none">
                                                         <x-input-text
                                                             type="text"
-                                                            name="address"
-                                                            required="true"
-                                                            label="Address"
+                                                            name="institution_name"
+                                                            label="Institution Name"
                                                             value=""
                                                         />
                                                     </div>
@@ -198,16 +184,6 @@
                                                 <div class="row g-3">
                                                     <div class="col-md-3">
                                                         <x-input-select
-                                                            :options="$position_held"
-                                                            :selected="0"
-                                                            name="position_held"
-                                                            :type="0"
-                                                            required="true"
-                                                            label="Position Held"
-                                                        />
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <x-input-select
                                                             :options="$profession"
                                                             :selected="0"
                                                             name="profession"
@@ -223,7 +199,7 @@
                                                             name="residence_country_id"
                                                             :type="0"
                                                             required="true"
-                                                            label="Country of Resident"
+                                                            label="Country of Residence"
                                                         />
                                                     </div>
                                                     <div class="col-md-3">
@@ -247,15 +223,6 @@
                                                     </div>
                                                     <div class="col-md-3">
                                                         <x-input-text
-                                                            type="text"
-                                                            name="emergency_contacts_relationship"
-                                                            required="true"
-                                                            label="Emergency Contact Relationship"
-                                                            value=""
-                                                        />
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <x-input-text
                                                             type="tel"
                                                             name="emergency_contacts_phone_number"
                                                             required="true"
@@ -268,28 +235,6 @@
                                                         <div class="error-message" id="errorMsg3">
                                                             Please enter a valid Ghanaian phone number (e.g., 0248000000).
                                                         </div><br>
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <x-input-select
-                                                            :options="['In-Person', 'Online']"
-                                                            :selected="3"
-                                                            name="attendance_type"
-                                                            :type="1"
-                                                            :values="['In-Person', 'Online']"
-                                                            required="true"
-                                                            label="Attendance Type"
-                                                        />
-                                                    </div>
-
-                                                    <div class="col-md-3">
-                                                        <x-input-select
-                                                            :options="$events"
-                                                            :selected="0"
-                                                            name="event_id"
-                                                            :type="0"
-                                                            required="true"
-                                                            label="Event Attending"
-                                                        />
                                                     </div>
                                                     <div class="col-md-3">
                                                         <x-input-select
@@ -416,6 +361,26 @@
                                                             value=""
                                                         />
                                                     </div>
+                                                    <div class="col-md-3">
+                                                        <x-input-select
+                                                            :options="['Yes', 'No']"
+                                                            :selected="3"
+                                                            name="is_student"
+                                                            :type="1"
+                                                            :values="[1, 0]"
+                                                            required="true"
+                                                            label="Is Student"
+                                                            onchange="toggleBatchInstitutionName(this)"
+                                                        />
+                                                    </div>
+                                                    <div class="col-md-6" id="batchInstitutionNameWrapper" style="display:none">
+                                                        <x-input-text
+                                                            type="text"
+                                                            name="institution_name"
+                                                            label="Institution Name"
+                                                            value=""
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -452,28 +417,17 @@
         function validatePhone() {
             const phoneInput = document.querySelectorAll('.phoneInput');
             const errorMsg = document.getElementById('errorMsg');
-            const errorMsg2 = document.getElementById('errorMsg2');
             const errorMsg3 = document.getElementById('errorMsg3');
             const regex = /^(0[0-9]{9}|\+233[0-9]{9})$/;
 
             if (!regex.test(phoneInput[0].value)) {
                 errorMsg.style.display = 'block';
                 if (!regex.test(phoneInput[1].value)) {
-                    errorMsg2.style.display = 'block';
-                }
-                if (!regex.test(phoneInput[2].value)) {
                     errorMsg3.style.display = 'block';
                 }
                 return false;
             }
             if (!regex.test(phoneInput[1].value)) {
-                errorMsg2.style.display = 'block';
-                if (!regex.test(phoneInput[2].value)) {
-                    errorMsg3.style.display = 'block';
-                }
-                return false;
-            }
-            if (!regex.test(phoneInput[2].value)) {
                 errorMsg3.style.display = 'block';
                 return false;
             }
@@ -483,11 +437,27 @@
         function clearError(id) {
             if(id === 1)
                 document.getElementById('errorMsg').style.display = 'none';
-            else if(id === 2)
-                document.getElementById('errorMsg2').style.display = 'none';
             else
                 document.getElementById('errorMsg3').style.display = 'none';
         }
+
+        // Institution Name only matters (and is only required) when Is
+        // Student is "Yes" - keep it hidden/optional otherwise, and clear
+        // any stale value so a "No" submission never carries one along.
+        function toggleInstitutionName(select) {
+            const wrapper = document.getElementById('institutionNameWrapper');
+            const input = wrapper.querySelector('input[name="institution_name"]');
+            const isYes = select.value === '1';
+            wrapper.style.display = isYes ? '' : 'none';
+            input.required = isYes;
+            if (!isYes) input.value = '';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Scoped to this form specifically - the batch upload form
+            // below has its own, separate "Is Student" select with the
+            // same field name.
+            toggleInstitutionName(document.querySelector('#individualRegistrationForm select[name="is_student"]'));
+        });
 
     </script>
 
@@ -518,6 +488,22 @@
             else
                 document.getElementById('errorMsgg2').style.display = 'none';
         }
+
+        // Is Student/Institution Name here apply to the WHOLE batch (every
+        // registrant in the uploaded file), entered once by the
+        // coordinator - same show/hide behavior as the individual form's
+        // toggleInstitutionName(), just against this form's own elements.
+        function toggleBatchInstitutionName(select) {
+            const wrapper = document.getElementById('batchInstitutionNameWrapper');
+            const input = wrapper.querySelector('input[name="institution_name"]');
+            const isYes = select.value === '1';
+            wrapper.style.display = isYes ? '' : 'none';
+            input.required = isYes;
+            if (!isYes) input.value = '';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleBatchInstitutionName(document.querySelector('#batchUploadForm select[name="is_student"]'));
+        });
 
         // Prevent a double-click/double-tap on a slow upload from importing
         // the whole batch file twice - there's no server-side dedup on this

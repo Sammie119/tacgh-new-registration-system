@@ -32,7 +32,7 @@ class RegistrationEventGuardTest extends TestCase
             'residence_country_id' => 1, 'languages_spoken' => 'English', 'need_accommodation' => 1,
             'emergency_contacts_name' => 'Contact', 'emergency_contacts_relationship' => 'Sibling',
             'emergency_contacts_phone_number' => '+233541234568', 'attendance_type' => 'In-Person',
-            'event_id' => $eventId, 'disability' => 0, 'special_needs' => 'None',
+            'event_id' => $eventId, 'disability' => 0, 'special_needs' => 'None', 'is_student' => 0,
         ];
     }
 
@@ -40,9 +40,11 @@ class RegistrationEventGuardTest extends TestCase
     {
         Bus::fake();
 
-        // Simulates the exact gap: exists:events,id validation ignores the
-        // SoftDeletes scope, so a soft-deleted event still passes controller
-        // validation but Event::find()/get_event() return null here.
+        // registrantRegistration() no longer trusts a client-submitted
+        // event_id - it resolves the active/not-completed event itself.
+        // Soft-deleting the only event makes that lookup find zero
+        // events, so the "can't determine which event" guard should
+        // reject the registration before any row is inserted.
         $event = $this->createEvent();
         $eventId = $event->id;
         $event->delete();
@@ -50,7 +52,7 @@ class RegistrationEventGuardTest extends TestCase
         $response = (new RegistrantService)->registrantRegistration($this->registrationPayload($eventId));
 
         $this->assertTrue(session()->has('error'));
-        $this->assertDatabaseHas('registrants_stage', ['event_id' => $eventId]);
+        $this->assertDatabaseCount('registrants_stage', 0);
     }
 
     public function test_batch_import_fails_gracefully_when_event_is_soft_deleted(): void

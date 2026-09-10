@@ -45,7 +45,7 @@ class RegistrationStageImportTest extends TestCase
     {
         Dropdown::create(['lookup_code_id' => 22, 'full_name' => 'Mr.', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
 
-        $import = new RegistrationStageImport(1, '20260101000000');
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com');
 
         $model = $import->model($this->baseRow([
             'title' => "Mr' OR '1'='1",
@@ -60,7 +60,7 @@ class RegistrationStageImportTest extends TestCase
     {
         $dropdown = Dropdown::create(['lookup_code_id' => 22, 'full_name' => 'Mr.', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
 
-        $import = new RegistrationStageImport(1, '20260101000000');
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com');
 
         $model = $import->model($this->baseRow(['title' => 'Mr']));
 
@@ -77,7 +77,7 @@ class RegistrationStageImportTest extends TestCase
         $registrationType = Dropdown::create(['lookup_code_id' => 8, 'full_name' => 'Regular Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
         $profession = Dropdown::create(['lookup_code_id' => 10, 'full_name' => 'Student', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
 
-        $import = new RegistrationStageImport(1, '20260101000000');
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com');
 
         $model = $import->model($this->baseRow(['profession' => 'Student']));
 
@@ -94,7 +94,7 @@ class RegistrationStageImportTest extends TestCase
         $maritalStatus = Dropdown::create(['lookup_code_id' => 3, 'full_name' => 'Single', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
         $positionHeld = Dropdown::create(['lookup_code_id' => 5, 'full_name' => 'Elder', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
 
-        $import = new RegistrationStageImport(1, '20260101000000');
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com');
 
         $model = $import->model($this->baseRow([
             'title' => 'Member', 'gender' => 'Male', 'marital_status' => 'Single', 'position_held' => 'Elder',
@@ -113,12 +113,38 @@ class RegistrationStageImportTest extends TestCase
         $country->code = 'GH';
         $country->save();
 
-        $import = new RegistrationStageImport(1, '20260101000000');
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com');
 
         $model = $import->model($this->baseRow([
             'nationality' => "Ghana'; DROP TABLE countries; --",
         ]));
 
         $this->assertSame(0, $model->nationality_id);
+    }
+
+    public function test_is_student_and_institution_name_are_stamped_from_the_coordinators_batch_level_values(): void
+    {
+        // Is Student/Institution Name are collected once on the Batch
+        // Information card, not per row - every imported registrant should
+        // get the same values, same as email.
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com', true, 'University of Ghana');
+
+        $model = $import->model($this->baseRow());
+
+        $this->assertSame('coordinator@example.com', $model->email);
+        $this->assertSame(1, $model->is_student);
+        $this->assertSame('University of Ghana', $model->institution_name);
+    }
+
+    public function test_institution_name_is_not_stamped_when_is_student_is_false(): void
+    {
+        // Defense in depth: even if an institution name were somehow
+        // passed alongside is_student=false, it must not be saved.
+        $import = new RegistrationStageImport(1, '20260101000000', 'coordinator@example.com', false, 'Should Not Be Saved');
+
+        $model = $import->model($this->baseRow());
+
+        $this->assertSame(0, $model->is_student);
+        $this->assertNull($model->institution_name);
     }
 }

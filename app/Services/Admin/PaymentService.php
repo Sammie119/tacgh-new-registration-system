@@ -6,6 +6,7 @@ use App\Models\Admin\OnlinePayment;
 use App\Models\BatchLog;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
+use Illuminate\Support\Str;
 
 class PaymentService
 {
@@ -25,10 +26,13 @@ class PaymentService
         // from the DB rather than trusted from the request.
         $requested = (float) ($data['total_fee'] ?? 0);
         $amount = max(0, min($requested, $owed));
+        $year = date('y');
 
         return [
             'email' => $reg['email'],
             'amount' => $amount * 100,
+            'reference' => 'APOSA-'.$year.'-'.Str::random(16),
+            'subaccount' => config('services.paystack.subaccount_code'),
             'metadata' => [
                 'name' => event_registrant_name($reg['id']),
                 'phone' => $reg['phone_number'],

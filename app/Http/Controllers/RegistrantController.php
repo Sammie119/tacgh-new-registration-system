@@ -41,7 +41,7 @@ class RegistrantController extends Controller
      */
     public function store(Request $request)
     {
-        $this->formValidation($request, 'create');
+        $this->individualFormValidation($request, 'create');
 
         return $this->registrant->registrantRegistration($request->all());
     }
@@ -53,7 +53,7 @@ class RegistrantController extends Controller
 
     public function individualRegistrationConfirm(Request $request)
     {
-        $this->formValidation($request);
+        $this->individualFormValidation($request, 'confirm');
         $this->authorizeIndividualRegistrant($request->id);
 
         return $this->registrant->individualRegistrationConfirm($request->all());
@@ -73,11 +73,14 @@ class RegistrantController extends Controller
             'email' => 'required|email',
             'phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
             'whatsapp_number' => ['nullable', 'regex:'.Utils::GHANA_PHONE_REGEX],
+            'is_student' => 'required|boolean',
+            'institution_name' => 'required_if:is_student,1',
             'file' => 'required|mimes:csv,xlx,xls,xlsx|max:1048',
         ],
             [
                 'phone_number.regex' => 'Phone number must be a valid Ghanaian number (e.g., 0248000000).',
                 'whatsapp_number.regex' => 'WhatsApp number must be a valid Ghanaian number (e.g., 0248000000).',
+                'institution_name.required_if' => 'Please enter the institution name.',
             ]);
 
         return $this->registrant->batchImportRegistration($request);
@@ -208,6 +211,48 @@ class RegistrantController extends Controller
         if (! $registrant || $registrant->batch_no != $session->batch_no) {
             abort(403, 'You are not authorized to perform this action.');
         }
+    }
+
+    /**
+     * Position Held, Event Attending, Attendance Type, Other Names,
+     * WhatsApp Number, Emergency Contact Relationship, and Address were
+     * dropped from the individual registration/confirmation forms (they
+     * either default automatically or are set once at initial sign-up -
+     * see RegistrantService::registrantRegistration()/ConfirmationPipe).
+     * This is deliberately separate from formValidation() below, which
+     * stays as the batch confirmation form's validator - that form still
+     * collects all of these fields.
+     */
+    protected function individualFormValidation(Request $request, string $type): void
+    {
+        $request->validate([
+            'title' => 'required',
+            'first_name' => 'required',
+            'surname' => 'required',
+            'gender' => 'required',
+            'date_of_birth' => 'required|date',
+            'marital_status' => 'required',
+            'nationality_id' => 'required',
+            'phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
+            'email' => 'required|email',
+            'profession' => 'required',
+            'residence_country_id' => 'required',
+            'languages_spoken' => 'required',
+            'need_accommodation' => 'required|boolean',
+            'emergency_contacts_name' => 'required',
+            'emergency_contacts_phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
+            'disability' => 'required|boolean',
+            'special_needs' => 'required',
+            'is_student' => 'required|boolean',
+            'institution_name' => 'required_if:is_student,1',
+            'accommodation_fee' => ($type === 'confirm') ? 'required|exists:event_fees,id' : 'nullable',
+            'registration_fee' => ($type === 'confirm') ? 'required|exists:event_fees,id' : 'nullable',
+            'amount_to_pay' => ($type === 'confirm') ? 'required|numeric' : 'nullable',
+        ], [
+            'phone_number.regex' => 'Phone number must be a valid Ghanaian number (e.g., 0248000000).',
+            'emergency_contacts_phone_number.regex' => 'Emergency Contact number must be a valid Ghanaian number (e.g., 0248000000).',
+            'institution_name.required_if' => 'Please enter your institution name.',
+        ]);
     }
 
     protected function formValidation(Request $request, $type = 'update'): void

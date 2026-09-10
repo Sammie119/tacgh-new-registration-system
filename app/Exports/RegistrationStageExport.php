@@ -22,19 +22,19 @@ class RegistrationStageExport implements FromCollection, WithEvents, WithHeading
      */
     private const DROPDOWN_COLUMNS = [
         'title' => ['column' => 'A', 'lookup_code_id' => 22],
-        'gender' => ['column' => 'F', 'lookup_code_id' => 2],
-        'marital_status' => ['column' => 'I', 'lookup_code_id' => 3],
-        'position_held' => ['column' => 'M', 'lookup_code_id' => 5],
-        'profession' => ['column' => 'N', 'lookup_code_id' => 10],
+        'gender' => ['column' => 'E', 'lookup_code_id' => 2],
+        'marital_status' => ['column' => 'G', 'lookup_code_id' => 3],
+        'position_held' => ['column' => 'I', 'lookup_code_id' => 5],
+        'profession' => ['column' => 'J', 'lookup_code_id' => 10],
     ];
 
-    private const ATTENDANCE_TYPE_COLUMN = 'U';
+    private const DATE_OF_BIRTH_COLUMN = 'D';
 
-    private const BOOLEAN_COLUMNS = ['Q', 'V']; // Need Accommodation, Disability
+    private const BOOLEAN_COLUMNS = ['M', 'N']; // Need Accommodation, Disability
 
-    private const NATIONALITY_COLUMN = 'J';
+    private const NATIONALITY_COLUMN = 'H';
 
-    private const RESIDENCE_COUNTRY_COLUMN = 'O';
+    private const RESIDENCE_COUNTRY_COLUMN = 'K';
 
     private const LAST_EXAMPLE_ROW = 201; // generous allowance for a real batch upload
 
@@ -55,25 +55,17 @@ class RegistrationStageExport implements FromCollection, WithEvents, WithHeading
                 'title' => 'Mr.',
                 'first_name' => 'John',
                 'surname' => 'Doe',
-                'other_names' => '',
-                'date_of_birth' => '1990-01-01',
+                'date_of_birth' => '01/01/1990',
                 'gender' => 'Male',
                 'phone_number' => '0248000000',
-                'whatsapp_number' => '0248000000',
                 'marital_status' => 'Single',
                 'nationality' => 'Ghana',
-                'email' => 'john.doe@example.com',
-                'address' => '123 Example Street',
                 'position_held' => 'Member',
                 'profession' => 'Ascension Minister',
                 'residence_country' => 'Ghana',
                 'languages_spoken' => 'English',
-                'need_accommodation' => 1,
-                'emergency_contacts_name' => 'Jane Doe',
-                'emergency_contacts_relationship' => 'Sister',
-                'emergency_contacts_phone_number' => '0248000001',
-                'attendance_type' => 'In-Person',
-                'disability' => 0,
+                'need_accommodation' => 'Yes',
+                'disability' => 'No',
                 'special_needs' => 'None',
             ],
         ]);
@@ -85,24 +77,16 @@ class RegistrationStageExport implements FromCollection, WithEvents, WithHeading
             'Title',
             'First Name',
             'Surname',
-            'Other Names',
             'Date of Birth',
             'Gender',
             'Phone Number',
-            'WhatsApp Number',
             'Marital Status',
             'Nationality',
-            'Email',
-            'Address',
             'Position Held',
             'Profession',
             'Residence Country',
             'Languages Spoken',
             'Need Accommodation',
-            "Emergency Contact's Name",
-            "Emergency Contact's Relationship",
-            "Emergency Contact's Phone Number",
-            'Attendance Type',
             'Disability',
             'Special Needs',
         ];
@@ -118,11 +102,11 @@ class RegistrationStageExport implements FromCollection, WithEvents, WithHeading
 
     /**
      * Dropdown pickers for the short, enumerable fields and help-text
-     * comments for the two free-text fields most likely to be mistyped -
+     * comments for the free-text fields most likely to be mistyped -
      * so a coordinator filling this in by hand can't mistype Title,
-     * Gender, Marital Status, Position Held, Profession, or Attendance
-     * Type, and gets a hint for Nationality/Residence Country and the
-     * two 1/0 fields.
+     * Gender, Marital Status, Position Held, or Profession, and gets a
+     * hint for Date of Birth, Nationality/Residence Country, and the
+     * two Yes/No fields.
      */
     public function registerEvents(): array
     {
@@ -140,19 +124,19 @@ class RegistrationStageExport implements FromCollection, WithEvents, WithHeading
                     $this->applyListValidation($sheet, $column, $options);
                 }
 
-                $this->applyListValidation($sheet, self::ATTENDANCE_TYPE_COLUMN, ['In-Person', 'Online']);
-
                 foreach (self::BOOLEAN_COLUMNS as $column) {
-                    $this->applyListValidation($sheet, $column, ['1', '0']);
+                    $this->applyListValidation($sheet, $column, ['Yes', 'No']);
                 }
 
+                $sheet->getComment(self::DATE_OF_BIRTH_COLUMN.'1')
+                    ->getText()->createTextRun('Enter date as dd/mm/yyyy, e.g. 01/01/1990');
                 $sheet->getComment(self::NATIONALITY_COLUMN.'1')
                     ->getText()->createTextRun('Enter the full country name, e.g. Ghana');
                 $sheet->getComment(self::RESIDENCE_COUNTRY_COLUMN.'1')
                     ->getText()->createTextRun('Enter the full country name, e.g. Ghana');
                 foreach (self::BOOLEAN_COLUMNS as $column) {
                     $sheet->getComment($column.'1')
-                        ->getText()->createTextRun('Enter 1 for Yes, 0 for No');
+                        ->getText()->createTextRun('Enter Yes or No');
                 }
             },
         ];

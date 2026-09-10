@@ -66,7 +66,7 @@ class IdorAuthorizationTest extends TestCase
             'need_accommodation' => 1, 'emergency_contacts_name' => $stage->emergency_contacts_name,
             'emergency_contacts_relationship' => 'Sibling', 'emergency_contacts_phone_number' => '+233541234568',
             'attendance_type' => 'In-Person', 'event_id' => $stage->event_id, 'disability' => 0,
-            'special_needs' => 'None', 'accommodation_fee' => $accommodation->id,
+            'special_needs' => 'None', 'is_student' => 0, 'accommodation_fee' => $accommodation->id,
             'registration_fee' => $registration->id, 'amount_to_pay' => 0,
         ];
     }

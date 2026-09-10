@@ -81,20 +81,35 @@ class RegistrantService
         $data['gender'] = Utils::getLookups(2);
         $data['marital_status'] = Utils::getLookups(3);
         $data['profession'] = Utils::getLookups(10);
-        $data['position_held'] = Utils::getLookups(5);
         $data['nations'] = Country::orderBy('name', 'asc')->get();
         $data['events'] = Event::where('active_flag', 1)->where('status', '!=', 'Completed')->orderBy('name', 'asc')->get();
 
         return view('registrant.registration_form', $data);
     }
 
+    /**
+     * Position Held, Event Attending, Attendance Type, Other Names,
+     * WhatsApp Number, and Emergency Contact Relationship are no longer
+     * collected on the individual registration form - default them here
+     * instead (address/position_held are NOT NULL with no DB default, so
+     * they need an explicit placeholder; the rest are nullable or have
+     * their own DB default and are simply omitted below).
+     */
     public function registrantRegistration(array $data)
     {
+        $activeEvents = Event::where('active_flag', 1)->where('status', '!=', 'Completed')->pluck('id');
+        if ($activeEvents->count() !== 1) {
+            return back()->with('error', 'Unable to determine which event to register you for - please contact the event office.')->withInput();
+        }
+        $data['event_id'] = $activeEvents->first();
+
         $token = Utils::generateUniqueToken(RegistrantStage::class, 6);
 
         $data['phone_number'] = Utils::normalizeGhanaPhone($data['phone_number']);
-        $data['whatsapp_number'] = Utils::normalizeGhanaPhone($data['whatsapp_number']);
+        $data['whatsapp_number'] = Utils::normalizeGhanaPhone($data['whatsapp_number'] ?? $data['phone_number']);
         $data['emergency_contacts_phone_number'] = Utils::normalizeGhanaPhone($data['emergency_contacts_phone_number']);
+
+        $defaultPositionHeld = Dropdown::where('lookup_code_id', 5)->where('full_name', 'Member')->value('id') ?? 0;
 
         $results = RegistrantStage::updateOrCreate([
             'date_of_birth' => $data['date_of_birth'],
@@ -105,23 +120,22 @@ class RegistrantService
             'title' => $data['title'],
             'first_name' => $data['first_name'],
             'surname' => $data['surname'],
-            'other_names' => $data['other_names'],
             'marital_status' => $data['marital_status'],
             'nationality_id' => $data['nationality_id'],
             'whatsapp_number' => $data['whatsapp_number'],
             'email' => $data['email'],
-            'address' => $data['address'],
-            'position_held' => $data['position_held'],
+            'address' => 'N/A',
+            'position_held' => $defaultPositionHeld,
             'profession' => $data['profession'],
             'residence_country_id' => $data['residence_country_id'],
             'languages_spoken' => $data['languages_spoken'],
             'need_accommodation' => $data['need_accommodation'],
             'emergency_contacts_name' => $data['emergency_contacts_name'],
-            'emergency_contacts_relationship' => $data['emergency_contacts_relationship'],
             'emergency_contacts_phone_number' => $data['emergency_contacts_phone_number'],
-            'attendance_type' => $data['attendance_type'],
             'disability' => $data['disability'],
             'special_needs' => $data['special_needs'],
+            'is_student' => $data['is_student'],
+            'institution_name' => $data['is_student'] ? ($data['institution_name'] ?? null) : null,
             'token' => $token,
         ]);
 
@@ -217,7 +231,7 @@ class RegistrantService
 
         try {
             $results = DB::transaction(function () use ($request, $event_id, $batch_no, $token) {
-                Excel::import(new RegistrationStageImport($event_id, $batch_no), $request->file('file'));
+                Excel::import(new RegistrationStageImport($event_id, $batch_no, $request['email'], $request['is_student'], $request['institution_name'] ?? null), $request->file('file'));
 
                 return BatchLog::create([
                     'batch_no' => $batch_no,
@@ -302,9 +316,7 @@ class RegistrantService
             $data['gender'] = Utils::getLookups(2);
             $data['marital_status'] = Utils::getLookups(3);
             $data['profession'] = Utils::getLookups(10);
-            $data['position_held'] = Utils::getLookups(5);
             $data['nations'] = Country::orderBy('name', 'asc')->get();
-            $data['events'] = Event::where('active_flag', 1)->orderBy('name', 'asc')->get();
             $data['accommodation'] = EventFees::selectRaw("id, concat(description, ' - ', 'GHS',fee_amount) as name")->where([
                 'fee_type' => 'accommodation',
                 'event_id' => $data['registrant']->event_id,

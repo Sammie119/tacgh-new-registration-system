@@ -45,10 +45,15 @@ class CsvPhoneNumberImportTest extends TestCase
         $response = (new RegistrantService)->batchImportRegistration($request);
 
         $this->assertTrue(session()->has('success'));
+        // WhatsApp Number and Emergency Contact's Phone Number are no
+        // longer collected on the batch template - the importer mirrors
+        // phone_number into whatsapp_number and leaves
+        // emergency_contacts_phone_number null, ignoring the CSV's own
+        // (now-unrecognized) columns for them.
         $this->assertDatabaseHas('registrants_stage', [
             'phone_number' => '+233500000001',
-            'whatsapp_number' => '+233500000005',
-            'emergency_contacts_phone_number' => '+233500000002',
+            'whatsapp_number' => '+233500000001',
+            'emergency_contacts_phone_number' => null,
         ]);
 
         @unlink($path);
@@ -85,8 +90,8 @@ class CsvPhoneNumberImportTest extends TestCase
         $this->assertTrue(session()->has('success'));
         $this->assertDatabaseHas('registrants_stage', [
             'phone_number' => '+233500000001',
-            'whatsapp_number' => '+233500000005',
-            'emergency_contacts_phone_number' => '+233500000002',
+            'whatsapp_number' => '+233500000001',
+            'emergency_contacts_phone_number' => null,
         ]);
         // The batch coordinator's own contact number, not just the
         // spreadsheet rows, must also be normalized.
