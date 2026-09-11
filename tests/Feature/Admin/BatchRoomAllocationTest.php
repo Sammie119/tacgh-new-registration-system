@@ -136,6 +136,48 @@ class BatchRoomAllocationTest extends TestCase
         $this->assertSame(999, $alreadyRoomedRegistrant->fresh()->room_no);
     }
 
+    public function test_a_partially_paid_but_finance_approved_registrant_is_still_eligible(): void
+    {
+        // Same rule as AssignRoomEpisodeService::addRoomMate(): full
+        // payment needs no approval, but a partial payment paired with
+        // financial clearance (approved == 2) is eligible too.
+        Bus::fake();
+        $event = $this->createEvent();
+        $user = $this->roomAllocatorUser($event);
+        $this->createRoom($event, ['total_occupants' => 10]);
+
+        BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 0,
+        ]);
+        // vw_registration inner-joins on registration_type/accommodation_type
+        // (event_registrant_age(), used by autoRoomAllocation's age guard,
+        // reads from that view), so both must reference real event_fees rows.
+        $accommodationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Regular Room',
+            'fee_amount' => 100, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $registrationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'registration_fee', 'description' => 'Standard',
+            'fee_amount' => 0, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $feeOverrides = ['accommodation_type' => $accommodationFee->id, 'registration_type' => $registrationFee->id];
+
+        [$approvedStage, $approvedRegistrant] = $this->createBatchMember($event, 1, 'TOK1', [], $feeOverrides);
+        OnlinePayment::create(['reg_id' => $approvedStage->id, 'event_id' => $event->id, 'amount_paid' => 40, 'amount_to_pay' => 100, 'approved' => 2]);
+
+        // Same partial amount, but never approved - stays ineligible.
+        [$unapprovedStage, $unapprovedRegistrant] = $this->createBatchMember($event, 1, 'TOK2', [], $feeOverrides);
+        OnlinePayment::create(['reg_id' => $unapprovedStage->id, 'event_id' => $event->id, 'amount_paid' => 40, 'amount_to_pay' => 100, 'approved' => 1]);
+
+        $response = $this->actingAs($user)->post(route('batch_room_allocation.assign'), ['batch_no' => 1]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertNotNull($approvedRegistrant->fresh()->room_no);
+        $this->assertNull($unapprovedRegistrant->fresh()->room_no);
+    }
+
     public function test_a_registrant_with_no_available_room_is_reported_as_skipped(): void
     {
         Bus::fake();

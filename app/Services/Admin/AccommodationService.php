@@ -303,14 +303,24 @@ class AccommodationService
             ->groupBy('reg_id')
             ->pluck('total_paid', 'reg_id');
 
+        // Same rule as AssignRoomEpisodeService::addRoomMate(): full payment
+        // needs no approval, a partial payment does (approved == 2) - a
+        // registrant missing an OnlinePayment row entirely defaults to
+        // not-approved (1), same as addRoomMate()'s `?? 1`.
+        $approvedTotals = OnlinePayment::whereIn('reg_id', $stages->pluck('id'))
+            ->selectRaw('reg_id, MAX(approved) as approved')
+            ->groupBy('reg_id')
+            ->pluck('approved', 'reg_id');
+
         $data['needing_accommodation_counts'] = $stages->countBy('batch_no');
 
         $data['eligible_counts'] = $stages->groupBy('batch_no')->map(
-            fn ($group) => $group->filter(function ($stage) use ($registrants, $paidTotals) {
+            fn ($group) => $group->filter(function ($stage) use ($registrants, $paidTotals, $approvedTotals) {
                 $registrant = $registrants->get($stage->id);
 
                 return $registrant && empty($registrant->room_no)
-                    && ($paidTotals[$stage->id] ?? 0) >= $registrant->total_fee;
+                    && (($paidTotals[$stage->id] ?? 0) >= $registrant->total_fee
+                        || ($approvedTotals[$stage->id] ?? 1) == 2);
             })->count()
         );
 
@@ -339,6 +349,14 @@ class AccommodationService
             ->groupBy('reg_id')
             ->pluck('total_paid', 'reg_id');
 
+        // Same rule as AssignRoomEpisodeService::addRoomMate() and the
+        // eligibility count above: full payment needs no approval, a
+        // partial payment does.
+        $approvedTotals = OnlinePayment::whereIn('reg_id', $stages->pluck('id'))
+            ->selectRaw('reg_id, MAX(approved) as approved')
+            ->groupBy('reg_id')
+            ->pluck('approved', 'reg_id');
+
         $assigned = 0;
         $skipped = 0;
 
@@ -348,7 +366,9 @@ class AccommodationService
                 continue;
             }
 
-            if (($paidTotals[$stage->id] ?? 0) < $registrant->total_fee) {
+            $fullyPaid = ($paidTotals[$stage->id] ?? 0) >= $registrant->total_fee;
+            $approved = ($approvedTotals[$stage->id] ?? 1) == 2;
+            if (! $fullyPaid && ! $approved) {
                 continue;
             }
 

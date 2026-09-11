@@ -40,6 +40,7 @@
                                         <th>Location</th>
                                         <th>Region</th>
                                         <th>Status</th>
+                                        <th class="no-sort">Residents</th>
                                         <th class="no-sort">Action</th>
                                     </tr>
                                 </thead>
@@ -51,14 +52,7 @@
                                             <td>{{ $venue->location }}</td>
                                             <td>{{ get_dropdown_name($venue->region_id) }}</td>
                                             <td>{!! get_active_flag($venue->active_flag) !!}</td>
-                                            <td style="width: 230px">
-                                                <a
-                                                    class="btn rounded-pill btn-icon btn-primary btn-sm"
-                                                    href="{{ route('accommodations', [$venue->id]) }}"
-                                                    title="Resident Setup"
-                                                >
-                                                    <i class="bi bi-arrow-bar-down"></i>
-                                                </a>
+                                            <td style="width: 130px">
                                                 <x-button
                                                     type='button'
                                                     class="btn-info btn-sm"
@@ -72,6 +66,15 @@
                                                     title="Add Resident"
                                                     style="padding: 6px 10px 6px 10px"
                                                 />
+                                            </td>
+                                            <td style="width: 130px">
+                                                <a
+                                                    class="btn rounded-pill btn-icon btn-primary btn-sm"
+                                                    href="{{ route('accommodations', [$venue->id]) }}"
+                                                    title="Resident Setup"
+                                                >
+                                                    <i class="bi bi-arrow-bar-down"></i>
+                                                </a>
                                                 <x-button
                                                     type='button'
                                                     class="btn-icon btn-primary btn-sm"
