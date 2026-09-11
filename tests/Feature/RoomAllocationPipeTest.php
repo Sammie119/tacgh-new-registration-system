@@ -100,7 +100,7 @@ class RoomAllocationPipeTest extends TestCase
         $this->assertDatabaseHas('assigned_room_episodes', [
             'room_id' => $room->id,
             'event_id' => $event->id,
-            'registrant_id' => $registrant->stage_id,
+            'registrant_id' => $registrant->id,
         ]);
 
         $episode = AssignedRoomEpisode::first();

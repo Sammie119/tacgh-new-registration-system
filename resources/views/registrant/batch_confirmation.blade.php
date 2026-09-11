@@ -3,6 +3,8 @@
         <form action="{{ route('batch.confirm') }}" method="post">
             @csrf
             <input type="hidden" value="{{ $registrant->id }}" name="id" >
+            <input type="hidden" value="{{ $registrant->first_name }}" name="emergency_contacts_name" >
+            <input type="hidden" value="{{ $registrant->phone_number }}" name="emergency_contacts_phone_number" >
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -25,15 +27,6 @@
                                     required="true"
                                     label="First Name"
                                     value="{{ $registrant->first_name }}"
-                                />
-                            </div>
-                            <div class="col-md-4">
-                                <x-input-text
-                                    type="text"
-                                    name="other_names"
-                                    required=""
-                                    label="Other Names"
-                                    value="{{ $registrant->other_names }}"
                                 />
                             </div>
                             <div class="col-md-4">
@@ -98,16 +91,6 @@
                             </div>
                             <div class="col-md-4">
                                 <x-input-text
-                                    type="tel"
-                                    name="whatsapp_number"
-                                    required=""
-                                    label="WhatsApp Number"
-                                    value="{{ $registrant->whatsapp_number }}"
-                                    placeholder="0248000000"
-                                />
-                            </div>
-                            <div class="col-md-4">
-                                <x-input-text
                                     type="email"
                                     name="email"
                                     required="true"
@@ -115,28 +98,6 @@
                                     value="{{ $registrant->email }}"
                                 />
                             </div>
-                            <div class="col-md-4">
-                                <x-input-select
-                                    :options="['Yes', 'No']"
-                                    :selected="$registrant->need_accommodation"
-                                    name="need_accommodation"
-                                    :type="1"
-                                    :values="[1, 0]"
-                                    required="true"
-                                    label="Need Accommodation"
-                                />
-                            </div>
-
-                            <div class="col-md-12">
-                                <x-input-text
-                                    type="text"
-                                    name="address"
-                                    required="true"
-                                    label="Address"
-                                    value="{{ $registrant->address }}"
-                                />
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -151,12 +112,13 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <x-input-select
-                                    :options="$position_held"
-                                    :selected="$registrant->position_held"
-                                    name="position_held"
-                                    :type="0"
+                                    :options="['Yes', 'No']"
+                                    :selected="$registrant->need_accommodation"
+                                    name="need_accommodation"
+                                    :type="1"
+                                    :values="[1, 0]"
                                     required="true"
-                                    label="Position Held"
+                                    label="Need Accommodation"
                                 />
                             </div>
                             <div class="col-md-4">
@@ -176,7 +138,7 @@
                                     name="residence_country_id"
                                     :type="0"
                                     required="true"
-                                    label="Country of Resident"
+                                    label="Country of Residence"
                                 />
                             </div>
                             <div class="col-md-4">
@@ -189,58 +151,38 @@
                                 />
                             </div>
 
-                            <div class="col-md-4">
-                                <x-input-text
-                                    type="text"
-                                    name="emergency_contacts_name"
-                                    required="true"
-                                    label="Emergency Contact Person"
-                                    value="{{ $registrant->emergency_contacts_name }}"
-                                />
-                            </div>
-                            <div class="col-md-4">
-                                <x-input-text
-                                    type="text"
-                                    name="emergency_contacts_relationship"
-                                    required="true"
-                                    label="Emergency Contact Relationship"
-                                    value="{{ $registrant->emergency_contacts_relationship }}"
-                                />
-                            </div>
-                            <div class="col-md-4">
-                                <x-input-text
-                                    type="tel"
-                                    name="emergency_contacts_phone_number"
-                                    required="true"
-                                    label="Emergency Contact Phone Number"
-                                    value="{{ $registrant->emergency_contacts_phone_number }}"
-                                    placeholder="0248000000"
-                                />
-                            </div>
-                            <div class="col-md-4">
-                                <x-input-select
-                                    :options="['In-Person', 'Online']"
-                                    :selected="$registrant->attendance_type"
-                                    name="attendance_type"
-                                    :type="1"
-                                    :values="['In-Person', 'Online']"
-                                    required="true"
-                                    label="Attendance Type"
-                                />
-                            </div>
+{{--                            <div class="col-md-4">--}}
+{{--                                <x-input-text--}}
+{{--                                    type="text"--}}
+{{--                                    name="emergency_contacts_name"--}}
+{{--                                    required="true"--}}
+{{--                                    label="Emergency Contact Person"--}}
+{{--                                    value="{{ $registrant->emergency_contacts_name }}"--}}
+{{--                                />--}}
+{{--                            </div>--}}
+{{--                            <div class="col-md-4">--}}
+{{--                                <x-input-text--}}
+{{--                                    type="tel"--}}
+{{--                                    name="emergency_contacts_phone_number"--}}
+{{--                                    required="true"--}}
+{{--                                    label="Emergency Contact Phone Number"--}}
+{{--                                    value="{{ $registrant->emergency_contacts_phone_number }}"--}}
+{{--                                    placeholder="0248000000"--}}
+{{--                                />--}}
+{{--                            </div>--}}
 
-                            <div class="col-md-4">
-                                <input type="hidden" value="{{ $registrant->event_id }}" name="event_id" >
-                                <x-input-select
-                                    :options="$events"
-                                    :selected="$registrant->event_id"
-                                    name="event_id"
-                                    :type="0"
-                                    required="true"
-                                    label="Event Attending"
-                                    disabled
-                                />
-                            </div>
+{{--                            <div class="col-md-4">--}}
+{{--                                <input type="hidden" value="{{ $registrant->event_id }}" name="event_id" >--}}
+{{--                                <x-input-select--}}
+{{--                                    :options="$events"--}}
+{{--                                    :selected="$registrant->event_id"--}}
+{{--                                    name="event_id"--}}
+{{--                                    :type="0"--}}
+{{--                                    required="true"--}}
+{{--                                    label="Event Attending"--}}
+{{--                                    disabled--}}
+{{--                                />--}}
+{{--                            </div>--}}
                             <div class="col-md-4">
                                 <x-input-select
                                     :options="['Yes', 'No']"
@@ -252,7 +194,7 @@
                                     label="Disabled?"
                                 />
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-4">
                                 <x-input-text
                                     type="text"
                                     name="special_needs"

@@ -62,7 +62,7 @@
                                     >
                                 </td>
                                 <td>{{ get_room_number($confirmed_registrant->room_no ?? 0) }}</td>
-                                @if($amount_paid < ($confirmed_registrant->total_fee ?? 0))
+                                @if(!$confirmed_registrant || $amount_paid < $confirmed_registrant->total_fee)
                                     <td style="width: 90px">
                                         <x-button
                                             type='button'

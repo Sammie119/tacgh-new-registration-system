@@ -118,10 +118,19 @@ class RoomAllocationPipe
                     // matching this room+event+registrant here must be a
                     // stale inactive one and needs reactivating rather than
                     // being left untouched.
+                    //
+                    // registrant_id must be the Registrant primary key
+                    // (matches AssignRoomEpisodeService's addRoomMate/
+                    // transferRoomMate convention, and every read of this
+                    // column that resolves it to a person) - $registrant['id']
+                    // here is the RegistrantStage id, which is what
+                    // event_registrant_name()/event_registrant_age() and the
+                    // notification jobs below correctly expect, but is the
+                    // wrong id space for this column.
                     AssignedRoomEpisode::updateOrCreate([
                         'room_id' => $room->id,
                         'event_id' => $event['id'],
-                        'registrant_id' => $registrant['id'],
+                        'registrant_id' => $data['confirmed_registrant']->id,
                     ], [
                         'checkin_date' => now()->toDateString(),
                         'active_flag' => 1,

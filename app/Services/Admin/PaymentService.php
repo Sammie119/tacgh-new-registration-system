@@ -32,7 +32,7 @@ class PaymentService
             'email' => $reg['email'],
             'amount' => $amount * 100,
             'reference' => 'APOSA-'.$year.'-'.Str::random(16),
-            'subaccount' => config('services.paystack.subaccount_code'),
+//            'subaccount' => config('services.paystack.subaccount_code'),
             'metadata' => [
                 'name' => event_registrant_name($reg['id']),
                 'phone' => $reg['phone_number'],
