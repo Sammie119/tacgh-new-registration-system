@@ -165,8 +165,11 @@ class FinancePaymentsIndexTest extends TestCase
 
     public function test_the_approved_select_shows_disapproved_by_default(): void
     {
+        // The select only appears for a partial payment - a full payment
+        // shows the "Fully Paid" badge instead (see the next test file).
         $user = $this->financeUser();
-        $this->createPayment(1, 'NotYetReviewed');
+        $payment = $this->createPayment(1, 'NotYetReviewed');
+        $payment->update(['amount_paid' => 50]);
 
         $response = $this->actingAs($user)->get(route('payments'));
 
@@ -178,11 +181,28 @@ class FinancePaymentsIndexTest extends TestCase
     {
         $user = $this->financeUser();
         $payment = $this->createPayment(1, 'Cleared');
-        $payment->update(['approved' => 2]);
+        $payment->update(['amount_paid' => 50, 'approved' => 2]);
 
         $response = $this->actingAs($user)->get(route('payments'));
 
         $response->assertOk();
         $response->assertSeeInOrder(['<option value="1" >Disapproved</option>', '<option value="2"  selected >Approved</option>'], false);
+    }
+
+    public function test_a_fully_paid_registrant_shows_a_fully_paid_badge_instead_of_the_approval_select(): void
+    {
+        // A full payment needs no approval decision at all - showing an
+        // actionable Approved/Disapproved control would be misleading.
+        $user = $this->financeUser();
+        $this->createPayment(1, 'PaidInFull');
+
+        $response = $this->actingAs($user)->get(route('payments'));
+
+        $response->assertOk();
+        $response->assertSee('Fully Paid');
+        // "Disapproved" also appears in a static HTML comment elsewhere on
+        // the page, unrelated to any row - check for the actual <option>
+        // markup the select would render instead.
+        $this->assertStringNotContainsString('<option value="1"', $response->getContent());
     }
 }

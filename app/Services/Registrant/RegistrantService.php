@@ -82,7 +82,6 @@ class RegistrantService
         $data['marital_status'] = Utils::getLookups(3);
         $data['profession'] = Utils::getLookups(10);
         $data['nations'] = Country::orderBy('name', 'asc')->get();
-        $data['events'] = Event::where('active_flag', 1)->where('status', '!=', 'Completed')->orderBy('name', 'asc')->get();
 
         return view('registrant.registration_form', $data);
     }
@@ -185,7 +184,12 @@ class RegistrantService
         $data_results['confirmed_registrant'] = Registrant::where('stage_id', $data['id'])->first();
 
         if ($data_results['confirmed_registrant']->total_fee == 0) {
-            (new RoomAllocationPipe)->autoRoomAllocation($data_results);
+            $paid = OnlinePayment::where('reg_id', $data['id'])->sum('amount_paid');
+            $approved = OnlinePayment::where('reg_id', $data['id'])->max('approved');
+
+            if (Utils::isEligibleForRoomAllocation(0, $paid, $approved)) {
+                (new RoomAllocationPipe)->autoRoomAllocation($data_results);
+            }
         }
 
         return back()->with('success', 'Registration Confirmation Successful!!!');
@@ -225,7 +229,15 @@ class RegistrantService
 
     public function batchImportRegistration($request)
     {
-        $event_id = $request['event_id'];
+        // Event Attending is no longer a form field - auto-resolve it the
+        // same way registrantRegistration() does, rather than trusting a
+        // submitted event_id.
+        $activeEvents = Event::where('active_flag', 1)->where('status', '!=', 'Completed')->pluck('id');
+        if ($activeEvents->count() !== 1) {
+            return back()->with('error', 'Unable to determine which event this batch is for - please contact the event office.')->withInput();
+        }
+        $event_id = $activeEvents->first();
+
         $batch_no = date('YmdHis');
         $token = Utils::generateUniqueToken(BatchLog::class);
 
@@ -235,7 +247,7 @@ class RegistrantService
 
                 return BatchLog::create([
                     'batch_no' => $batch_no,
-                    'event_id' => $request['event_id'],
+                    'event_id' => $event_id,
                     'email' => $request['email'],
                     'phone_number' => Utils::normalizeGhanaPhone($request['phone_number']),
                     'whatsapp_number' => Utils::normalizeGhanaPhone($request['whatsapp_number']),
@@ -350,8 +362,9 @@ class RegistrantService
                                 (new PaymentService)->paymentReceipt($data, $paymentDetails, $response);
 
                                 $total_payment_made = OnlinePayment::where('reg_id', $data['registrant']['id'])->sum('amount_paid');
+                                $approved = OnlinePayment::where('reg_id', $data['registrant']['id'])->max('approved');
 
-                                if ($total_payment_made >= $data['confirmed_registrant']->total_fee) {
+                                if (Utils::isEligibleForRoomAllocation($data['confirmed_registrant']->total_fee, $total_payment_made, $approved)) {
                                     // Room Allocation Function Here.........
                                     (new RoomAllocationPipe)->autoRoomAllocation($data);
 
@@ -405,8 +418,9 @@ class RegistrantService
                                     $data2['registrant'] = RegistrantStage::find($payment['registrant_id']);
 
                                     $total_payment_made = OnlinePayment::where('reg_id', $payment['registrant_id'])->sum('amount_paid');
+                                    $approved = OnlinePayment::where('reg_id', $payment['registrant_id'])->max('approved');
 
-                                    if ($total_payment_made >= $data2['confirmed_registrant']->total_fee) {
+                                    if (Utils::isEligibleForRoomAllocation($data2['confirmed_registrant']->total_fee, $total_payment_made, $approved)) {
                                         // Room Allocation Function Here.........
                                         (new RoomAllocationPipe)->autoRoomAllocation($data2);
 
@@ -509,7 +523,15 @@ class RegistrantService
                     continue;
                 }
 
-                (new RoomAllocationPipe)->autoRoomAllocation($data2);
+                // $realTotalOwed == 0 is an aggregate across the whole
+                // batch - an individual registrant within it can still be
+                // the 0-fee/0-paid case that needs its own approval.
+                $paid = OnlinePayment::where('reg_id', $registrant['registrant_id'])->sum('amount_paid');
+                $approved = OnlinePayment::where('reg_id', $registrant['registrant_id'])->max('approved');
+
+                if (Utils::isEligibleForRoomAllocation($data2['confirmed_registrant']->total_fee, $paid, $approved)) {
+                    (new RoomAllocationPipe)->autoRoomAllocation($data2);
+                }
             }
 
             return back()->with('success', 'Registration Confirmation Successful!!!');

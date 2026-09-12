@@ -304,16 +304,6 @@
                                                 <div class="row g-3">
                                                     <a href="{{ route('registrant_download') }}" class="btn btn-link btn-flat">Click here to download excel template</a>
                                                     <div class="col-md-3">
-                                                        <x-input-select
-                                                            :options="$events"
-                                                            :selected="0"
-                                                            name="event_id"
-                                                            :type="0"
-                                                            required="true"
-                                                            label="Event Attending"
-                                                        />
-                                                    </div>
-                                                    <div class="col-md-3">
                                                         <x-input-text
                                                             type="email"
                                                             name="email"
@@ -373,7 +363,7 @@
                                                             onchange="toggleBatchInstitutionName(this)"
                                                         />
                                                     </div>
-                                                    <div class="col-md-6" id="batchInstitutionNameWrapper" style="display:none">
+                                                    <div class="col-md-9" id="batchInstitutionNameWrapper" style="display:none">
                                                         <x-input-text
                                                             type="text"
                                                             name="institution_name"

@@ -178,6 +178,45 @@ class BatchRoomAllocationTest extends TestCase
         $this->assertNull($unapprovedRegistrant->fresh()->room_no);
     }
 
+    public function test_a_zero_fee_registrant_with_nothing_paid_needs_finance_approval_too(): void
+    {
+        // A 0.00 total_fee with 0.00 paid is NOT vacuously "fully paid" -
+        // it needs the same explicit approval a genuine partial payment
+        // would, same as everywhere else this rule applies.
+        Bus::fake();
+        $event = $this->createEvent();
+        $user = $this->roomAllocatorUser($event);
+        $this->createRoom($event, ['total_occupants' => 10]);
+
+        BatchLog::create([
+            'batch_no' => 1, 'event_id' => $event->id, 'email' => 'batch@example.com',
+            'confirmed' => 'No', 'token' => 'BTOK123', 'total_registration_fees' => 0,
+        ]);
+        $accommodationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'accommodation', 'description' => 'Regular Room',
+            'fee_amount' => 0, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $registrationFee = EventFees::create([
+            'event_id' => $event->id, 'fee_type' => 'registration_fee', 'description' => 'Standard',
+            'fee_amount' => 0, 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1,
+        ]);
+        $feeOverrides = ['accommodation_type' => $accommodationFee->id, 'registration_type' => $registrationFee->id, 'total_fee' => 0];
+
+        // No OnlinePayment row at all - not eligible.
+        [, $noPaymentRowRegistrant] = $this->createBatchMember($event, 1, 'TOK1', [], $feeOverrides);
+
+        // approved == 2 despite 0.00/0.00 - eligible.
+        [$approvedStage, $approvedZeroFeeRegistrant] = $this->createBatchMember($event, 1, 'TOK2', [], $feeOverrides);
+        OnlinePayment::create(['reg_id' => $approvedStage->id, 'event_id' => $event->id, 'amount_paid' => 0, 'amount_to_pay' => 0, 'approved' => 2]);
+
+        $response = $this->actingAs($user)->post(route('batch_room_allocation.assign'), ['batch_no' => 1]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertNull($noPaymentRowRegistrant->fresh()->room_no);
+        $this->assertNotNull($approvedZeroFeeRegistrant->fresh()->room_no);
+    }
+
     public function test_a_registrant_with_no_available_room_is_reported_as_skipped(): void
     {
         Bus::fake();

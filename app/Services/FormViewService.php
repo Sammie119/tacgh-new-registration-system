@@ -37,6 +37,7 @@ class FormViewService
         'payment_history' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'registrant_details' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
         'event_details' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'batch_registrants' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
     ];
 
     public static function view($type, $id)
@@ -153,6 +154,33 @@ class FormViewService
                 $data['venue'] = EventVenue::find($data['event']->venue_id);
 
                 return view('admin.event.details', $data);
+
+            case 'batch_registrants':
+                $data['batch_no'] = $id;
+                $data['registrants'] = RegistrantStage::where('batch_no', $id)
+                    ->where('event_id', get_logged_in_user_event_id())
+                    ->orderBy('id')
+                    ->get();
+
+                $data['confirmed_registrants'] = Registrant::whereIn('stage_id', $data['registrants']->pluck('id'))
+                    ->get()->keyBy('stage_id');
+
+                // Same rule as AssignRoomEpisodeService::addRoomMate()/the
+                // Finances page: full payment or finance approval, per
+                // registrant.
+                $stageIds = $data['registrants']->pluck('id');
+
+                $data['paid_totals'] = OnlinePayment::whereIn('reg_id', $stageIds)
+                    ->selectRaw('reg_id, SUM(amount_paid) as total_paid')
+                    ->groupBy('reg_id')
+                    ->pluck('total_paid', 'reg_id');
+
+                $data['approved_totals'] = OnlinePayment::whereIn('reg_id', $stageIds)
+                    ->selectRaw('reg_id, MAX(approved) as approved')
+                    ->groupBy('reg_id')
+                    ->pluck('approved', 'reg_id');
+
+                return view('admin.accommodation.batch_registrants', $data);
 
             default:
                 return 'No Form Selected';

@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Helpers\Utils;
 use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\AssignedRoomEpisode;
 use App\Models\Admin\OnlinePayment;
@@ -24,7 +25,7 @@ class AssignRoomEpisodeService
         $financial_clarance = OnlinePayment::where(['reg_id' => $registrant->stage_id, 'event_id' => $data['event_id']])->first();
         $total_payment = OnlinePayment::where(['reg_id' => $registrant->stage_id, 'event_id' => $data['event_id']])->sum('amount_paid');
 
-        if (($total_payment < $registrant->total_fee) && (($financial_clarance->approved ?? 1) == 1)) {
+        if (! Utils::isEligibleForRoomAllocation($registrant->total_fee, $total_payment, $financial_clarance->approved ?? 1)) {
             return back()->with('error', "Registration No. $data[registration_no] has not completed payment yet!!! See Finance Committee.");
         }
 

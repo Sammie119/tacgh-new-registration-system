@@ -9,6 +9,7 @@ use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\AssignedRoomEpisode;
 use App\Models\Admin\Event;
 use App\Models\Admin\EventFees;
+use App\Models\Admin\OnlinePayment;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
 use App\Models\User;
@@ -102,6 +103,10 @@ class AssignRoomEpisodeTest extends TestCase
             'registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id,
             'accommodation_type' => $accommodationFee->id, 'registration_type' => $registrationFee->id,
         ]);
+        // total_fee defaults to 0.00 with no payment row at all - that
+        // specific combination now needs finance approval too, same as a
+        // genuine partial payment.
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 0, 'amount_to_pay' => 0, 'approved' => 2]);
 
         $response = $this->actingAs($user)->post(route('add_roommate'), [
             'room_id' => $room->id,
@@ -239,6 +244,10 @@ class AssignRoomEpisodeTest extends TestCase
             'registration_no' => 'REG-1', 'stage_id' => $stage->id, 'event_id' => $event->id,
             'accommodation_type' => $accommodationFee->id, 'registration_type' => $registrationFee->id,
         ]);
+        // total_fee defaults to 0.00 with no payment row at all - that
+        // specific combination now needs finance approval too, same as a
+        // genuine partial payment.
+        OnlinePayment::create(['reg_id' => $stage->id, 'event_id' => $event->id, 'amount_paid' => 0, 'amount_to_pay' => 0, 'approved' => 2]);
         // This registrant's own prior episode is inactive too - must not
         // trip the "already assigned to another room" guard.
         AssignedRoomEpisode::create([

@@ -69,7 +69,6 @@ class RegistrantController extends Controller
     public function batchRegistrationStage(Request $request)
     {
         $request->validate([
-            'event_id' => 'required|exists:events,id',
             'email' => 'required|email',
             'phone_number' => ['required', 'regex:'.Utils::GHANA_PHONE_REGEX],
             'whatsapp_number' => ['nullable', 'regex:'.Utils::GHANA_PHONE_REGEX],

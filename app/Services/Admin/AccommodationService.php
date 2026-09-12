@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Helpers\Utils;
 use App\Models\Admin\Accommodation;
 use App\Models\Admin\AccommodationBlock;
 use App\Models\Admin\AccommodationRoom;
@@ -319,8 +320,7 @@ class AccommodationService
                 $registrant = $registrants->get($stage->id);
 
                 return $registrant && empty($registrant->room_no)
-                    && (($paidTotals[$stage->id] ?? 0) >= $registrant->total_fee
-                        || ($approvedTotals[$stage->id] ?? 1) == 2);
+                    && Utils::isEligibleForRoomAllocation($registrant->total_fee, $paidTotals[$stage->id] ?? 0, $approvedTotals[$stage->id] ?? 1);
             })->count()
         );
 
@@ -366,9 +366,7 @@ class AccommodationService
                 continue;
             }
 
-            $fullyPaid = ($paidTotals[$stage->id] ?? 0) >= $registrant->total_fee;
-            $approved = ($approvedTotals[$stage->id] ?? 1) == 2;
-            if (! $fullyPaid && ! $approved) {
+            if (! Utils::isEligibleForRoomAllocation($registrant->total_fee, $paidTotals[$stage->id] ?? 0, $approvedTotals[$stage->id] ?? 1)) {
                 continue;
             }
 

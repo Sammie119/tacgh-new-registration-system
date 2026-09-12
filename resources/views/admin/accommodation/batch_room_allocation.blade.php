@@ -34,6 +34,7 @@
                                     <th>Coordinator Phone</th>
                                     <th>Needing Accommodation</th>
                                     <th>Eligible Now</th>
+                                    <th class="no-sort">Registrants</th>
                                     <th class="no-sort">Action</th>
                                 </tr>
                                 </thead>
@@ -50,6 +51,20 @@
                                         <td>{{ $batch->phone_number }}</td>
                                         <td>{{ $needingCount }}</td>
                                         <td>{{ $eligibleCount }}</td>
+                                        <td style="width: 140px">
+                                            <x-button
+                                                type='button'
+                                                class="btn-info btn-sm"
+                                                icon="bi bi-people-fill"
+                                                name="View"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#exampleModal"
+                                                data-bs-title="Registrants in Batch {{ $batch->batch_no }}"
+                                                data-bs-url="/execute_form/view/batch_registrants/{{ $batch->batch_no }}"
+                                                data-bs-size="modal-lg"
+                                                title="View every registrant in this batch and their assigned room"
+                                            />
+                                        </td>
                                         <td style="width: 160px">
                                             @if($eligibleCount > 0)
                                                 <form method="POST" action="{{ route('batch_room_allocation.assign') }}">
@@ -70,7 +85,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7">No Data Found</td>
+                                        <td colspan="8">No Data Found</td>
                                     </tr>
                                 @endforelse
                                 </tbody>
@@ -85,4 +100,6 @@
         </section>
 
     </main><!-- End #main -->
+
+    <x-modal />
 @endsection

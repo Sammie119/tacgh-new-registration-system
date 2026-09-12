@@ -15,9 +15,11 @@ class PaymentService
         if (isset($data['batch'])) {
             $reg = BatchLog::find($data['batch_id']);
             $owed = $this->batchOutstandingBalance($data['batch_id']);
+            $mata_name = "Batch Payment";
         } else {
             $reg = RegistrantStage::find($data['stage_id']);
             $owed = $this->registrantOutstandingBalance($data['stage_id']);
+            $mata_name = event_registrant_name($reg['id']);
         }
 
         // The client-submitted amount is only ever used to let someone pay
@@ -30,11 +32,11 @@ class PaymentService
 
         return [
             'email' => $reg['email'],
-            'amount' => $amount * 100,
+            'amount' => ceil($amount * 100),
             'reference' => 'APOSA-'.$year.'-'.Str::random(16),
 //            'subaccount' => config('services.paystack.subaccount_code'),
             'metadata' => [
-                'name' => event_registrant_name($reg['id']),
+                'name' => $mata_name,
                 'phone' => $reg['phone_number'],
             ],
             'callback_url' => isset($data['batch']) ? route('registrant_page_batch') : route('registrant_page'),

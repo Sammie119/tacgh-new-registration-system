@@ -75,6 +75,7 @@
                                         $amountToPay = $total->amount_to_pay ?? 0;
                                         $amountPaid = $total->amount_paid ?? 0;
                                         $approved = (int) ($total->approved ?? 1);
+                                        $fullyPaid = $amountToPay > 0 && $amountPaid >= $amountToPay;
                                     @endphp
                                     <tr class="registrant_{{ $finance->id }}">
                                         <td style="width: 40px">{{ $finances->firstItem() + $key }}</td>
@@ -83,12 +84,16 @@
                                         <td>{{ number_format($amountToPay, 2) }}</td>
                                         <td>{{ number_format($amountPaid, 2) }}</td>
                                         <td style="width: 150px">
-                                            <select class="form-select form-select-sm"
-                                                    data-payment-id="{{ $total->latest_payment_id ?? '' }}"
-                                                    onchange="openClearanceModal(this)">
-                                                <option value="1" @if($approved !== 2) selected @endif>Disapproved</option>
-                                                <option value="2" @if($approved === 2) selected @endif>Approved</option>
-                                            </select>
+                                            @if($fullyPaid)
+                                                <span class="badge bg-success" title="Fully paid - no approval needed">Fully Paid</span>
+                                            @else
+                                                <select class="form-select form-select-sm"
+                                                        data-payment-id="{{ $total->latest_payment_id ?? '' }}"
+                                                        onchange="openClearanceModal(this)">
+                                                    <option value="1" @if($approved !== 2) selected @endif>Disapproved</option>
+                                                    <option value="2" @if($approved === 2) selected @endif>Approved</option>
+                                                </select>
+                                            @endif
                                         </td>
                                         <td style="width: 110px">
                                             <x-button

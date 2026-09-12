@@ -103,6 +103,23 @@ class Utils
         return 0;
     }
 
+    /**
+     * Whether a registrant has satisfied payment for room-allocation
+     * purposes: fully paid, unless total_fee and amount_paid are BOTH
+     * 0.00 - that specific combination hasn't actually demonstrated
+     * anything and falls back to needing the same explicit finance
+     * approval a genuine partial payment already requires.
+     */
+    public static function isEligibleForRoomAllocation($totalFee, $amountPaid, $approved): bool
+    {
+        $totalFee = (float) $totalFee;
+        $amountPaid = (float) $amountPaid;
+
+        $fullyPaid = $amountPaid >= $totalFee && ! ($totalFee === 0.0 && $amountPaid === 0.0);
+
+        return $fullyPaid || (int) ($approved ?? 1) === 2;
+    }
+
     public static function fileUpload($request, $folder = 'uploads', $file_url = null)
     {
         if ($file_url !== null) {
