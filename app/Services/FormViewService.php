@@ -12,6 +12,7 @@ use App\Models\Admin\Event;
 use App\Models\Admin\EventFees;
 use App\Models\Admin\EventVenue;
 use App\Models\Admin\OnlinePayment;
+use App\Models\Admin\Promotion;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
 use App\Models\User;
@@ -33,6 +34,7 @@ class FormViewService
         'blocks_setup' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
         'generate_rooms' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
         'fees' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'promotions' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
         'financial_clearance' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'payment_history' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'registrant_details' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
@@ -105,6 +107,12 @@ class FormViewService
                 ])->get();
 
                 return view('admin.event.fees', $data);
+
+            case 'promotions':
+                $data['event_id'] = $id;
+                $data['promotions'] = Promotion::where('event_id', $id)->orderByDesc('starts_at')->get();
+
+                return view('admin.event.promotions', $data);
 
             case 'financial_clearance':
                 $data['payment'] = OnlinePayment::find($id);

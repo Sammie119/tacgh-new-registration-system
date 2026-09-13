@@ -3,6 +3,7 @@
 namespace App\Pipelines\Registration;
 
 use App\Helpers\Utils;
+use App\Models\Admin\Promotion;
 use App\Models\Registrant;
 use Illuminate\Support\Facades\DB;
 
@@ -16,12 +17,17 @@ class RegistrantPipe
         $prefix = $event->code_prefix;
 
         $amount_to_pay = floatval($data['amount_to_pay']);
+        // Tag the snapshot with whichever promotion (if any) produced this
+        // discount, so Promotion::revertExpiredDiscountIfUnpaid() can later
+        // tell whether - and to what - this registrant's fee should revert.
+        $promotion = Promotion::currentlyActiveFor($data['event_id']);
         $fees = [
             'accommodation_type' => $data['accommodation_fee'],
             'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
             'registration_type' => $data['registration_fee'],
             'registration_fee' => Utils::eventRegistrationFee($data['registration_fee']),
             'total_fee' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
+            'promotion_id' => $promotion?->id,
         ];
 
         $registrant = DB::transaction(function () use ($data, $prefix, $ref_date, $fees) {

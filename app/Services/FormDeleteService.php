@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\EventFeesController;
 use App\Http\Controllers\Admin\EventVenueController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 
@@ -31,6 +32,7 @@ class FormDeleteService
         'accommodation' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
         'event' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
         'fees' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
+        'promotions' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
         'roommate' => [RolesEnum::SYSTEMADMIN, RolesEnum::ROOMALLOCATOR, RolesEnum::SUPERADMIN],
         'financial_entry' => [RolesEnum::SYSTEMADMIN, RolesEnum::FINANCE, RolesEnum::SUPERADMIN],
         'downloads' => [RolesEnum::SYSTEMADMIN, RolesEnum::SUPERADMIN],
@@ -67,6 +69,9 @@ class FormDeleteService
 
             case 'fees':
                 return EventFeesController::destroy($id);
+
+            case 'promotions':
+                return PromotionController::destroy($id);
 
             case 'roommate':
                 return AssignedRoomEpisodeController::destroy($id);

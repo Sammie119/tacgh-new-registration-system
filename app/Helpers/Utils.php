@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\EventFees;
+use App\Models\Admin\Promotion;
 use Illuminate\Support\Facades\File;
 
 class Utils
@@ -95,12 +96,47 @@ class Utils
 
     public static function eventRegistrationFee($id)
     {
-        $fee = EventFees::find($id)?->fee_amount;
-        if ($fee) {
-            return $fee;
+        $fee = EventFees::find($id);
+        if (! $fee) {
+            return 0;
         }
 
-        return 0;
+        return self::applyActivePromotion((float) $fee->fee_amount, $fee->event_id, $fee->fee_type);
+    }
+
+    /**
+     * Applies whichever promotion (if any) is currently active for this
+     * event + fee type to a raw fee amount.
+     */
+    private static function applyActivePromotion(float $amount, $eventId, string $feeType): float
+    {
+        $promotion = Promotion::activeFor($eventId, $feeType);
+        if (! $promotion) {
+            return $amount;
+        }
+
+        return round($amount - ($amount * ((float) $promotion->discount_percentage / 100)), 2);
+    }
+
+    /**
+     * Fee-selection dropdown options (id/name pairs, matching what
+     * x-input-select's type=0 branch expects) with any active discount
+     * reflected in the label, so the price shown always matches what
+     * confirming right now would actually charge.
+     */
+    public static function feeOptionsFor($eventId, string $feeType)
+    {
+        return EventFees::where(['fee_type' => $feeType, 'event_id' => $eventId, 'active_flag' => 1])
+            ->get()
+            ->map(function ($fee) {
+                $original = (float) $fee->fee_amount;
+                $discounted = self::applyActivePromotion($original, $fee->event_id, $fee->fee_type);
+                $label = $discounted < $original
+                    ? $fee->description.' - GHS'.number_format($discounted, 2).' (was GHS'.number_format($original, 2).')'
+                    : $fee->description.' - GHS'.number_format($original, 2);
+
+                return ['id' => $fee->id, 'name' => $label];
+            });
     }
 
     /**

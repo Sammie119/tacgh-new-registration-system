@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Admin\OnlinePayment;
+use App\Models\Admin\Promotion;
 use App\Models\BatchLog;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
@@ -49,6 +50,12 @@ class PaymentService
         if (! $registrant) {
             return 0;
         }
+
+        // A promotion that discounted this registrant's fee may have ended
+        // since the snapshot was taken - revert to the original price if
+        // they still haven't paid in full before computing what's owed.
+        Promotion::revertExpiredDiscountIfUnpaid($registrant);
+        $registrant->refresh();
 
         $paid = OnlinePayment::where('reg_id', $stageId)->sum('amount_paid');
 

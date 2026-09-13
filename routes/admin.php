@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\EventVenueController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\FormController;
 use App\Http\Controllers\Admin\NotificationLogController;
+use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\RegistrantController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,10 @@ Route::middleware('auth')->group(function () {
 
             Route::controller(EventFeesController::class)->group(function () {
                 Route::post('/fees', 'store')->name('fees');
+            });
+
+            Route::controller(PromotionController::class)->group(function () {
+                Route::post('/promotions', 'store')->name('promotions');
             });
 
             Route::controller(DownloadController::class)->group(function () {

@@ -13,8 +13,8 @@ use App\Models\Admin\AccommodationRoom;
 use App\Models\Admin\Country;
 use App\Models\Admin\Dropdown;
 use App\Models\Admin\Event;
-use App\Models\Admin\EventFees;
 use App\Models\Admin\OnlinePayment;
+use App\Models\Admin\Promotion;
 use App\Models\BatchLog;
 use App\Models\Registrant;
 use App\Models\RegistrantStage;
@@ -204,12 +204,19 @@ class RegistrantService
             return back()->with('error', 'Select Registration Fee less than or equal to paid amount.');
         }
 
+        // Changing the fee selection can move a registrant into or out of
+        // an active promotion window - re-resolve promotion_id here too,
+        // same as the initial confirmation snapshot.
+        $eventId = Registrant::where('stage_id', $data['reg_id'])->value('event_id');
+        $promotion = Promotion::currentlyActiveFor($eventId);
+
         $result = Registrant::where('stage_id', $data['reg_id'])->update([
             'accommodation_type' => $data['accommodation_fee'],
             'accommodation_fee' => Utils::eventRegistrationFee($data['accommodation_fee']),
             'registration_type' => $data['registration_fee'],
             'registration_fee' => Utils::eventRegistrationFee($data['registration_fee']),
             'total_fee' => Utils::eventRegistrationFee($data['accommodation_fee']) + Utils::eventRegistrationFee($data['registration_fee']),
+            'promotion_id' => $promotion?->id,
         ]);
 
         if ($result) {
@@ -329,17 +336,19 @@ class RegistrantService
             $data['marital_status'] = Utils::getLookups(3);
             $data['profession'] = Utils::getLookups(10);
             $data['nations'] = Country::orderBy('name', 'asc')->get();
-            $data['accommodation'] = EventFees::selectRaw("id, concat(description, ' - ', 'GHS',fee_amount) as name")->where([
-                'fee_type' => 'accommodation',
-                'event_id' => $data['registrant']->event_id,
-                'active_flag' => 1,
-            ])->get();
-            $data['registration'] = EventFees::selectRaw("id, concat(description, ' - ', 'GHS',fee_amount) as name")->where([
-                'fee_type' => 'registration_fee',
-                'event_id' => $data['registrant']->event_id,
-                'active_flag' => 1,
-            ])->get();
+            $data['accommodation'] = Utils::feeOptionsFor($data['registrant']->event_id, 'accommodation');
+            $data['registration'] = Utils::feeOptionsFor($data['registrant']->event_id, 'registration_fee');
             $data['confirmed_registrant'] = Registrant::where('stage_id', $data['registrant']['id'])->first();
+
+            // A promotion that discounted this registrant's fee may have
+            // ended since they last checked in - revert to the original
+            // price if they still haven't paid in full, before showing
+            // them (or letting them act on) a stale discounted balance.
+            if ($data['confirmed_registrant']) {
+                Promotion::revertExpiredDiscountIfUnpaid($data['confirmed_registrant']);
+                $data['confirmed_registrant']->refresh();
+            }
+
             $data['payments'] = OnlinePayment::where('reg_id', $data['registrant']['id'])->get();
 
             if (! empty($reference)) {
@@ -452,17 +461,14 @@ class RegistrantService
         $data['position_held'] = Utils::getLookups(5);
         $data['nations'] = Country::orderBy('name', 'asc')->get();
         $data['events'] = Event::where('active_flag', 1)->orderBy('name', 'asc')->get();
-        $data['accommodation'] = EventFees::selectRaw("id, concat(description, ' - ', 'GHS',fee_amount) as name")->where([
-            'fee_type' => 'accommodation',
-            'event_id' => $data['registrant']->event_id,
-            'active_flag' => 1,
-        ])->get();
-        $data['registration'] = EventFees::selectRaw("id, concat(description, ' - ', 'GHS',fee_amount) as name")->where([
-            'fee_type' => 'registration_fee',
-            'event_id' => $data['registrant']->event_id,
-            'active_flag' => 1,
-        ])->get();
+        $data['accommodation'] = Utils::feeOptionsFor($data['registrant']->event_id, 'accommodation');
+        $data['registration'] = Utils::feeOptionsFor($data['registrant']->event_id, 'registration_fee');
         $data['confirmed_registrant'] = Registrant::where('stage_id', $id)->first();
+
+        if ($data['confirmed_registrant']) {
+            Promotion::revertExpiredDiscountIfUnpaid($data['confirmed_registrant']);
+            $data['confirmed_registrant']->refresh();
+        }
 
         return view('registrant.batch_confirmation', $data);
     }

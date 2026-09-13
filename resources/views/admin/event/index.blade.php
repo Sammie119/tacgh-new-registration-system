@@ -92,6 +92,19 @@
                                             />
                                             <x-button
                                                 type='button'
+                                                class="btn-warning btn-sm"
+                                                icon="bi bi-percent"
+                                                name="Promotions"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#exampleModal"
+                                                data-bs-title="Manage Promotions for {{ $event->name }}"
+                                                data-bs-url="/execute_form/view/promotions/{{ $event->id }}"
+                                                data-bs-size="modal-xl"
+                                                title="Manage Promotions"
+                                                style="padding: 6px 10px 6px 10px"
+                                            />
+                                            <x-button
+                                                type='button'
                                                 class="btn-icon btn-primary btn-sm"
                                                 icon="bi bi-pencil-square"
                                                 name=""

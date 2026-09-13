@@ -500,7 +500,7 @@
                                                     <td>
                                                         <select name="accommodation_fee" class="form-control">
                                                             @foreach ($accommodation as $item)
-                                                                <option @if($confirmed_registrant->accommodation_type == $item->id) selected @endif value="{{ $item->id }}">{{ $item->name }}</option>
+                                                                <option @if($confirmed_registrant->accommodation_type == $item['id']) selected @endif value="{{ $item['id'] }}">{{ $item['name'] }}</option>
                                                             @endforeach
                                                         </select>
                                                     </td>
@@ -511,7 +511,7 @@
                                                     <td>
                                                         <select name="registration_fee" class="form-control">
                                                             @foreach ($registration as $item)
-                                                                <option @if($confirmed_registrant->registration_type == $item->id) selected @endif value="{{ $item->id }}">{{ $item->name }}</option>
+                                                                <option @if($confirmed_registrant->registration_type == $item['id']) selected @endif value="{{ $item['id'] }}">{{ $item['name'] }}</option>
                                                             @endforeach
                                                         </select>
                                                     </td>
