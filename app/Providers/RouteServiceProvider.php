@@ -32,6 +32,13 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->ip());
         });
 
+        // Returning-registrant lookup on the public registration form -
+        // kept as tight as login since it reveals whether a phone/email
+        // has registered before.
+        RateLimiter::for('registrant-lookup', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
         RateLimiter::for('registrant-forms', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
         });

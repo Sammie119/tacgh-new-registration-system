@@ -35,6 +35,32 @@
                 <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                     <div class="accordion-body">
 
+                        {{-- Returning-registrant lookup - deliberately outside
+                             #individualRegistrationForm so none of it is submitted. --}}
+                        <div class="card" id="previousRegistrantLookup">
+                            <div class="card-body">
+                                <h5 class="card-title">Registered before?</h5>
+                                <p class="small text-muted mb-3">Enter the phone number or email you used before to fill in some of your details, then check them and complete the rest.</p>
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="lookup_identifier" placeholder="Phone number or email" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-outline-primary w-100" id="lookupFindBtn">Find me</button>
+                                    </div>
+                                </div>
+                                <div id="lookupMessage" class="small mt-2"></div>
+                                <div id="lookupResultsWrapper" class="row g-2 align-items-center mt-1" style="display: none;">
+                                    <div class="col-md-6">
+                                        <select class="form-control" id="lookupResults"></select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-primary w-100" id="lookupUseBtn">Use these details</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <section class="section">
                             <div class="row">
                                 <form id="individualRegistrationForm" action="{{ route('registrant.store') }}" method="post" onsubmit="return validatePhone();">
@@ -447,6 +473,78 @@
             // below has its own, separate "Is Student" select with the
             // same field name.
             toggleInstitutionName(document.querySelector('#individualRegistrationForm select[name="is_student"]'));
+        });
+
+        // Returning-registrant lookup: fetch masked matches for a phone/email,
+        // then fill only the basic fields the server returns. Field lookups
+        // are scoped to #individualRegistrationForm - the batch form below
+        // reuses several of the same ids. Deferred to DOMContentLoaded because
+        // the guest layout loads jQuery after this section.
+        document.addEventListener('DOMContentLoaded', function () {
+            let matches = [];
+            const $message = $('#lookupMessage');
+            const $wrapper = $('#lookupResultsWrapper');
+            const $results = $('#lookupResults');
+
+            function showMessage(text, isError) {
+                $message.text(text).toggleClass('text-danger', !!isError).toggleClass('text-muted', !isError);
+            }
+
+            $('#lookupFindBtn').on('click', function () {
+                const identifier = $('#lookup_identifier').val().trim();
+                $wrapper.hide();
+                if (!identifier) {
+                    showMessage('Enter a phone number or email.', true);
+                    return;
+                }
+
+                const $btn = $(this).prop('disabled', true);
+                showMessage('Searching...', false);
+
+                $.post('{{ route('registrant.lookup') }}', {_token: '{{ csrf_token() }}', identifier: identifier})
+                    .done(function (data) {
+                        matches = data || [];
+                        if (!matches.length) {
+                            showMessage('No previous registration found. Please fill in the form below.', false);
+                            return;
+                        }
+                        $results.empty();
+                        matches.forEach(function (match, i) {
+                            $results.append($('<option>').val(i).text(match.label));
+                        });
+                        showMessage('Select yourself from the list.', false);
+                        $wrapper.show();
+                    })
+                    .fail(function (xhr) {
+                        showMessage(xhr.status === 429
+                            ? 'Too many searches. Please wait a minute and try again.'
+                            : 'Could not search right now. Please fill in the form below.', true);
+                    })
+                    .always(function () {
+                        $btn.prop('disabled', false);
+                    });
+            });
+
+            $('#lookupUseBtn').on('click', function () {
+                const match = matches[$results.val()];
+                if (!match) return;
+
+                const $form = $('#individualRegistrationForm');
+                Object.entries(match.fields).forEach(function ([name, value]) {
+                    const $field = $form.find('[name="' + name + '"]');
+                    if (value === null || value === undefined) return;
+                    if ($field.is('select') && !$field.find('option[value="' + value + '"]').length) return;
+                    $field.val(String(value));
+                });
+
+                // The typed identifier came from the registrant themselves,
+                // so it's safe to carry across into the matching field.
+                const identifier = $('#lookup_identifier').val().trim();
+                $form.find(identifier.includes('@') ? '[name="email"]' : '[name="phone_number"]').val(identifier);
+
+                showMessage('Details filled in. Please check them and complete the remaining fields.', false);
+                $wrapper.hide();
+            });
         });
 
     </script>

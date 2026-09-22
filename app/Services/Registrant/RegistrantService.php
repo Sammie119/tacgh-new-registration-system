@@ -165,6 +165,72 @@ class RegistrantService
         return back()->with('error', 'Role Creation Unsuccessful!!!');
     }
 
+    /**
+     * Find earlier registrations (any event) for a phone number or email so
+     * a returning registrant can prefill the individual form. There is no
+     * verification step, so only low-risk fields are ever returned - DOB,
+     * marital status, emergency contact, disability/special needs, student
+     * details, tokens and ids never leave the server.
+     */
+    public function lookupPreviousRegistrants(string $identifier): array
+    {
+        $identifier = trim($identifier);
+
+        $query = RegistrantStage::query();
+        if (str_contains($identifier, '@')) {
+            $query->whereRaw('LOWER(email) = ?', [strtolower($identifier)]);
+        } else {
+            $query->where('phone_number', Utils::normalizeGhanaPhone($identifier));
+        }
+
+        return $query->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->unique(fn ($reg) => strtolower(trim($reg->first_name).'|'.trim($reg->surname).'|'.$reg->gender))
+            ->take(10)
+            ->map(function ($reg) {
+                $event = get_event($reg->event_id);
+                $label = collect([
+                    $this->maskName($reg->first_name.' '.$reg->surname),
+                    get_dropdown_name($reg->gender),
+                    $event ? trim($event->name.' '.($event->start_date ? date('Y', strtotime($event->start_date)) : '')) : null,
+                ])->filter()->implode(' · ');
+
+                return [
+                    'label' => $label,
+                    'fields' => [
+                        'title' => $reg->title,
+                        'first_name' => $reg->first_name,
+                        'surname' => $reg->surname,
+                        'gender' => $reg->gender,
+                        'nationality_id' => $reg->nationality_id,
+                        'residence_country_id' => $reg->residence_country_id,
+                        'profession' => $reg->profession,
+                        'languages_spoken' => $reg->languages_spoken,
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * "Samuel Sarpong-Duah" -> "S****l S*****g-D***h": keep the first and
+     * last letter of each name part so the right person is recognisable
+     * without spelling the name out.
+     */
+    private function maskName(string $name): string
+    {
+        return preg_replace_callback('/\pL+/u', function ($m) {
+            $part = $m[0];
+            $len = mb_strlen($part);
+
+            return $len <= 2
+                ? mb_substr($part, 0, 1).str_repeat('*', $len - 1)
+                : mb_substr($part, 0, 1).str_repeat('*', $len - 2).mb_substr($part, -1);
+        }, trim($name));
+    }
+
     public function individualRegistrationConfirm(array $data)
     {
         $result = Pipeline::send($data)->through(

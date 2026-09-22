@@ -46,6 +46,15 @@ class RegistrantController extends Controller
         return $this->registrant->registrantRegistration($request->all());
     }
 
+    public function lookupPreviousRegistrant(Request $request)
+    {
+        $request->validate([
+            'identifier' => 'required|string|max:255',
+        ]);
+
+        return response()->json($this->registrant->lookupPreviousRegistrants($request->identifier));
+    }
+
     public function exportRegistrationStage()
     {
         return $this->registrant->exportRegistrationStage();

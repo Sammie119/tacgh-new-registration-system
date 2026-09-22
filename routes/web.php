@@ -27,6 +27,7 @@ Route::get('/registrant_login', function () {
 Route::controller(RegistrantController::class)->group(function () {
     Route::get('/registration', 'register')->name('registrant.registration');
     Route::post('/registration', 'store')->name('registrant.store')->middleware('throttle:registrant-forms');
+    Route::post('/registration_lookup', 'lookupPreviousRegistrant')->name('registrant.lookup')->middleware('throttle:registrant-lookup');
     Route::post('/registration_confirm', 'individualRegistrationConfirm')->name('registrant.confirm')->middleware('throttle:registrant-forms');
     Route::post('/registration_update', 'individualRegistrationUpdate')->name('registrant.update')->middleware('throttle:registrant-forms');
     Route::post('/registration_batch', 'batchRegistrationStage')->name('registrant.batch')->middleware('throttle:registrant-batch');
