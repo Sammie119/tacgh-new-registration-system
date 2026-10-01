@@ -98,9 +98,28 @@ class RegistrationLookupTest extends TestCase
 
         $body = $this->postJson(route('registrant.lookup'), ['identifier' => '0541234567'])->getContent();
 
-        foreach (['date_of_birth', '1990-01-01', 'emergency_contacts', 'Kofi', 'marital_status', 'special_needs', 'token', '"id"', 'disability'] as $needle) {
+        foreach (['date_of_birth', '1990-01-01', 'marital_status', 'emergency_contacts_phone_number', '541234568', 'disability', 'token', '"id"'] as $needle) {
             $this->assertStringNotContainsString($needle, $body);
         }
+    }
+
+    public function test_lookup_returns_extended_prefill_fields(): void
+    {
+        $this->createRegistrant($this->createEvent(), [
+            'is_student' => 1,
+            'institution_name' => 'University of Ghana',
+            'special_needs' => 'Wheelchair access',
+        ]);
+
+        $this->postJson(route('registrant.lookup'), ['identifier' => '0541234567'])
+            ->assertOk()
+            ->assertJsonPath('0.fields.phone_number', '+233541234567')
+            ->assertJsonPath('0.fields.email', 'ama.mensah@example.com')
+            ->assertJsonPath('0.fields.need_accommodation', 1)
+            ->assertJsonPath('0.fields.is_student', 1)
+            ->assertJsonPath('0.fields.institution_name', 'University of Ghana')
+            ->assertJsonPath('0.fields.emergency_contacts_name', 'Kofi Mensah')
+            ->assertJsonPath('0.fields.special_needs', 'Wheelchair access');
     }
 
     public function test_unknown_identifier_returns_empty_list(): void

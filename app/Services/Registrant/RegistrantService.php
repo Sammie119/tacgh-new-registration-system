@@ -168,9 +168,11 @@ class RegistrantService
     /**
      * Find earlier registrations (any event) for a phone number or email so
      * a returning registrant can prefill the individual form. There is no
-     * verification step, so only low-risk fields are ever returned - DOB,
-     * marital status, emergency contact, disability/special needs, student
-     * details, tokens and ids never leave the server.
+     * verification step, so some fields are deliberately withheld and must
+     * be re-entered: date of birth, marital status, emergency contact phone
+     * number and disability. Tokens and record ids never leave the server.
+     * Everything else returned below is visible to anyone who knows the
+     * phone number or email.
      */
     public function lookupPreviousRegistrants(string $identifier): array
     {
@@ -207,6 +209,13 @@ class RegistrantService
                         'residence_country_id' => $reg->residence_country_id,
                         'profession' => $reg->profession,
                         'languages_spoken' => $reg->languages_spoken,
+                        'phone_number' => $reg->phone_number,
+                        'email' => $reg->email,
+                        'need_accommodation' => $reg->need_accommodation,
+                        'is_student' => $reg->is_student,
+                        'institution_name' => $reg->institution_name,
+                        'emergency_contacts_name' => $reg->emergency_contacts_name,
+                        'special_needs' => $reg->special_needs,
                     ],
                 ];
             })

@@ -549,12 +549,10 @@
                     $field.val(String(value));
                 });
 
-                // The typed identifier came from the registrant themselves,
-                // so it's safe to carry across into the matching field.
-                const identifier = $('#lookup_identifier').val().trim();
-                $form.find(identifier.includes('@') ? '[name="email"]' : '[name="phone_number"]').val(identifier);
+                // Show/hide Institution Name to match the prefilled Is Student.
+                toggleInstitutionName($form.find('select[name="is_student"]')[0]);
 
-                showMessage('Details filled in. Please check them and complete the remaining fields.', false);
+                showMessage('Details filled in. Please enter your date of birth, marital status, emergency contact number and disability, and check the rest.', false);
                 $wrapper.hide();
             });
         });
