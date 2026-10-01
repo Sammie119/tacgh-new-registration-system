@@ -71,11 +71,10 @@
                                                 <h5 class="card-title">Personal Information</h5>
                                                 <div class="row g-3">
                                                     <div class="col-md-4">
-                                                        <x-input-select
+                                                        <x-input-checkbox-group
                                                             :options="$title"
-                                                            :selected="0"
+                                                            :selected="old('title', [])"
                                                             name="title"
-                                                            :type="0"
                                                             required="true"
                                                             label="Title"
                                                         />
@@ -531,8 +530,21 @@
 
                 const $form = $('#individualRegistrationForm');
                 Object.entries(match.fields).forEach(function ([name, value]) {
-                    const $field = $form.find('[name="' + name + '"]');
                     if (value === null || value === undefined) return;
+
+                    // Title is a checkbox group (title[]) holding comma-separated IDs.
+                    if (name === 'title') {
+                        const ids = String(value).split(',');
+                        // Native event, so the checkbox group's required
+                        // toggle (a plain addEventListener) sees it too.
+                        $form.find('input[name="title[]"]').each(function () {
+                            this.checked = ids.includes(this.value);
+                            this.dispatchEvent(new Event('change'));
+                        });
+                        return;
+                    }
+
+                    const $field = $form.find('[name="' + name + '"]');
                     if ($field.is('select') && !$field.find('option[value="' + value + '"]').length) return;
                     $field.val(String(value));
                 });

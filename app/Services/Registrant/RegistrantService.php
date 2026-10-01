@@ -56,7 +56,7 @@ class RegistrantService
         $data['registrants'] = $query->paginate(50)->withQueryString();
         $data['search'] = $search;
 
-        $lookupIds = $data['registrants']->pluck('title')
+        $lookupIds = $data['registrants']->pluck('title')->flatMap(fn ($t) => title_ids($t))
             ->merge($data['registrants']->pluck('gender'))
             ->filter()
             ->unique();
@@ -116,7 +116,7 @@ class RegistrantService
             'phone_number' => $data['phone_number'],
             'event_id' => $data['event_id'],
         ], [
-            'title' => $data['title'],
+            'title' => implode(',', (array) $data['title']),
             'first_name' => $data['first_name'],
             'surname' => $data['surname'],
             'marital_status' => $data['marital_status'],

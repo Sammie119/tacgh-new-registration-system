@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Registrant;
 
+use App\Models\Admin\Dropdown;
 use App\Models\Admin\Event;
 use App\Models\Admin\EventFees;
 use App\Models\BatchLog;
@@ -13,6 +14,15 @@ use Tests\TestCase;
 class IdorAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Title is validated against the lookups table (code 22); a fresh
+        // database gives this row id 1, matching the fixtures below.
+        Dropdown::create(['lookup_code_id' => 22, 'full_name' => 'Mr.', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+    }
 
     private function createEvent(): Event
     {
@@ -56,7 +66,7 @@ class IdorAuthorizationTest extends TestCase
     {
         return [
             'id' => $stage->id,
-            'title' => $stage->title, 'first_name' => $stage->first_name, 'surname' => $stage->surname,
+            'title' => title_ids($stage->title), 'first_name' => $stage->first_name, 'surname' => $stage->surname,
             'other_names' => '', 'gender' => $stage->gender, 'date_of_birth' => $stage->date_of_birth,
             'marital_status' => $stage->marital_status, 'nationality_id' => $stage->nationality_id,
             'phone_number' => $stage->phone_number, 'whatsapp_number' => $stage->whatsapp_number,

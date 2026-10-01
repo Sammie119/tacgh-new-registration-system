@@ -56,7 +56,7 @@
                                 @forelse($registrants as $key => $registrant)
                                     @php
                                         $confirmed_registrant = $registrant->stage;
-                                        $registrant_name = strtoupper(trim(($dropdown_names[$registrant->title] ?? '').' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
+                                        $registrant_name = strtoupper(trim(title_names($registrant->title, $dropdown_names).' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
                                     @endphp
 
                                     <tr class="venue_{{ $registrant->id }}">

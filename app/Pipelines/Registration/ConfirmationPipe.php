@@ -28,7 +28,7 @@ class ConfirmationPipe
             'date_of_birth' => $data['date_of_birth'],
             'gender' => $data['gender'],
             'phone_number' => $data['phone_number'],
-            'title' => $data['title'],
+            'title' => implode(',', (array) $data['title']),
             'first_name' => $data['first_name'],
             'surname' => $data['surname'],
             'marital_status' => $data['marital_status'],

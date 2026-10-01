@@ -79,7 +79,7 @@
                                     @endphp
                                     <tr class="registrant_{{ $finance->id }}">
                                         <td style="width: 40px">{{ $finances->firstItem() + $key }}</td>
-                                        <td>{{ strtoupper(trim(($dropdown_names[$finance->title] ?? '').' '.$finance->first_name.' '.$finance->other_names.' '.$finance->surname)) }}</td>
+                                        <td>{{ strtoupper(trim(title_names($finance->title, $dropdown_names).' '.$finance->first_name.' '.$finance->other_names.' '.$finance->surname)) }}</td>
                                         <td>{{ $registration_numbers[$finance->id] ?? '' }}</td>
                                         <td>{{ number_format($amountToPay, 2) }}</td>
                                         <td>{{ number_format($amountPaid, 2) }}</td>

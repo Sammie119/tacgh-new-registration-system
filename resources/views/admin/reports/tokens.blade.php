@@ -60,7 +60,7 @@
                                         <tbody>
                                         @forelse($individuals as $key => $registrant)
                                             @php
-                                                $registrant_name = strtoupper(trim(($dropdown_names[$registrant->title] ?? '').' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
+                                                $registrant_name = strtoupper(trim(title_names($registrant->title, $dropdown_names).' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
                                             @endphp
                                             <tr>
                                                 <td style="width: 40px">{{ $individuals->firstItem() + $key }}</td>
@@ -158,7 +158,7 @@
                                         <tbody>
                                         @forelse($members as $key => $registrant)
                                             @php
-                                                $registrant_name = strtoupper(trim(($dropdown_names[$registrant->title] ?? '').' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
+                                                $registrant_name = strtoupper(trim(title_names($registrant->title, $dropdown_names).' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
                                             @endphp
                                             <tr>
                                                 <td style="width: 40px">{{ $members->firstItem() + $key }}</td>

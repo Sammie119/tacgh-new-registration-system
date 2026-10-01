@@ -42,7 +42,7 @@ class FinanceService
         $data['totals'] = $totals;
         $data['search'] = $search;
 
-        $titleIds = $data['finances']->pluck('title')->filter()->unique();
+        $titleIds = $data['finances']->pluck('title')->flatMap(fn ($t) => title_ids($t))->unique();
         $data['dropdown_names'] = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
 
         $stageIds = $data['finances']->pluck('id');
@@ -78,7 +78,7 @@ class FinanceService
         $data['balance_totals'] = $balanceTotals;
         $data['search'] = $search;
 
-        $titleIds = $data['balances']->pluck('title')->filter()->unique();
+        $titleIds = $data['balances']->pluck('title')->flatMap(fn ($t) => title_ids($t))->unique();
         $data['dropdown_names'] = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
 
         $stageIds = $data['balances']->pluck('id');
@@ -239,11 +239,11 @@ class FinanceService
 
             $regIds = $data['online_payments']->pluck('reg_id')->filter()->unique();
             $stages = RegistrantStage::whereIn('id', $regIds)->get(['id', 'title', 'first_name', 'other_names', 'surname']);
-            $stageTitleIds = $stages->pluck('title')->filter()->unique();
+            $stageTitleIds = $stages->pluck('title')->flatMap(fn ($t) => title_ids($t))->unique();
             $stageTitleNames = Dropdown::whereIn('id', $stageTitleIds)->pluck('full_name', 'id');
 
             $data['registrant_names'] = $stages->mapWithKeys(function ($stage) use ($stageTitleNames) {
-                $name = trim(($stageTitleNames[$stage->title] ?? '').' '.$stage->first_name.' '.$stage->other_names.' '.$stage->surname);
+                $name = trim(title_names($stage->title, $stageTitleNames).' '.$stage->first_name.' '.$stage->other_names.' '.$stage->surname);
 
                 return [$stage->id => strtoupper($name)];
             });

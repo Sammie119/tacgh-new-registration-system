@@ -4,6 +4,7 @@ namespace Tests\Feature\Registrant;
 
 use App\Jobs\SmsNotificationJob;
 use App\Jobs\WhatsappNotificationJob;
+use App\Models\Admin\Dropdown;
 use App\Models\Admin\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -13,12 +14,21 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Title is validated against the lookups table (code 22); a fresh
+        // database gives this row id 1, matching the fixtures below.
+        Dropdown::create(['lookup_code_id' => 22, 'full_name' => 'Mr.', 'active_flag' => 1, 'created_by' => 1, 'updated_by' => 1]);
+    }
+
     private function validPayload(array $overrides = []): array
     {
         $event = $overrides['event'] ?? $this->createEvent();
 
         return array_merge([
-            'title' => 1,
+            'title' => [1],
             'first_name' => 'Ama',
             'surname' => 'Mensah',
             'other_names' => null,

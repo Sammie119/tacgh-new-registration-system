@@ -29,11 +29,10 @@
                                         <h5 class="card-title">Personal Information</h5>
                                         <div class="row g-3">
                                             <div class="col-md-4">
-                                                <x-input-select
+                                                <x-input-checkbox-group
                                                     :options="$title"
-                                                    :selected="$registrant->title"
+                                                    :selected="title_ids($registrant->title)"
                                                     name="title"
-                                                    :type="0"
                                                     required="true"
                                                     label="Title"
                                                 />

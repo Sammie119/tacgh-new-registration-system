@@ -53,7 +53,7 @@
                                 <tbody>
                                 @forelse($balances as $key => $registrant)
                                     @php
-                                        $registrant_name = strtoupper(trim(($dropdown_names[$registrant->title] ?? '').' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
+                                        $registrant_name = strtoupper(trim(title_names($registrant->title, $dropdown_names).' '.$registrant->first_name.' '.$registrant->other_names.' '.$registrant->surname));
                                         $totalToPay = $balance_totals[$registrant->id]->total_to_pay ?? 0;
                                         $totalPaid = $balance_totals[$registrant->id]->total_paid ?? 0;
                                         $balanceDue = $totalToPay - $totalPaid;

@@ -153,7 +153,7 @@ class ReportService
         $data['batch_search'] = $batchSearch;
         $data['member_search'] = $memberSearch;
 
-        $titleIds = $data['individuals']->pluck('title')->merge($data['members']->pluck('title'))->filter()->unique();
+        $titleIds = $data['individuals']->pluck('title')->merge($data['members']->pluck('title'))->flatMap(fn ($t) => title_ids($t))->unique();
         $data['dropdown_names'] = Dropdown::whereIn('id', $titleIds)->pluck('full_name', 'id');
 
         $batchNos = $data['batches']->pluck('batch_no');

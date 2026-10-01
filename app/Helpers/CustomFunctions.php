@@ -110,6 +110,39 @@ if (! function_exists('get_dropdown_name')) {
     }
 }
 
+if (! function_exists('title_ids')) {
+    /**
+     * A registrant can hold several titles (e.g. Mr. and Dr.), stored as
+     * comma-separated lookup IDs in the title column ("1,7"). Older rows
+     * and batch imports hold a single ID, which parses the same way.
+     */
+    function title_ids($title): array
+    {
+        return array_values(array_map('intval', array_filter(
+            array_map('trim', explode(',', (string) $title)),
+            fn ($id) => $id !== '' && ctype_digit($id)
+        )));
+    }
+}
+
+if (! function_exists('title_names')) {
+    /**
+     * "1,7" -> "Mr. Dr.". Pass an id => full_name map when one is already
+     * loaded (list views) to avoid a query per row.
+     */
+    function title_names($title, $names = null): string
+    {
+        $ids = title_ids($title);
+        if (! $ids) {
+            return '';
+        }
+
+        $names ??= Dropdown::whereIn('id', $ids)->pluck('full_name', 'id');
+
+        return collect($ids)->map(fn ($id) => $names[$id] ?? null)->filter()->implode(' ');
+    }
+}
+
 if (! function_exists('get_gender')) {
     function get_gender($gender)
     {
@@ -171,7 +204,7 @@ if (! function_exists('event_registrant_name')) {
 
         $reg = RegistrantStage::find($id);
         if ($reg) {
-            $name = get_dropdown_name($reg->title).' '.$reg->first_name.' '.$reg->other_names.' '.$reg->surname;
+            $name = title_names($reg->title).' '.$reg->first_name.' '.$reg->other_names.' '.$reg->surname;
 
             return strtoupper($name);
         }

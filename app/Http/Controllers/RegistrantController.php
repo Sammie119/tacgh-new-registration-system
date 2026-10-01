@@ -234,7 +234,8 @@ class RegistrantController extends Controller
     protected function individualFormValidation(Request $request, string $type): void
     {
         $request->validate([
-            'title' => 'required',
+            'title' => 'required|array|min:1',
+            'title.*' => 'integer|exists:lookups,id',
             'first_name' => 'required',
             'surname' => 'required',
             'gender' => 'required',
@@ -257,6 +258,7 @@ class RegistrantController extends Controller
             'registration_fee' => ($type === 'confirm') ? 'required|exists:event_fees,id' : 'nullable',
             'amount_to_pay' => ($type === 'confirm') ? 'required|numeric' : 'nullable',
         ], [
+            'title.required' => 'Please select at least one title.',
             'phone_number.regex' => 'Phone number must be a valid Ghanaian number (e.g., 0248000000).',
             'emergency_contacts_phone_number.regex' => 'Emergency Contact number must be a valid Ghanaian number (e.g., 0248000000).',
             'institution_name.required_if' => 'Please enter your institution name.',
@@ -266,7 +268,8 @@ class RegistrantController extends Controller
     protected function formValidation(Request $request, $type = 'update'): void
     {
         $request->validate([
-            'title' => 'required',
+            'title' => 'required|array|min:1',
+            'title.*' => 'integer|exists:lookups,id',
             'first_name' => 'required',
             'surname' => 'required',
             'gender' => 'required',
@@ -289,6 +292,7 @@ class RegistrantController extends Controller
             'amount_to_pay' => ($type === 'confirm') ? 'required|numeric' : 'nullable',
         ],
             [
+                'title.required' => 'Please select at least one title.',
                 'phone_number.regex' => 'Phone number must be a valid Ghanaian number (e.g., 0248000000).',
                 'whatsapp_number.regex' => 'WhatsApp number must be a valid Ghanaian number (e.g., 0248000000).',
                 'emergency_contacts_phone_number.regex' => 'Emergency Contact number must be a valid Ghanaian number (e.g., 0248000000).',
